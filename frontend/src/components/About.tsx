@@ -60,7 +60,7 @@ export function About() {
                         className="mx-auto rounded-2xl"
                     />
                 </div>
-                {/* <h1 className="text-xl font-bold text-gray-900">Meetily</h1> */}
+                {/* <h1 className="text-xl font-bold text-gray-900">Ubundi Meet</h1> */}
                 <p className="text-sm text-[#5F6368] mt-2">
                     Ubundi Meet · v{currentVersion}
                 </p>

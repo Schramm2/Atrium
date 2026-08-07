@@ -685,7 +685,7 @@ const Sidebar: React.FC = () => {
             {!isCollapsed && (
               <div className="w-full">
                 {/* <span className="text-lg text-center border rounded-full bg-blue-50 border-white font-semibold text-gray-700 mb-2 block items-center">
-                  <span>Meetily</span>
+                  <span>Ubundi Meet</span>
                 </span> */}
                 <Logo isCollapsed={isCollapsed} />
 
