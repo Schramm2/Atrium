@@ -9,6 +9,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { RecordingStatusBar } from "./RecordingStatusBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { TranscriptSegmentData } from "@/types";
+import Image from "next/image";
+import { ArrowUpRight, Mic } from "lucide-react";
 
 export interface VirtualizedTranscriptViewProps {
     /** Transcript segments to display */
@@ -34,6 +36,8 @@ export interface VirtualizedTranscriptViewProps {
     totalCount?: number;
     loadedCount?: number;
     onLoadMore?: () => void;
+    /** Start a new recording from the empty home state */
+    onStartRecording?: () => void;
 }
 
 // Threshold for enabling virtualization (below this, use simple rendering)
@@ -124,6 +128,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
     totalCount = 0,
     loadedCount = 0,
     onLoadMore,
+    onStartRecording,
 }) => {
     // Create scroll ref first - shared between virtualizer and auto-scroll hook
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -238,11 +243,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
             <div className={isRecording ? 'pt-2' : ''}>
             {segments.length === 0 ? (
                 // Empty state
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center text-gray-500 mt-8"
-                >
+                <div className="text-center text-gray-500 mt-4">
                     {isRecording ? (
                         <>
                             <div className="flex items-center justify-center mb-3">
@@ -256,12 +257,49 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                             </p>
                         </>
                     ) : (
-                        <>
-                            <p className="text-lg font-semibold">Welcome to meetily!</p>
-                            <p className="text-xs mt-1">Start recording to see live transcription</p>
-                        </>
+                        <div className="ubundi-empty-state text-left">
+                            <div className="ubundi-hero-band">
+                                <div className="ubundi-hero-main">
+                                    <Image
+                                        src="/ubundi-mark.png"
+                                        alt=""
+                                        width={56}
+                                        height={56}
+                                        className="relative z-10 mb-6 rounded-xl"
+                                    />
+                                    <p className="ubundi-hero-kicker">A clear record of the work</p>
+                                    <p className="ubundi-hero-title">Keep the conversation. Move the work forward.</p>
+                                    <p className="ubundi-hero-copy">
+                                        Capture the context while it is fresh. Transcription stays local, so your notes stay close to the work.
+                                    </p>
+                                    <div className="ubundi-hero-actions">
+                                        {onStartRecording && (
+                                            <button type="button" className="ubundi-hero-action" onClick={onStartRecording}>
+                                                <Mic aria-hidden="true" />
+                                                Start a recording
+                                                <ArrowUpRight aria-hidden="true" />
+                                            </button>
+                                        )}
+                                        <span className="ubundi-hero-meta">Local transcription · Your files stay on this Mac</span>
+                                    </div>
+                                </div>
+                                <div className="ubundi-hero-aside" aria-label="Ubundi Meet workflow">
+                                    <p className="ubundi-hero-aside-label">Your private workflow</p>
+                                    <div className="ubundi-waveform" aria-hidden="true">
+                                        {[24, 42, 68, 34, 54, 30, 76, 46, 62, 28, 50, 36].map((height, index) => (
+                                            <span key={index} style={{ height: `${height}%` }} />
+                                        ))}
+                                    </div>
+                                    <div className="ubundi-hero-steps">
+                                        <span><strong>01</strong> Capture the conversation</span>
+                                        <span><strong>02</strong> Review the transcript</span>
+                                        <span><strong>03</strong> Keep the next step visible</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
-                </motion.div>
+                </div>
             ) : useVirtualization ? (
                 // Virtualized rendering for large lists
                 <>

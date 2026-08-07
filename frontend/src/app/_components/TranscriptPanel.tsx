@@ -23,12 +23,14 @@ interface TranscriptPanelProps {
   isProcessingStop: boolean;
   isStopping: boolean;
   showModal: (name: ModalType, message?: string) => void;
+  onStartRecording?: () => void;
 }
 
 export function TranscriptPanel({
   isProcessingStop,
   isStopping,
-  showModal
+  showModal,
+  onStartRecording,
 }: TranscriptPanelProps) {
   // Contexts
   const { transcripts, transcriptContainerRef, copyTranscript } = useTranscripts();
@@ -50,44 +52,45 @@ export function TranscriptPanel({
   );
 
   return (
-    <div ref={transcriptContainerRef} className="w-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
-      {/* Title area - Sticky header */}
-      <div className="sticky top-0 z-10 bg-white p-4 border-gray-200">
-        <div className="flex flex-col space-y-3">
-          <div className="flex  flex-col space-y-2">
-            <div className="flex justify-center  items-center space-x-2">
-              <ButtonGroup>
-                {transcripts?.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyTranscript}
-                    title="Copy Transcript"
-                  >
-                    <Copy />
-                    <span className='hidden md:inline'>
-                      Copy
-                    </span>
-                  </Button>
-                )}
-                {transcriptModelConfig.provider === "localWhisper" &&
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => showModal('languageSettings')}
-                    title="Language"
-                  >
-                    <GlobeIcon />
-                    <span className='hidden md:inline'>
-                      Language
-                    </span>
-                  </Button>
-                }
-              </ButtonGroup>
-            </div>
-          </div>
+    <div ref={transcriptContainerRef} className="ubundi-transcript-surface overflow-hidden">
+      <header className="ubundi-transcript-header">
+        <div>
+          <p className="ubundi-eyebrow">Ubundi Meet · Private workspace</p>
+          <h1 className="ubundi-transcript-title">Conversation capture</h1>
+          <p className="ubundi-transcript-subtitle">
+            Record, transcribe, and keep the context of important conversations close to the work.
+          </p>
         </div>
-      </div>
+        <div className="flex flex-col items-end gap-3">
+          <span className="ubundi-status-pill">On-device by default</span>
+          <ButtonGroup>
+            {transcripts?.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyTranscript}
+                title="Copy Transcript"
+              >
+                <Copy />
+                <span className='hidden md:inline'>Copy</span>
+              </Button>
+            )}
+            {transcriptModelConfig.provider === "localWhisper" &&
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => showModal('languageSettings')}
+                title="Language"
+              >
+                <GlobeIcon />
+                <span className='hidden md:inline'>Language</span>
+              </Button>
+            }
+          </ButtonGroup>
+        </div>
+      </header>
+
+      <div className="ubundi-transcript-body">
 
       {/* Permission Warning - Not needed on Linux */}
       {!isRecording && !isChecking && !isLinux && (
@@ -103,8 +106,8 @@ export function TranscriptPanel({
 
       {/* Transcript content */}
       <div className="pb-20">
-        <div className="flex justify-center">
-          <div className="w-2/3 max-w-[750px]">
+        <div className="flex w-full justify-center">
+          <div className="w-full max-w-[960px]">
             <VirtualizedTranscriptView
               segments={segments}
               isRecording={isRecording}
@@ -113,9 +116,11 @@ export function TranscriptPanel({
               isStopping={isStopping}
               enableStreaming={isRecording}
               showConfidence={true}
+              onStartRecording={onStartRecording}
             />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
