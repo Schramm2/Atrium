@@ -231,4 +231,4 @@ From [Apple Technical Note TN2321](https://developer.apple.com/library/archive/t
 ---
 
 **Last Updated**: October 10, 2025
-**Applies To**: Ubundi Meet v0.4.0+ on macOS
+**Applies To**: Ubundi Meet v0.5.0+ on macOS
