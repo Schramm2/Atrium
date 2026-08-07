@@ -47,9 +47,9 @@ Each template JSON file follows this schema:
 
 Users can add custom templates to the application data directory:
 
-- **macOS**: `~/Library/Application Support/Meetily/templates/`
-- **Windows**: `%APPDATA%\Meetily\templates\`
-- **Linux**: `~/.config/Meetily/templates/`
+- **macOS**: `~/Library/Application Support/com.ubundi.meet/templates/`
+- **Windows**: `%APPDATA%\com.ubundi.meet\templates\`
+- **Linux**: `~/.config/com.ubundi.meet/templates/`
 
 Custom templates override built-in templates with the same filename.
 
