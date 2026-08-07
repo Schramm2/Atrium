@@ -807,7 +807,7 @@ const Sidebar: React.FC = () => {
             </button>
             <Info isCollapsed={isCollapsed} />
             <div className="w-full flex items-center justify-center px-3 py-1 text-[11px] text-[#697988]">
-              Ubundi Meet · v0.4.0
+              Ubundi Meet · v0.5.0
             </div>
           </div>
         )}
