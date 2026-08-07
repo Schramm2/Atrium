@@ -12,11 +12,11 @@ const MainContent: React.FC<MainContentProps> = ({ children }) => {
 
   return (
     <main 
-      className={`flex-1 transition-all duration-300 ${
-        isCollapsed ? 'ml-16' : 'ml-64'
+      className={`min-h-screen flex-none bg-[#F5F5F5] transition-[width,margin] duration-300 ${
+        isCollapsed ? 'ml-16 w-[calc(100vw-4rem)]' : 'ml-[280px] w-[calc(100vw-280px)]'
       }`}
     >
-      <div className="pl-8">
+      <div>
         {children}
       </div>
     </main>

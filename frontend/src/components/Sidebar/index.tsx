@@ -30,7 +30,6 @@ import Logo from '../Logo';
 import Info from '../Info';
 import { ComplianceNotification } from '../ComplianceNotification';
 import { Input } from '../ui/input';
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '../ui/input-group';
 
 interface SidebarItem {
   id: string;
@@ -453,15 +452,14 @@ const Sidebar: React.FC = () => {
 
     return (
       <TooltipProvider>
-        <div className="flex flex-col items-center space-y-4 mt-4">
+        <div className="flex flex-col items-center gap-3 mt-4 px-2">
           <Logo isCollapsed={isCollapsed} />
 
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => router.push('/')}
-                className={`p-2 rounded-lg transition-colors duration-150 ${isHomePage ? 'bg-gray-100' : 'hover:bg-gray-100'
-                  }`}
+                className={`ubundi-nav-link !mx-0 !p-2 ${isHomePage ? 'ubundi-nav-link-active' : ''}`}
               >
                 <Home className="w-5 h-5 text-gray-600" />
               </button>
@@ -476,7 +474,7 @@ const Sidebar: React.FC = () => {
               <button
                 onClick={handleRecordingToggle}
                 disabled={isRecording}
-                className={`p-2 ${isRecording ? 'bg-red-500 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'} rounded-full transition-colors duration-150 shadow-sm`}
+                className="ubundi-nav-link !mx-0 !rounded-full !p-2 !bg-[#D77A85] !text-[#171B48] hover:!bg-[#C66A75]"
               >
                 {isRecording ? (
                   <Square className="w-5 h-5 text-white" />
@@ -495,7 +493,7 @@ const Sidebar: React.FC = () => {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => openImportDialog()}
-                  className="p-2 rounded-lg transition-colors duration-150 hover:bg-blue-100 bg-blue-50"
+                  className="ubundi-nav-link !mx-0 !p-2 !bg-[#F2F5FC] !text-[#2F3498] hover:!bg-[#E6EBF8]"
                 >
                   <Upload className="w-5 h-5 text-blue-600" />
                 </button>
@@ -513,8 +511,7 @@ const Sidebar: React.FC = () => {
                   if (isCollapsed) toggleCollapse();
                   toggleFolder('meetings');
                 }}
-                className={`p-2 rounded-lg transition-colors duration-150 ${isMeetingPage ? 'bg-gray-100' : 'hover:bg-gray-100'
-                  }`}
+                className={`ubundi-nav-link !mx-0 !p-2 ${isMeetingPage ? 'ubundi-nav-link-active' : ''}`}
               >
                 <NotebookPen className="w-5 h-5 text-gray-600" />
               </button>
@@ -528,8 +525,7 @@ const Sidebar: React.FC = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={() => router.push('/settings')}
-                className={`p-2 rounded-lg transition-colors duration-150 ${isSettingsPage ? 'bg-gray-100' : 'hover:bg-gray-100'
-                  }`}
+                className={`ubundi-nav-link !mx-0 !p-2 ${isSettingsPage ? 'ubundi-nav-link-active' : ''}`}
               >
                 <Settings className="w-5 h-5 text-gray-600" />
               </button>
@@ -566,11 +562,11 @@ const Sidebar: React.FC = () => {
     return (
       <div key={item.id}>
         <div
-          className={`flex items-center transition-all duration-150 group ${item.type === 'folder' && depth === 0
-            ? 'p-3 text-lg font-semibold h-10 mx-3 mt-3 rounded-lg'
-            : `px-3 py-2 my-0.5 rounded-md text-sm ${isActive ? 'bg-blue-100 text-blue-700 font-medium' :
-              hasTranscriptMatch ? 'bg-yellow-50' : 'hover:bg-gray-50'
-            } cursor-pointer`
+          className={`group ${item.type === 'folder' && depth === 0
+            ? 'ubundi-section-label cursor-pointer'
+            : `ubundi-meeting-item ${isActive ? 'ubundi-meeting-item-active' :
+              hasTranscriptMatch ? 'ubundi-meeting-item-match' : ''
+            }`
             }`}
           style={item.type === 'folder' && depth === 0 ? {} : { paddingLeft }}
           onClick={() => {
@@ -607,12 +603,12 @@ const Sidebar: React.FC = () => {
             <div className="flex flex-col w-full">
               <div className="flex items-center w-full">
                 {isMeetingItem ? (
-                  <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full mr-2 bg-gray-100">
-                    <File className="w-3.5 h-3.5 text-gray-600" />
+                  <div className="ubundi-meeting-icon">
+                    <File className="w-3.5 h-3.5" />
                   </div>
                 ) : (
-                  <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full mr-2 bg-blue-100">
-                    <Plus className="w-3.5 h-3.5 text-blue-600" />
+                  <div className="ubundi-meeting-icon">
+                    <Plus className="w-3.5 h-3.5" />
                   </div>
                 )}
                 <span className="flex-1 break-words">{item.title}</span>
@@ -661,12 +657,11 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-0 left-0 h-screen z-40">
+    <div className={`fixed top-0 left-0 h-screen z-40 ubundi-sidebar-root ${isCollapsed ? 'w-16' : 'w-[280px]'}`}>
       {/* Floating collapse button */}
       <button
         onClick={toggleCollapse}
-        className="absolute -right-6 top-20 z-50 p-1 bg-white hover:bg-gray-100 rounded-full shadow-lg border"
-        style={{ transform: 'translateX(50%)' }}
+        className="ubundi-collapse-button"
       >
         {isCollapsed ? (
           <ChevronRightCircle className="w-6 h-6" />
@@ -676,11 +671,11 @@ const Sidebar: React.FC = () => {
       </button>
 
       <div
-        className={`h-screen bg-white border-r shadow-sm flex flex-col transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
+        className={`h-screen w-full flex flex-col transition-all duration-300 ${isCollapsed ? '' : 'ubundi-sidebar'
           }`}
       >
         {/*  Header with traffic light spacing */}
-        <div className="flex-shrink-0 h-22 flex items-center">
+        <div className={`flex-shrink-0 flex items-center ${isCollapsed ? 'h-22' : 'ubundi-sidebar-header'}`}>
 
           {/* Title container */}
 
@@ -688,30 +683,30 @@ const Sidebar: React.FC = () => {
 
           <div className="flex-1">
             {!isCollapsed && (
-              <div className="p-3">
+              <div className="w-full">
                 {/* <span className="text-lg text-center border rounded-full bg-blue-50 border-white font-semibold text-gray-700 mb-2 block items-center">
                   <span>Meetily</span>
                 </span> */}
                 <Logo isCollapsed={isCollapsed} />
 
-                <div className="relative mb-1">
-                  <InputGroup >
-                    <InputGroupInput placeholder='Search meeting content...' value={searchQuery}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                    />
-                    <InputGroupAddon>
-                      <SearchIcon />
-                    </InputGroupAddon>
-                    {searchQuery &&
-                      <InputGroupAddon align={'inline-end'}>
-                        <InputGroupButton
-                          onClick={() => handleSearchChange('')}
-                        >
-                          <X />
-                        </InputGroupButton>
-                      </InputGroupAddon>
-                    }
-                  </InputGroup>
+                <div className="ubundi-search">
+                  <SearchIcon className="ubundi-search-icon" aria-hidden="true" />
+                  <Input
+                    className="ubundi-search-input"
+                    placeholder="Search meeting content…"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      className="ubundi-search-clear"
+                      aria-label="Clear meeting search"
+                      onClick={() => handleSearchChange('')}
+                    >
+                      <X aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -725,7 +720,7 @@ const Sidebar: React.FC = () => {
             {!isCollapsed && (
               <div
                 onClick={() => router.push('/')}
-                className="p-3  text-lg font-semibold items-center hover:bg-gray-100 h-10   flex mx-3 mt-3 rounded-lg cursor-pointer"
+                className="ubundi-nav-link"
               >
                 <Home className="w-4 h-4 mr-2" />
                 <span>Home</span>
@@ -742,10 +737,10 @@ const Sidebar: React.FC = () => {
                 {filteredSidebarItems.filter(item => item.type === 'folder').map(item => (
                   <div key={item.id}>
                     <div
-                      className="flex items-center transition-all duration-150 p-3 text-lg font-semibold h-10 mx-3 mt-3 rounded-lg"
+                      className="ubundi-section-label"
                     >
-                      <NotebookPen className="w-4 h-4 mr-2 text-gray-600" />
-                      <span className="text-gray-700">{item.title}</span>
+                      <NotebookPen className="w-4 h-4 mr-2 text-[#2F3498]" />
+                      <span>{item.title}</span>
                       {searchQuery && item.id === 'meetings' && isSearching && (
                         <span className="ml-2 text-xs text-blue-500 animate-pulse">Searching...</span>
                       )}
@@ -757,7 +752,7 @@ const Sidebar: React.FC = () => {
 
             {/* Scrollable meeting items */}
             {!isCollapsed && (
-              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
+              <div className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar min-h-0">
                 {filteredSidebarItems
                   .filter(item => item.type === 'folder' && expandedFolders.has(item.id) && item.children)
                   .map(item => (
@@ -773,16 +768,17 @@ const Sidebar: React.FC = () => {
         {/* Footer */}
         {!isCollapsed && (
 
-          <div className="flex-shrink-0 p-2 border-t border-gray-100">
+          <div className="ubundi-footer">
             <button
               onClick={handleRecordingToggle}
               disabled={isRecording}
-              className={`w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white ${isRecording ? 'bg-red-300 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'} rounded-lg transition-colors shadow-sm`}
+              data-recording={isRecording}
+              className="ubundi-record-action"
             >
               {isRecording ? (
                 <>
                   <Square className="w-4 h-4 mr-2" />
-                  <span>Recording in progress...</span>
+                <span>Recording in progress</span>
                 </>
               ) : (
                 <>
@@ -795,7 +791,7 @@ const Sidebar: React.FC = () => {
             {betaFeatures.importAndRetranscribe && (
               <button
                 onClick={() => openImportDialog()}
-                className="w-full flex items-center justify-center px-3 py-2 mt-1 text-sm font-medium text-gray-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors shadow-sm"
+              className="ubundi-import-action"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 <span>Import Audio</span>
@@ -804,14 +800,14 @@ const Sidebar: React.FC = () => {
 
             <button
               onClick={() => router.push('/settings')}
-              className="w-full flex items-center justify-center px-3 py-1.5 mt-1 mb-1 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors shadow-sm"
+              className="ubundi-secondary-action"
             >
               <Settings className="w-4 h-4 mr-2" />
               <span>Settings</span>
             </button>
             <Info isCollapsed={isCollapsed} />
-            <div className="w-full flex items-center justify-center px-3 py-1 text-xs text-gray-400">
-              v0.4.0
+            <div className="w-full flex items-center justify-center px-3 py-1 text-[11px] text-[#697988]">
+              Ubundi Meet · v0.4.0
             </div>
           </div>
         )}

@@ -23,7 +23,7 @@ export function About() {
 
     const handleContactClick = async () => {
         try {
-            await invoke('open_external_url', { url: 'https://meetily.zackriya.com/#about' });
+            await invoke('open_external_url', { url: 'https://ubundi.co.za' });
         } catch (error) {
             console.error('Failed to open link:', error);
         }
@@ -48,22 +48,24 @@ export function About() {
     };
 
     return (
-        <div className="p-4 space-y-4 h-[80vh] overflow-y-auto">
+        <div className="ubundi-about p-6 space-y-6 h-[80vh] overflow-y-auto">
             {/* Compact Header */}
             <div className="text-center">
                 <div className="mb-3">
                     <Image
-                        src="icon_128x128.png"
-                        alt="Meetily Logo"
-                        width={64}
-                        height={64}
-                        className="mx-auto"
+                        src="/ubundi-mark.png"
+                        alt="Ubundi"
+                        width={72}
+                        height={72}
+                        className="mx-auto rounded-2xl"
                     />
                 </div>
                 {/* <h1 className="text-xl font-bold text-gray-900">Meetily</h1> */}
-                <span className="text-sm text-gray-500"> v{currentVersion}</span>
-                <p className="text-medium text-gray-600 mt-1">
-                    Real-time notes and summaries that never leave your machine.
+                <p className="text-sm text-[#5F6368] mt-2">
+                    Ubundi Meet · v{currentVersion}
+                </p>
+                <p className="text-sm text-[#5F6368] mt-2">
+                    Real-time notes and summaries that keep your context close to the work.
                 </p>
                 <div className="mt-3">
                     <Button
@@ -71,7 +73,7 @@ export function About() {
                         disabled={isChecking}
                         variant="outline"
                         size="sm"
-                        className="text-xs"
+                        className="text-xs border-[#DADCE0] text-[#2F3498] hover:bg-[#F2F5FC]"
                     >
                         {isChecking ? (
                             <>
@@ -95,52 +97,52 @@ export function About() {
 
             {/* Features Grid - Compact */}
             <div className="space-y-3">
-                <h2 className="text-base font-semibold text-gray-800">What makes Meetily different</h2>
+                <h2 className="text-base font-semibold text-[#171B48]">What makes Ubundi Meet different</h2>
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Privacy-first</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Your data & AI processing workflow can now stay within your premise. No cloud, no leaks.</p>
+                    <div className="bg-[#F5F5F5] border border-[#DADCE0] rounded-lg p-4 hover:bg-[#F2F5FC] transition-colors">
+                        <h3 className="font-semibold text-sm text-[#171B48] mb-1">Private by default</h3>
+                        <p className="text-xs text-[#5F6368] leading-relaxed">Your recordings, transcripts, and AI workflow can stay on your machine.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Use Any Model</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Prefer local open-source model? Great. Want to plug in an external API? Also fine. No lock-in.</p>
+                    <div className="bg-[#F5F5F5] border border-[#DADCE0] rounded-lg p-4 hover:bg-[#F2F5FC] transition-colors">
+                        <h3 className="font-semibold text-sm text-[#171B48] mb-1">Your choice of model</h3>
+                        <p className="text-xs text-[#5F6368] leading-relaxed">Use a local model or connect a provider when the work calls for it.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Cost-Smart</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Avoid pay-per-minute bills by running models locally (or pay only for the calls you choose).</p>
+                    <div className="bg-[#F5F5F5] border border-[#DADCE0] rounded-lg p-4 hover:bg-[#F2F5FC] transition-colors">
+                        <h3 className="font-semibold text-sm text-[#171B48] mb-1">Cost-aware</h3>
+                        <p className="text-xs text-[#5F6368] leading-relaxed">Run locally when you want to avoid pay-per-minute processing costs.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Works everywhere</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Google Meet, Zoom, Teams-online or offline.</p>
+                    <div className="bg-[#F5F5F5] border border-[#DADCE0] rounded-lg p-4 hover:bg-[#F2F5FC] transition-colors">
+                        <h3 className="font-semibold text-sm text-[#171B48] mb-1">Built for real work</h3>
+                        <p className="text-xs text-[#5F6368] leading-relaxed">Capture conversations across Meet, Zoom, Teams, or in the room.</p>
                     </div>
                 </div>
             </div>
 
             {/* Coming Soon - Compact */}
-            <div className="bg-blue-50 rounded p-3">
-                <p className="text-s text-blue-800">
-                    <span className="font-bold">Coming soon:</span> A library of on-device AI agents-automating follow-ups, action tracking, and more.
+            <div className="bg-[#1B1F44] rounded-lg p-4">
+                <p className="text-sm text-white/80">
+                    <span className="font-semibold text-[#C183E6]">On the horizon:</span> on-device agents for follow-ups, action tracking, and more.
                 </p>
             </div>
 
             {/* CTA Section - Compact */}
             <div className="text-center space-y-2">
-                <h3 className="text-medium font-semibold text-gray-800">Ready to push your business further?</h3>
-                <p className="text-s text-gray-600">
-                    If you're planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
+                <h3 className="text-base font-semibold text-[#171B48]">Built for the Ubundi way of working</h3>
+                <p className="text-sm text-[#5F6368]">
+                    Keep conversations clear, useful, and connected to the work that follows.
                 </p>
                 <button
                     onClick={handleContactClick}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors duration-200 shadow-sm hover:shadow-md"
+                    className="inline-flex items-center px-4 py-2 bg-[#2F3498] hover:bg-[#1B1F44] text-white text-sm font-semibold rounded-lg transition-colors duration-200"
                 >
-                    Chat with the Zackriya team
+                    Explore Ubundi
                 </button>
             </div>
 
             {/* Footer - Compact */}
-            <div className="pt-2 border-t border-gray-200 text-center">
-                <p className="text-xs text-gray-400">
-                    Built by Zackriya Solutions
+            <div className="pt-2 border-t border-[#DADCE0] text-center">
+                <p className="text-xs text-[#697988]">
+                    Built for Ubundi
                 </p>
             </div>
             <AnalyticsConsentSwitch />
