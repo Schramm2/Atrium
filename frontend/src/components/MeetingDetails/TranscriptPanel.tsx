@@ -5,6 +5,9 @@ import { TranscriptView } from '@/components/TranscriptView';
 import { VirtualizedTranscriptView } from '@/components/VirtualizedTranscriptView';
 import { TranscriptButtonGroup } from './TranscriptButtonGroup';
 import { useMemo } from 'react';
+import { useState } from 'react';
+import { SpeakerAliasDialog } from './SpeakerAliasDialog';
+import { convertTranscriptsToSegments } from '@/lib/speaker-aliases';
 
 interface TranscriptPanelProps {
   transcripts: Transcript[];
@@ -28,6 +31,7 @@ interface TranscriptPanelProps {
   meetingId?: string;
   meetingFolderPath?: string | null;
   onRefetchTranscripts?: () => Promise<void>;
+  onSpeakerAliasChanged?: () => void;
 }
 
 export function TranscriptPanel({
@@ -48,21 +52,19 @@ export function TranscriptPanel({
   meetingId,
   meetingFolderPath,
   onRefetchTranscripts,
+  onSpeakerAliasChanged,
 }: TranscriptPanelProps) {
+  const [speakerEditor, setSpeakerEditor] = useState<{
+    originalSpeakerLabel: string;
+    displaySpeakerName: string;
+  } | null>(null);
   // Convert transcripts to segments if pagination is not used but we want virtualization
   const convertedSegments = useMemo(() => {
     if (usePagination && segments) {
       return segments;
     }
     // Convert transcripts to segments for virtualization
-    return transcripts.map(t => ({
-      id: t.id,
-      timestamp: t.audio_start_time ?? 0,
-      endTime: t.audio_end_time,
-      text: t.text,
-      confidence: t.confidence,
-      speaker: t.speaker,
-    }));
+    return convertTranscriptsToSegments(transcripts);
   }, [transcripts, usePagination, segments]);
 
   return (
@@ -95,8 +97,27 @@ export function TranscriptPanel({
           totalCount={totalCount}
           loadedCount={loadedCount}
           onLoadMore={onLoadMore}
+          onRenameSpeaker={meetingId ? (originalSpeakerLabel, displaySpeakerName) => {
+            setSpeakerEditor({ originalSpeakerLabel, displaySpeakerName });
+          } : undefined}
         />
       </div>
+
+      {meetingId && (
+        <SpeakerAliasDialog
+          meetingId={meetingId}
+          originalSpeakerLabel={speakerEditor?.originalSpeakerLabel ?? null}
+          displaySpeakerName={speakerEditor?.displaySpeakerName ?? null}
+          open={Boolean(speakerEditor)}
+          onOpenChange={(open) => {
+            if (!open) setSpeakerEditor(null);
+          }}
+          onChanged={async () => {
+            await onRefetchTranscripts?.();
+            onSpeakerAliasChanged?.();
+          }}
+        />
+      )}
 
       {/* Custom prompt input at bottom of transcript section */}
       {!isRecording && convertedSegments.length > 0 && (

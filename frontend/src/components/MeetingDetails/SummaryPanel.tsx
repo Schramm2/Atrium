@@ -60,6 +60,7 @@ interface SummaryPanelProps {
   onTemplateSelect: (templateId: string, templateName: string) => void;
   isModelConfigLoading?: boolean;
   onOpenModelSettings?: (openFn: () => void) => void;
+  speakerAliasesChanged?: boolean;
 }
 
 export function SummaryPanel({
@@ -95,7 +96,8 @@ export function SummaryPanel({
   selectedTemplate,
   onTemplateSelect,
   isModelConfigLoading = false,
-  onOpenModelSettings
+  onOpenModelSettings,
+  speakerAliasesChanged = false,
 }: SummaryPanelProps) {
   const [summaryLang, setSummaryLang] = useState<string | null>(null);
   const [summaryLangStorage, setSummaryLangStorage] = useState<SummaryLanguageStorage>('metadata');
@@ -266,7 +268,8 @@ export function SummaryPanel({
 
         {/* Button groups - only show when summary exists */}
         {aiSummary && !isSummaryLoading && (
-          <div className="flex items-center justify-center w-full pt-0 gap-2">
+          <div className="flex flex-col items-center w-full pt-0 gap-1">
+            <div className="flex items-center justify-center w-full gap-2">
             {/* Left-aligned: Summary Generator Button Group */}
             <div className="flex-shrink-0">
               <SummaryGeneratorButtonGroup
@@ -303,6 +306,12 @@ export function SummaryPanel({
                 hasSummary={!!aiSummary}
               />
             </div>
+            </div>
+            {speakerAliasesChanged && (
+              <p className="text-xs text-muted-foreground" role="status">
+                Speaker names will apply when you regenerate.
+              </p>
+            )}
           </div>
         )}
       </div>
