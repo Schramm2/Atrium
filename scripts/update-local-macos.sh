@@ -10,7 +10,6 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 INSTALL_APP="/Applications/Ubundi Meet.app"
 BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Ubundi Meet.app"
-BUILD_BINARY="$BUILD_APP/Contents/MacOS/meetily"
 SUPPORT_DIR="${HOME}/Library/Application Support/com.meetily.ai"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -67,7 +66,11 @@ set +e
 BUILD_EXIT=$?
 set -e
 
-[[ -d "$BUILD_APP" && -f "$BUILD_BINARY" ]] || fail "The build did not produce $BUILD_APP."
+[[ -d "$BUILD_APP" ]] || fail "The build did not produce $BUILD_APP."
+
+BUILD_BINARY="$(find "$BUILD_APP/Contents/MacOS" -maxdepth 1 -type f \
+  ! -name 'ffmpeg' ! -name 'llama-helper' -print -quit)"
+[[ -n "$BUILD_BINARY" ]] || fail "The build did not produce a main executable in $BUILD_APP."
 
 BUILD_MTIME="$(stat -f %m "$BUILD_BINARY")"
 (( BUILD_MTIME >= BUILD_STARTED )) || fail "The app artifact is older than this build attempt."
