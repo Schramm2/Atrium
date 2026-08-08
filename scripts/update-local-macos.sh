@@ -10,7 +10,7 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 INSTALL_APP="/Applications/Ubundi Meet.app"
 BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Ubundi Meet.app"
-SUPPORT_DIR="${HOME}/Library/Application Support/com.meetily.ai"
+SUPPORT_DIR="${HOME}/Library/Application Support/com.ubundi.meet"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
