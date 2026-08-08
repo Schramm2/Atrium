@@ -58,6 +58,8 @@ export default function PageContent({
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [isRecording] = useState(false);
   const [summaryResponse] = useState<SummaryResponse | null>(null);
+  const [speakerAliasesChanged, setSpeakerAliasesChanged] = useState(false);
+  const summaryStartedAfterAliasRef = useRef(false);
 
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
@@ -140,6 +142,28 @@ export default function PageContent({
     Analytics.trackPageView('meeting_details');
   }, []);
 
+  useEffect(() => {
+    setSpeakerAliasesChanged(false);
+    summaryStartedAfterAliasRef.current = false;
+  }, [meeting.id]);
+
+  useEffect(() => {
+    const isGenerating = ['processing', 'summarizing', 'regenerating'].includes(
+      summaryGeneration.summaryStatus,
+    );
+    if (speakerAliasesChanged && isGenerating) {
+      summaryStartedAfterAliasRef.current = true;
+    }
+    if (
+      speakerAliasesChanged
+      && summaryStartedAfterAliasRef.current
+      && summaryGeneration.summaryStatus === 'completed'
+    ) {
+      setSpeakerAliasesChanged(false);
+      summaryStartedAfterAliasRef.current = false;
+    }
+  }, [speakerAliasesChanged, summaryGeneration.summaryStatus]);
+
   // Auto-generate summary when flag is set
   useEffect(() => {
     let cancelled = false;
@@ -190,6 +214,7 @@ export default function PageContent({
           meetingId={meeting.id}
           meetingFolderPath={meeting.folder_path}
           onRefetchTranscripts={onRefetchTranscripts}
+          onSpeakerAliasChanged={() => setSpeakerAliasesChanged(true)}
         />
         <SummaryPanel
           meeting={meeting}
@@ -225,6 +250,7 @@ export default function PageContent({
           onTemplateSelect={templates.handleTemplateSelection}
           isModelConfigLoading={false}
           onOpenModelSettings={handleRegisterModalOpen}
+          speakerAliasesChanged={speakerAliasesChanged}
         />
       </div>
     </div>

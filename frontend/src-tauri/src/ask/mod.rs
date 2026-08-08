@@ -231,7 +231,11 @@ async fn neighbor(
     let comparison = if previous { "<" } else { ">" };
     let direction = if previous { "DESC" } else { "ASC" };
     let sql = format!(
-        "SELECT transcript, speaker FROM transcripts WHERE meeting_id = ? AND rowid {} ? ORDER BY rowid {} LIMIT 1",
+        "SELECT t.transcript, COALESCE(sa.alias, t.speaker) AS speaker \
+         FROM transcripts t \
+         LEFT JOIN speaker_aliases sa \
+           ON sa.meeting_id = t.meeting_id AND sa.original_speaker_label = t.speaker \
+         WHERE t.meeting_id = ? AND t.rowid {} ? ORDER BY t.rowid {} LIMIT 1",
         comparison, direction
     );
     sqlx::query_as(&sql)
@@ -252,10 +256,14 @@ pub async fn retrieve_evidence(
 
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT t.rowid, t.meeting_id, m.title AS meeting_title, t.id AS transcript_id, \
-         t.transcript, t.timestamp, t.audio_start_time, t.audio_end_time, t.speaker, \
+         t.transcript, t.timestamp, t.audio_start_time, t.audio_end_time, \
+         COALESCE(sa.alias, t.speaker) AS speaker, \
          m.created_at AS meeting_created_at, bm25(transcripts_fts) AS score \
          FROM transcripts_fts JOIN transcripts t ON t.rowid = transcripts_fts.rowid \
-         JOIN meetings m ON m.id = t.meeting_id WHERE transcripts_fts MATCH ",
+         JOIN meetings m ON m.id = t.meeting_id \
+         LEFT JOIN speaker_aliases sa \
+           ON sa.meeting_id = t.meeting_id AND sa.original_speaker_label = t.speaker \
+         WHERE transcripts_fts MATCH ",
     );
     query.push_bind(fts_query);
     if !request.meeting_ids.is_empty() {
@@ -779,6 +787,13 @@ mod tests {
     async fn retrieval_ranks_filters_and_preserves_citation_metadata() {
         let pool = test_pool().await;
         insert_fixture(&pool).await;
+        sqlx::query(
+            "INSERT INTO speaker_aliases (meeting_id, original_speaker_label, alias) \
+             VALUES ('m2', 'Speaker 3', 'Finance lead')",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
         let mut scoped = request("What is the marketing budget?");
         scoped.meeting_ids = vec!["m2".into()];
         scoped.date_from = Some("2026-06-01".into());
@@ -787,7 +802,7 @@ mod tests {
         assert_eq!(result[0].meeting_title, "Budget");
         assert_eq!(result[0].transcript_id, "t4");
         assert_eq!(result[0].audio_start_time, Some(12.0));
-        assert_eq!(result[0].speaker.as_deref(), Some("Speaker 3"));
+        assert_eq!(result[0].speaker.as_deref(), Some("Finance lead"));
     }
 
     #[tokio::test]

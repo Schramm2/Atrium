@@ -10,7 +10,11 @@ import { RecordingStatusBar } from "./RecordingStatusBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { TranscriptSegmentData } from "@/types";
 import Image from "next/image";
-import { ArrowUpRight, Mic } from "lucide-react";
+import { ArrowUpRight, Mic, Pencil } from "lucide-react";
+import {
+    getRenameSpeakerAccessibleLabel,
+    isAliasableSpeakerLabel,
+} from "@/lib/speaker-aliases";
 
 export interface VirtualizedTranscriptViewProps {
     /** Transcript segments to display */
@@ -40,6 +44,8 @@ export interface VirtualizedTranscriptViewProps {
     highlightedSegmentId?: string;
     /** Start a new recording from the empty home state */
     onStartRecording?: () => void;
+    /** Enables meeting-scoped renaming on saved transcripts only. */
+    onRenameSpeaker?: (originalSpeakerLabel: string, displaySpeakerName: string) => void;
 }
 
 // Threshold for enabling virtualization (below this, use simple rendering)
@@ -76,20 +82,28 @@ const TranscriptSegment = memo(function TranscriptSegment({
     text,
     confidence,
     speaker,
+    speakerDisplayName,
     isStreaming,
     showConfidence,
     isHighlighted,
+    onRenameSpeaker,
 }: {
     id: string;
     timestamp: number;
     text: string;
     confidence?: number;
     speaker?: string;
+    speakerDisplayName?: string;
     isStreaming: boolean;
     showConfidence: boolean;
     isHighlighted: boolean;
+    onRenameSpeaker?: (originalSpeakerLabel: string, displaySpeakerName: string) => void;
 }) {
     const displayText = cleanStopWords(text) || (text.trim() === '' ? '[Silence]' : text);
+    const resolvedSpeakerName = speakerDisplayName || speaker;
+    const canRename = Boolean(
+        speaker && onRenameSpeaker && isAliasableSpeakerLabel(speaker),
+    );
 
     return (
         <div
@@ -111,10 +125,31 @@ const TranscriptSegment = memo(function TranscriptSegment({
                     </TooltipContent>
                 </Tooltip>
                 <div className="flex-1">
-                    {speaker && (
-                    <div className="mb-1">
-                        <span className="text-xs font-medium text-slate-600">{speaker}</span>
-                    </div>
+                    {resolvedSpeakerName && (
+                        <div className="mb-1">
+                            {canRename && speaker ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            type="button"
+                                            className="group inline-flex items-center gap-1 rounded-sm text-xs font-medium text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                            aria-label={getRenameSpeakerAccessibleLabel(speaker, resolvedSpeakerName)}
+                                            onClick={() => onRenameSpeaker?.(speaker, resolvedSpeakerName)}
+                                        >
+                                            {resolvedSpeakerName}
+                                            <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-70 group-focus:opacity-70" aria-hidden="true" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {resolvedSpeakerName === speaker
+                                            ? 'Rename speaker'
+                                            : `Original label: ${speaker}`}
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <span className="text-xs font-medium text-slate-600">{resolvedSpeakerName}</span>
+                            )}
+                        </div>
                     )}
                     {isStreaming ? (
                         <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
@@ -145,6 +180,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
     onLoadMore,
     onStartRecording,
     highlightedSegmentId,
+    onRenameSpeaker,
 }) => {
     // Create scroll ref first - shared between virtualizer and auto-scroll hook
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -365,9 +401,11 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                                         text={getDisplayText(segment)}
                                         confidence={segment.confidence}
                                         speaker={segment.speaker}
+                                        speakerDisplayName={segment.speakerDisplayName}
                                         isStreaming={isStreaming}
                                         showConfidence={showConfidence}
                                         isHighlighted={segment.id === highlightedSegmentId}
+                                        onRenameSpeaker={onRenameSpeaker}
                                     />
                                 </div>
                             );
@@ -423,9 +461,11 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                                         text={getDisplayText(segment)}
                                         confidence={segment.confidence}
                                         speaker={segment.speaker}
+                                        speakerDisplayName={segment.speakerDisplayName}
                                         isStreaming={isStreaming}
                                         showConfidence={showConfidence}
                                         isHighlighted={segment.id === highlightedSegmentId}
+                                        onRenameSpeaker={onRenameSpeaker}
                                     />
                                 </motion.div>
                             );

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Transcript, MeetingMetadata, PaginatedTranscriptsResponse, TranscriptSegmentData } from "@/types";
+import { convertTranscriptsToSegments } from "@/lib/speaker-aliases";
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -27,20 +28,6 @@ interface UsePaginatedTranscriptsReturn {
     loadMore: () => Promise<void>;
     reset: () => void;
     refetch: () => Promise<void>;
-}
-
-/**
- * Convert Transcript array to TranscriptSegmentData for virtualized display
- */
-function convertTranscriptsToSegments(transcripts: Transcript[]): TranscriptSegmentData[] {
-    return transcripts.map(t => ({
-        id: t.id,
-        timestamp: t.audio_start_time ?? 0,
-        endTime: t.audio_end_time,
-        text: t.text,
-        confidence: t.confidence,
-        speaker: t.speaker,
-    }));
 }
 
 export function usePaginatedTranscripts({
