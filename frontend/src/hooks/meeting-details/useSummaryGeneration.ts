@@ -3,6 +3,7 @@ import { Transcript, Summary } from '@/types';
 import { ModelConfig } from '@/components/ModelSettingsModal';
 import { CurrentMeeting, useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { invoke as invokeTauri } from '@tauri-apps/api/core';
+import { buildSummaryTranscriptPayload } from '@/lib/speaker-aliases';
 import { toast } from 'sonner';
 import Analytics from '@/lib/analytics';
 import { isOllamaNotInstalledError } from '@/lib/utils';
@@ -431,25 +432,6 @@ export function useSummaryGeneration({
       toast.error('Failed to fetch transcripts for summary generation');
       return [];
     }
-  }, []);
-
-  const buildSummaryTranscriptPayload = useCallback((allTranscripts: Transcript[]) => {
-    const formatTime = (seconds: number | undefined, fallbackTimestamp: string): string => {
-      if (seconds === undefined) {
-        return fallbackTimestamp;
-      }
-      const totalSecs = Math.floor(seconds);
-      const mins = Math.floor(totalSecs / 60);
-      const secs = totalSecs % 60;
-      return `[${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}]`;
-    };
-
-    return {
-      transcriptText: allTranscripts
-        .map(t => `${formatTime(t.audio_start_time, t.timestamp)} ${t.speaker ? `${t.speaker}: ` : ''}${t.text}`)
-        .join('\n'),
-      transcriptTexts: allTranscripts.map(t => `${t.speaker ? `${t.speaker}: ` : ''}${t.text}`),
-    };
   }, []);
 
   // Public API: Generate summary from transcripts

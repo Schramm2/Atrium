@@ -17,6 +17,8 @@ export interface Transcript {
   audio_end_time?: number;   // Seconds from recording start (e.g., 128.6)
   duration?: number;          // Segment duration in seconds (e.g., 3.3)
   speaker?: string;
+  /** Meeting-scoped alias resolved by the local database. `speaker` stays raw. */
+  speaker_display_name?: string;
 }
 
 export interface TranscriptUpdate {
@@ -110,4 +112,13 @@ export interface TranscriptSegmentData {
   text: string;
   confidence?: number;
   speaker?: string;
+  speakerDisplayName?: string;
+}
+
+export interface SpeakerAlias {
+  meeting_id: string;
+  original_speaker_label: string;
+  alias: string;
+  created_at: string;
+  updated_at: string;
 }

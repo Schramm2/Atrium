@@ -38,6 +38,15 @@ pub struct Transcript {
     pub speaker: Option<String>,
 }
 
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SpeakerAlias {
+    pub meeting_id: String,
+    pub original_speaker_label: String,
+    pub alias: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct SummaryProcess {
     pub meeting_id: String,

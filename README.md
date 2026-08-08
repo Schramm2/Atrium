@@ -41,7 +41,8 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 
 - **Local First:** Recording, transcription, storage, retrieval, and citation construction stay on your Mac. External AI use is explicit.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
-- **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the live transcript.
+- **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the transcript.
+- **Meeting Speaker Aliases:** In a saved meeting, assign a readable name to an anonymous speaker label. The alias stays on the device and applies only to that meeting. Ubundi Meet keeps the original label and does not infer identity or match voices across meetings.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
 - **Evidence-backed questions:** Ask across saved meetings and open each cited transcript segment at its recording-relative time.
 - **macOS:** Built for macOS.

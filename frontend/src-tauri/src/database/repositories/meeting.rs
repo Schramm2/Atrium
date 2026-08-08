@@ -1,5 +1,8 @@
 use crate::api::{MeetingDetails, MeetingTranscript};
 use crate::database::models::{MeetingModel, Transcript};
+use crate::database::repositories::speaker_alias::{
+    resolve_speaker_display_name, SpeakerAliasesRepository,
+};
 use chrono::Utc;
 use sqlx::{Connection, Error as SqlxError, SqliteConnection, SqlitePool};
 use tracing::{error, info};
@@ -82,18 +85,14 @@ impl MeetingsRepository {
 
             transaction.commit().await?;
 
-            // Convert Transcript to MeetingTranscript
+            let aliases = SpeakerAliasesRepository::alias_map(pool, meeting_id)
+                .await
+                .map_err(|error| SqlxError::Protocol(error.to_string()))?;
+
+            // Keep the raw speaker label and resolve a separate display name.
             let meeting_transcripts = transcripts
                 .into_iter()
-                .map(|t| MeetingTranscript {
-                    id: t.id,
-                    text: t.transcript,
-                    timestamp: t.timestamp,
-                    audio_start_time: t.audio_start_time,
-                    audio_end_time: t.audio_end_time,
-                    duration: t.duration,
-                    speaker: t.speaker,
-                })
+                .map(|t| meeting_transcript_from_model(t, &aliases))
                 .collect::<Vec<_>>();
 
             Ok(Some(MeetingDetails {
@@ -231,6 +230,24 @@ impl MeetingsRepository {
     }
 }
 
+pub fn meeting_transcript_from_model(
+    transcript: Transcript,
+    aliases: &std::collections::HashMap<String, String>,
+) -> MeetingTranscript {
+    let speaker_display_name =
+        resolve_speaker_display_name(transcript.speaker.as_deref(), aliases);
+    MeetingTranscript {
+        id: transcript.id,
+        text: transcript.transcript,
+        timestamp: transcript.timestamp,
+        audio_start_time: transcript.audio_start_time,
+        audio_end_time: transcript.audio_end_time,
+        duration: transcript.duration,
+        speaker: transcript.speaker,
+        speaker_display_name,
+    }
+}
+
 async fn delete_meeting_with_transaction(
     transaction: &mut SqliteConnection,
     meeting_id: &str,
@@ -246,26 +263,33 @@ async fn delete_meeting_with_transaction(
         return Ok(false);
     }
 
-    // Delete from related tables in proper order
-    // 1. Delete from transcript_chunks
+    // Delete from related tables in proper order. Keep this explicit even when
+    // foreign-key cascade is enabled so cleanup also works for legacy pools.
+    // 1. Delete meeting-scoped speaker aliases
+    sqlx::query("DELETE FROM speaker_aliases WHERE meeting_id = ?")
+        .bind(meeting_id)
+        .execute(&mut *transaction)
+        .await?;
+
+    // 2. Delete from transcript_chunks
     sqlx::query("DELETE FROM transcript_chunks WHERE meeting_id = ?")
         .bind(meeting_id)
         .execute(&mut *transaction)
         .await?;
 
-    // 2. Delete from summary_processes
+    // 3. Delete from summary_processes
     sqlx::query("DELETE FROM summary_processes WHERE meeting_id = ?")
         .bind(meeting_id)
         .execute(&mut *transaction)
         .await?;
 
-    // 3. Delete from transcripts
+    // 4. Delete from transcripts
     sqlx::query("DELETE FROM transcripts WHERE meeting_id = ?")
         .bind(meeting_id)
         .execute(&mut *transaction)
         .await?;
 
-    // 4. Finally, delete the meeting
+    // 5. Finally, delete the meeting
     let result = sqlx::query("DELETE FROM meetings WHERE id = ?")
         .bind(meeting_id)
         .execute(&mut *transaction)
