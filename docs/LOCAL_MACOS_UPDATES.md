@@ -43,6 +43,16 @@ The Ubundi Meet bundle identifier is `com.ubundi.meet`. On macOS, the current da
 ~/Library/Application Support/com.ubundi.meet/
 ```
 
+## Speaker-labelling model
+
+When a recording first needs automatic speaker labels, Ubundi Meet downloads the local 3D-Speaker embedding model to:
+
+```text
+~/Library/Application Support/Ubundi Meet/models/speaker-diarization/
+```
+
+The model runs on the Mac. The app uses it only to group voices as anonymous `Speaker N` labels during the current recording. It does not send audio or speaker embeddings to a server.
+
 ## Expected local-build warning
 
 The Tauri package step can report that `TAURI_SIGNING_PRIVATE_KEY` is missing. This prevents updater signatures and GitHub release artifacts, but it does not prevent the local `.app` from being built and installed. The local updater accepts this warning only when it finds a fresh app bundle.
