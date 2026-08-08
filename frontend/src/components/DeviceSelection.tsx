@@ -144,7 +144,6 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
     };
     onDeviceChange(newDevices);
 
-    // Track device selection analytics with enhanced metadata
     const metadata = getDeviceMetadata(deviceName);
     Analytics.track('microphone_selected', {
       device_category: metadata.category,
@@ -161,7 +160,6 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
     };
     onDeviceChange(newDevices);
 
-    // Track device selection analytics with enhanced metadata
     const metadata = getDeviceMetadata(deviceName);
     Analytics.track('system_audio_selected', {
       device_category: metadata.category,

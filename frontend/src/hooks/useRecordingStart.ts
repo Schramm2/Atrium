@@ -21,7 +21,6 @@ interface UseRecordingStartReturn {
  * Features:
  * - Meeting title generation (format: Meeting DD_MM_YY_HH_MM_SS)
  * - Transcript clearing on start
- * - Analytics tracking
  * - Recording notification display
  * - Auto-start from sidebar via sessionStorage flag
  */

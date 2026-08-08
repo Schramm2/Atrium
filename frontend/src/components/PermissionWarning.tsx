@@ -55,9 +55,9 @@ export function PermissionWarning({
     <div className="max-w-md mb-4 space-y-3">
       {/* Combined Permission Warning - Show when either permission is missing */}
       {(!hasMicrophone || !hasSystemAudio) && (
-        <Alert variant="destructive" className="border-amber-400 bg-amber-50">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
-          <AlertTitle className="text-amber-900 font-semibold">
+        <Alert variant="destructive" className="border-[#F3C57A] bg-[#FFF8EC] text-[#171B48]">
+          <AlertTriangle className="h-5 w-5 text-[#B77716]" />
+          <AlertTitle className="text-[#171B48] font-semibold">
             <div className="flex items-center gap-2">
               {!hasMicrophone && <Mic className="h-4 w-4" />}
               {!hasSystemAudio && <Speaker className="h-4 w-4" />}
@@ -67,9 +67,9 @@ export function PermissionWarning({
           {/* Action Buttons */}
           <div className="mt-4 flex flex-wrap gap-2">
             {isMacOS && !hasMicrophone && (
-              <button
+                <button
                 onClick={openMicrophoneSettings}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#2F3498] hover:bg-[#1B1F44] rounded-md transition-colors"
               >
                 <Mic className="h-4 w-4" />
                 Open Microphone Settings
@@ -78,7 +78,7 @@ export function PermissionWarning({
             {isMacOS && !hasSystemAudio && (
               <button
                 onClick={openScreenRecordingSettings}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#171B48] bg-[#7188BE] hover:bg-[#6178AE] rounded-md transition-colors"
               >
                 <Speaker className="h-4 w-4" />
                 Open Screen Recording Settings
@@ -87,18 +87,18 @@ export function PermissionWarning({
             <button
               onClick={onRecheck}
               disabled={isRechecking}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-md transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#171B48] bg-[#F3C57A] hover:bg-[#E6B86D] rounded-md transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isRechecking ? 'animate-spin' : ''}`} />
               Recheck
             </button>
           </div>
-          <AlertDescription className="text-amber-800 mt-2">
+          <AlertDescription className="text-[#5F6368] mt-2">
             {/* Microphone Warning */}
             {!hasMicrophone && (
               <>
                 <p className="mb-3">
-                  Meetily needs access to your microphone to record meetings. No microphone devices were detected.
+                  Ubundi Meet needs access to your microphone to record meetings. No microphone devices were detected.
                 </p>
                 <div className="space-y-2 text-sm mb-4">
                   <p className="font-medium">Please check:</p>
@@ -124,7 +124,7 @@ export function PermissionWarning({
                     <p className="font-medium">To enable system audio on macOS:</p>
                     <ul className="list-disc list-inside ml-2 space-y-1">
                       <li>Install a virtual audio device (e.g., BlackHole 2ch)</li>
-                      <li>Grant Screen Recording permission to Meetily</li>
+                      <li>Grant Screen Recording permission to Ubundi Meet</li>
                       <li>Configure your audio routing in Audio MIDI Setup</li>
                     </ul>
                   </div>

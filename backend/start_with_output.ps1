@@ -14,7 +14,7 @@ if ($args.Count -gt 1) {
 }
 
 Write-Host "====================================="
-Write-Host "Meetily Backend Startup"
+Write-Host "Ubundi Meet Backend Startup"
 Write-Host "====================================="
 Write-Host "Python Backend Port: $portPython"
 Write-Host "Whisper Server Port: $portWhisper"
@@ -273,14 +273,14 @@ if (-not (Test-Path "whisper-server-package\whisper-server.exe")) {
         # Add User-Agent header to avoid API rate limiting
         $headers["User-Agent"] = "PowerShell-Script"
         
-        $apiUrl = "https://api.github.com/repos/Zackriya-Solutions/meeting-minutes/releases/latest"
+        $apiUrl = "https://api.github.com/repos/Schramm2/ubundi-meet/releases/latest"
         $releaseInfo = Invoke-RestMethod -Uri $apiUrl -Headers $headers -UseBasicParsing
         
         $tagName = $releaseInfo.tag_name
         Write-Host "Latest release tag: $tagName"
         
         # Construct the download URL with the actual tag
-        $downloadUrl = "https://github.com/Zackriya-Solutions/meeting-minutes/releases/download/$tagName/whisper-server.exe"
+        $downloadUrl = "https://github.com/Schramm2/ubundi-meet/releases/download/$tagName/whisper-server.exe"
         $destinationPath = "whisper-server-package\whisper-server.exe"
         
         # Download the file
@@ -299,14 +299,14 @@ if (-not (Test-Path "whisper-server-package\whisper-server.exe")) {
         # Try alternative method - look for any recent release
         Write-Host "Attempting alternative download method..."
         try {
-            $allReleasesUrl = "https://api.github.com/repos/Zackriya-Solutions/meeting-minutes/releases"
+            $allReleasesUrl = "https://api.github.com/repos/Schramm2/ubundi-meet/releases"
             $headers = @{"User-Agent" = "PowerShell-Script"}
             $releases = Invoke-RestMethod -Uri $allReleasesUrl -Headers $headers -UseBasicParsing
             
             if ($releases.Count -gt 0) {
                 $latestTag = $releases[0].tag_name
                 Write-Host "Found release: $latestTag"
-                $altDownloadUrl = "https://github.com/Zackriya-Solutions/meeting-minutes/releases/download/$latestTag/whisper-server.exe"
+                $altDownloadUrl = "https://github.com/Schramm2/ubundi-meet/releases/download/$latestTag/whisper-server.exe"
                 
                 Write-Host "Downloading from: $altDownloadUrl"
                 Invoke-WebRequest -Uri $altDownloadUrl -OutFile "whisper-server-package\whisper-server.exe" -UseBasicParsing
@@ -318,7 +318,7 @@ if (-not (Test-Path "whisper-server-package\whisper-server.exe")) {
         } catch {
             Write-Host "Alternative method also failed."
             Write-Host "Please download whisper-server.exe manually from:"
-            Write-Host "https://github.com/Zackriya-Solutions/meeting-minutes/releases"
+            Write-Host "https://github.com/Schramm2/ubundi-meet/releases"
             Write-Host "And place it in: whisper-server-package\whisper-server.exe"
             exit 1
         }
@@ -526,7 +526,7 @@ if (-not (Test-Path $modelFile)) {
 }
 
 Write-Host "====================================="
-Write-Host "Starting Meetily Backend"
+Write-Host "Starting Ubundi Meet Backend"
 Write-Host "====================================="
 Write-Host "Model: $modelName"
 Write-Host "Python Backend Port: $portPython"
@@ -702,17 +702,17 @@ Write-Host "====================================="
 Write-Host "Frontend Application Check"
 Write-Host "====================================="
 
-# Check if meetily-frontend is installed
+# Check if ubundi-meet-frontend is installed
 $frontendInstalled = $false
 $frontendPath = $null
 
-# Check common installation paths for meetily-frontend
+# Check common installation paths for ubundi-meet-frontend
 $possiblePaths = @(
-    "$env:LOCALAPPDATA\Programs\meetily-frontend\meetily-frontend.exe",
-    "$env:LOCALAPPDATA\Programs\meetily\meetily-frontend.exe",
-    "$env:ProgramFiles\meetily-frontend\meetily-frontend.exe",
-    "${env:ProgramFiles(x86)}\meetily-frontend\meetily-frontend.exe",
-    "$env:APPDATA\meetily-frontend\meetily-frontend.exe"
+    "$env:LOCALAPPDATA\Programs\ubundi-meet-frontend\ubundi-meet-frontend.exe",
+    "$env:LOCALAPPDATA\Programs\meetily\ubundi-meet-frontend.exe",
+    "$env:ProgramFiles\ubundi-meet-frontend\ubundi-meet-frontend.exe",
+    "${env:ProgramFiles(x86)}\ubundi-meet-frontend\ubundi-meet-frontend.exe",
+    "$env:APPDATA\ubundi-meet-frontend\ubundi-meet-frontend.exe"
 )
 
 foreach ($path in $possiblePaths) {
@@ -738,7 +738,7 @@ try {
             $installLocation = $regPath.InstallLocation -replace '^"(.+)"$', '$1'
             
             # Try to find the executable in the install location
-            $possibleExeNames = @("meetily-frontend.exe", "meetily.exe")
+            $possibleExeNames = @("ubundi-meet-frontend.exe", "meetily.exe")
             foreach ($exeName in $possibleExeNames) {
                 $testPath = Join-Path $installLocation $exeName
                 if (Test-Path $testPath) {
@@ -753,22 +753,22 @@ try {
 }
 
 if ($frontendInstalled) {
-    Write-Host "Meetily frontend application is installed."
+    Write-Host "Ubundi Meet frontend application is installed."
     if ($frontendPath) {
         Write-Host "Location: $frontendPath"
         
         # Ask if user wants to launch the frontend
-        $launchFrontend = Read-Host "Do you want to launch the Meetily frontend application? (Y/N)"
+        $launchFrontend = Read-Host "Do you want to launch the Ubundi Meet frontend application? (Y/N)"
         if ($launchFrontend -eq 'Y' -or $launchFrontend -eq 'y') {
-            Write-Host "Launching Meetily frontend..."
+            Write-Host "Launching Ubundi Meet frontend..."
             Start-Process -FilePath $frontendPath
-            Write-Host "Meetily frontend launched successfully."
+            Write-Host "Ubundi Meet frontend launched successfully."
         }
     }
 } else {
-    Write-Host "Meetily frontend application is not installed."
+    Write-Host "Ubundi Meet frontend application is not installed."
     Write-Host ""
-    $installFrontend = Read-Host "Would you like to download and install the Meetily frontend application? (Y/N)"
+    $installFrontend = Read-Host "Would you like to download and install the Ubundi Meet frontend application? (Y/N)"
     
     if ($installFrontend -eq 'Y' -or $installFrontend -eq 'y') {
         Write-Host "Fetching latest release information..."
@@ -776,7 +776,7 @@ if ($frontendInstalled) {
         try {
             # Fetch the latest release information
             $headers = @{"User-Agent" = "PowerShell-Script"}
-            $apiUrl = "https://api.github.com/repos/Zackriya-Solutions/meeting-minutes/releases/latest"
+            $apiUrl = "https://api.github.com/repos/Schramm2/ubundi-meet/releases/latest"
             $releaseInfo = Invoke-RestMethod -Uri $apiUrl -Headers $headers -UseBasicParsing
             
             # Find the setup.exe asset - looking for files ending with _x64-setup.exe or similar
@@ -827,7 +827,7 @@ if ($frontendInstalled) {
                     Start-Sleep -Seconds 2  # Give the system a moment to register the installation
                     foreach ($path in $possiblePaths) {
                         if (Test-Path $path) {
-                            Write-Host "Launching Meetily frontend..."
+                            Write-Host "Launching Ubundi Meet frontend..."
                             Start-Process -FilePath $path
                             break
                         }
@@ -851,7 +851,7 @@ if ($frontendInstalled) {
                 }
                 Write-Host ""
                 Write-Host "Please download the installer manually from:"
-                Write-Host "https://github.com/Zackriya-Solutions/meeting-minutes/releases"
+                Write-Host "https://github.com/Schramm2/ubundi-meet/releases"
             }
             
         } catch {
@@ -860,7 +860,7 @@ if ($frontendInstalled) {
             # Try alternative method - look for any recent release
             try {
                 Write-Host "Attempting alternative download method..."
-                $allReleasesUrl = "https://api.github.com/repos/Zackriya-Solutions/meeting-minutes/releases"
+                $allReleasesUrl = "https://api.github.com/repos/Schramm2/ubundi-meet/releases"
                 $releases = Invoke-RestMethod -Uri $allReleasesUrl -Headers @{"User-Agent" = "PowerShell-Script"} -UseBasicParsing
                 
                 if ($releases.Count -gt 0) {
@@ -906,13 +906,13 @@ if ($frontendInstalled) {
                     if (-not $setupAsset) {
                         Write-Host "No installer found in any recent releases."
                         Write-Host "Please download the frontend installer manually from:"
-                        Write-Host "https://github.com/Zackriya-Solutions/meeting-minutes/releases"
+                        Write-Host "https://github.com/Schramm2/ubundi-meet/releases"
                     }
                 }
             } catch {
                 Write-Host "Alternative method also failed."
                 Write-Host "Please download the frontend installer manually from:"
-                Write-Host "https://github.com/Zackriya-Solutions/meeting-minutes/releases"
+                Write-Host "https://github.com/Schramm2/ubundi-meet/releases"
             }
         }
     }
