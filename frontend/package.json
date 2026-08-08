@@ -15,7 +15,8 @@
         "tauri:dev:coreml": "tauri dev -- --features coreml",
         "tauri:build:metal": "tauri build -- --features metal",
         "tauri:build:coreml": "tauri build -- --features coreml",
-        "lint": "next lint"
+        "lint": "next lint",
+        "test:ask": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/ask/*.test.mjs"
     },
     "dependencies": {
         "@blocknote/core": "0.36.0",

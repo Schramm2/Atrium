@@ -23,6 +23,7 @@ interface TranscriptPanelProps {
   totalCount?: number;
   loadedCount?: number;
   onLoadMore?: () => void;
+  highlightedSegmentId?: string;
 
   // Retranscription props
   meetingId?: string;
@@ -45,6 +46,7 @@ export function TranscriptPanel({
   totalCount,
   loadedCount,
   onLoadMore,
+  highlightedSegmentId,
   meetingId,
   meetingFolderPath,
   onRefetchTranscripts,
@@ -95,6 +97,7 @@ export function TranscriptPanel({
           totalCount={totalCount}
           loadedCount={loadedCount}
           onLoadMore={onLoadMore}
+          highlightedSegmentId={highlightedSegmentId}
         />
       </div>
 

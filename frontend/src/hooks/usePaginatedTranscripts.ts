@@ -8,6 +8,8 @@ interface UsePaginatedTranscriptsProps {
     meetingId: string | null;
     /** Optional initial timestamp (in seconds) from URL for loading the correct page */
     initialTimestamp?: number;
+    /** Optional transcript segment to load, including when it is beyond the first page. */
+    initialSegmentId?: string;
 }
 
 interface UsePaginatedTranscriptsReturn {
@@ -44,6 +46,7 @@ function convertTranscriptsToSegments(transcripts: Transcript[]): TranscriptSegm
 export function usePaginatedTranscripts({
     meetingId,
     initialTimestamp,
+    initialSegmentId,
 }: UsePaginatedTranscriptsProps): UsePaginatedTranscriptsReturn {
     const [metadata, setMetadata] = useState<MeetingMetadata | null>(null);
     const [transcripts, setTranscripts] = useState<Transcript[]>([]);
@@ -57,6 +60,7 @@ export function usePaginatedTranscripts({
     const loadedMeetingIdRef = useRef<string | null>(null);
     const isLoadingRef = useRef(false);
     const lastLoadTimeRef = useRef(0); // Debounce protection
+    const targetLoadRef = useRef(false);
 
     // Reset state when meeting changes
     const reset = useCallback(() => {
@@ -68,6 +72,7 @@ export function usePaginatedTranscripts({
         setHasMore(false);
         setError(null);
         offsetRef.current = 0;
+        targetLoadRef.current = false;
     }, []);
 
     // Load meeting metadata
@@ -166,6 +171,38 @@ export function usePaginatedTranscripts({
             setIsLoading(false);
         }
     }, [meetingId, reset, loadMetadata, loadTranscriptsAtOffset]);
+
+    // Citation links can point past the first page. Load sequential pages until
+    // the exact segment is present, the timestamp has been passed, or no pages remain.
+    useEffect(() => {
+        if (!meetingId || isLoading || targetLoadRef.current || (!initialSegmentId && initialTimestamp === undefined)) return;
+        if (initialSegmentId && transcripts.some(transcript => transcript.id === initialSegmentId)) return;
+
+        const lastTimestamp = transcripts.at(-1)?.audio_start_time;
+        if (!initialSegmentId && initialTimestamp !== undefined && lastTimestamp !== undefined && lastTimestamp >= initialTimestamp) return;
+        if (!hasMore) return;
+
+        let cancelled = false;
+        targetLoadRef.current = true;
+
+        const loadTarget = async () => {
+            let nextOffset = offsetRef.current;
+            let canLoadMore: boolean = hasMore;
+            while (!cancelled && canLoadMore) {
+                const nextPage = await loadTranscriptsAtOffset(nextOffset, true);
+                if (nextPage.length === 0) break;
+                nextOffset += nextPage.length;
+                if (initialSegmentId && nextPage.some(transcript => transcript.id === initialSegmentId)) break;
+                const pageLastTimestamp = nextPage.at(-1)?.audio_start_time;
+                if (!initialSegmentId && initialTimestamp !== undefined && pageLastTimestamp !== undefined && pageLastTimestamp >= initialTimestamp) break;
+                canLoadMore = nextOffset < totalCount;
+            }
+            targetLoadRef.current = false;
+        };
+
+        loadTarget();
+        return () => { cancelled = true; targetLoadRef.current = false; };
+    }, [hasMore, initialSegmentId, initialTimestamp, isLoading, loadTranscriptsAtOffset, meetingId, totalCount, transcripts]);
 
     // Initial load
     useEffect(() => {

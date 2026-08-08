@@ -8,7 +8,7 @@
     <p>Open Source • Privacy-First • Local-First</p>
 </div>
 
-A privacy-first AI meeting assistant that captures, transcribes, and summarizes meetings entirely on your local infrastructure. No data leaves your machine unless you choose an external AI provider for summaries.
+A privacy-first AI meeting assistant that captures and transcribes meetings on your Mac. Meeting evidence leaves your machine only when you confirm an Ask request to an external AI provider or choose an external provider for summaries.
 
 ---
 
@@ -39,10 +39,11 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 
 ## Features
 
-- **Local First:** All processing is done on your machine. No data ever leaves your computer.
+- **Local First:** Recording, transcription, storage, retrieval, and citation construction stay on your Mac. External AI use is explicit.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
 - **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the live transcript.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
+- **Evidence-backed questions:** Ask across saved meetings and open each cited transcript segment at its recording-relative time.
 - **macOS:** Built for macOS.
 - **Open Source:** Ubundi Meet is open source and free to use.
 - **Flexible AI Provider Support:** Choose from Ollama (local), Claude, Groq, OpenRouter, or your own OpenAI-compatible endpoint.
@@ -64,6 +65,8 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 Ubundi Meet is a single, self-contained desktop application built with [Tauri](https://tauri.app/). It uses a Rust-based backend to handle audio capture, mixing, transcription, and storage, with a Next.js frontend for the user interface.
 
 For more details, see the [Architecture documentation](docs/architecture.md).
+
+Ask Ubundi Meet retrieves and ranks transcript evidence in the local SQLite database. Citation metadata and meeting navigation stay on the device. Built-in AI and Ollama on a loopback address can answer without an external evidence notice. If the configured endpoint is external, the app names the provider and requires confirmation before it sends the question and selected transcript evidence for the first Ask request in the app session.
 
 ## For Developers
 
