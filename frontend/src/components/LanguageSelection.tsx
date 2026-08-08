@@ -144,7 +144,6 @@ export function LanguageSelection({
       onLanguageChange(languageCode);
       console.log('Language preference saved:', languageCode);
 
-      // Track language selection analytics
       const selectedLang = LANGUAGES.find(lang => lang.code === languageCode);
       await Analytics.track('language_selected', {
         language_code: languageCode,

@@ -2,213 +2,527 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ubundi product UI tokens. Keep operational surfaces quiet and let the
+ * primary Navy carry interaction hierarchy. These values follow DESIGN.md. */
+:root {
+  --ubundi-primary: #2F3498;
+  --ubundi-primary-dark: #1B1F44;
+  --ubundi-on-primary: #FFFFFF;
+  --ubundi-blue: #7188BE;
+  --ubundi-grey: #697988;
+  --ubundi-electric: #C183E6;
+  --ubundi-salmon: #D77A85;
+  --ubundi-amber: #F3C57A;
+  --ubundi-surface: #FFFFFF;
+  --ubundi-surface-muted: #F5F5F5;
+  --ubundi-ink: #171B48;
+  --ubundi-ink-muted: #5F6368;
+  --ubundi-border: #DADCE0;
+
+  --background: 0 0% 96.1%;
+  --foreground: 236 54% 19%;
+  --card: 0 0% 100%;
+  --card-foreground: 236 54% 19%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 236 54% 19%;
+  --primary: 237 53% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 23% 95%;
+  --secondary-foreground: 236 54% 19%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 213 12% 39%;
+  --accent: 272 62% 71%;
+  --accent-foreground: 236 54% 19%;
+  --destructive: 353 53% 66%;
+  --destructive-foreground: 236 54% 19%;
+  --border: 216 13% 86%;
+  --input: 216 13% 86%;
+  --ring: 237 53% 39%;
+  --radius: 0.5rem;
+}
+
 @keyframes vibrate {
-  0% {
-    transform: translate(0);
-  }
-
-  20% {
-    transform: translate(-2px, 2px);
-  }
-
-  40% {
-    transform: translate(-2px, -2px);
-  }
-
-  60% {
-    transform: translate(2px, 2px);
-  }
-
-  80% {
-    transform: translate(2px, -2px);
-  }
-
-  100% {
-    transform: translate(0);
-  }
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
 }
 
-.animate-vibrate {
-  animation: vibrate 0.3s linear;
-}
+.animate-vibrate { animation: vibrate 0.3s linear; }
 
 @keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out;
-}
+.animate-fade-in { animation: fade-in 0.4s ease-out; }
 
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out forwards;
-}
-
-.delay-75 {
-  animation-delay: 75ms;
-}
-
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-150 {
-  animation-delay: 150ms;
-}
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+.delay-75 { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-  }
+  * { @apply border-border; }
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
-}
+  html, body { height: 100%; }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  /* html, */
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: var(--ubundi-surface-muted);
+    color: var(--ubundi-ink);
+    font-family: Manrope, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     overflow: hidden;
-    height: 100%;
   }
 
-  /* Make the window draggable */
-  .titlebar {
-    -webkit-app-region: drag;
-    app-region: drag;
+  button, input, textarea, select { font: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--ubundi-primary);
+    outline-offset: 2px;
   }
 
-  .no-drag {
-    -webkit-app-region: no-drag;
-    app-region: no-drag;
-  }
+  /* Make the window draggable while preserving interactive controls. */
+  .titlebar { -webkit-app-region: drag; app-region: drag; }
+  .no-drag { -webkit-app-region: no-drag; app-region: no-drag; }
 
-  /* Custom scrollbar styles */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 3px;
+    background: color-mix(in srgb, var(--ubundi-blue) 42%, transparent);
+    border-radius: 999px;
   }
-
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+    background: color-mix(in srgb, var(--ubundi-primary) 56%, transparent);
+  }
+  .custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--ubundi-blue) transparent; }
+
+  /* BlockNote layout overrides. The parent owns scrolling. */
+  .bn-container, .bn-editor, .bn-default-styles { width: 100% !important; max-width: none !important; }
+  .bn-container, .bn-editor, .ProseMirror, [data-node-type] { overflow: visible !important; }
+  .bn-block-outer { max-width: 100% !important; }
+}
+
+@layer components {
+  .ubundi-sidebar-root { background: transparent; }
+
+  .ubundi-sidebar {
+    @apply flex h-screen flex-col;
+    width: 280px;
+    background: var(--ubundi-surface);
+    border-right: 1px solid var(--ubundi-border);
+    box-shadow: 8px 0 24px rgba(27, 31, 68, 0.04);
   }
 
-  /* Firefox scrollbar */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+  .ubundi-sidebar-header {
+    @apply flex-shrink-0;
+    min-height: 148px;
+    padding: 28px 20px 20px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFC 100%);
   }
 
-  /* BlockNote Editor - Override fixed dimensions for responsive layout */
-  .bn-container {
-    width: 100% !important;
-    max-width: none !important;
-    overflow: visible !important;
+  .ubundi-logo-lockup {
+    @apply block cursor-pointer transition-opacity;
+    margin: 0 0 24px;
   }
 
-  .bn-editor {
-    width: 100% !important;
-    max-width: none !important;
-    overflow: visible !important;
+  .ubundi-logo-lockup:hover { opacity: 0.78; }
+
+  .ubundi-search {
+    @apply relative flex items-center;
+    height: 40px;
+    border: 1px solid var(--ubundi-border);
+    border-radius: 8px;
+    background: var(--ubundi-surface-muted);
+    color: var(--ubundi-ink);
+    box-shadow: none;
   }
 
-  /* Disable internal scrolling - let parent handle all scrolling */
-  .ProseMirror {
-    overflow: visible !important;
+  .ubundi-search:focus-within {
+    border-color: var(--ubundi-primary);
+    box-shadow: 0 0 0 3px rgba(47, 52, 152, 0.12);
   }
 
-  /* Ensure BlockNote content area is responsive */
-  .bn-block-outer {
-    max-width: 100% !important;
+  .ubundi-search-icon {
+    position: absolute;
+    left: 12px;
+    width: 15px;
+    height: 15px;
+    color: var(--ubundi-grey);
+    pointer-events: none;
   }
 
-  .bn-default-styles {
-    max-width: none !important;
+  .ubundi-search-input {
+    height: 100%;
+    min-width: 0;
+    padding: 0 38px 0 40px !important;
+    border: 0;
+    background: transparent;
+    color: var(--ubundi-ink);
+    box-shadow: none;
+    font-size: 12px;
   }
 
-  /* Disable scrolling on any BlockNote wrapper elements */
-  [data-node-type] {
-    overflow: visible !important;
+  .ubundi-search-input:focus-visible { outline: none; box-shadow: none; }
+
+  .ubundi-search-clear {
+    @apply absolute right-2 inline-flex items-center justify-center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    color: var(--ubundi-grey);
   }
+
+  .ubundi-search-clear:hover { background: #E9ECF7; color: var(--ubundi-primary); }
+  .ubundi-search-clear svg { width: 14px; height: 14px; }
+
+  .ubundi-nav-link {
+    @apply flex cursor-pointer items-center transition-colors;
+    min-height: 40px;
+    margin: 4px 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--ubundi-ink-muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .ubundi-nav-link:hover { background: var(--ubundi-surface-muted); color: var(--ubundi-ink); }
+
+  .ubundi-nav-link-active {
+    background: var(--ubundi-primary);
+    color: var(--ubundi-on-primary);
+  }
+
+  .ubundi-nav-link-active:hover { background: var(--ubundi-primary-dark); color: var(--ubundi-on-primary); }
+
+  .ubundi-section-label {
+    @apply flex items-center;
+    min-height: 40px;
+    margin: 16px 12px 6px;
+    padding: 8px 12px;
+    color: var(--ubundi-ink);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .ubundi-meeting-item {
+    @apply flex cursor-pointer items-center transition-colors;
+    min-width: 0;
+    min-height: 40px;
+    margin: 2px 0;
+    padding: 8px 10px 8px 18px;
+    border-radius: 8px;
+    color: var(--ubundi-ink-muted);
+    font-size: 13px;
+  }
+
+  .ubundi-meeting-item:hover { background: var(--ubundi-surface-muted); color: var(--ubundi-ink); }
+
+  .ubundi-meeting-item-active {
+    background: #EEF0FA;
+    color: var(--ubundi-primary);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--ubundi-primary);
+  }
+
+  .ubundi-meeting-item-match { background: #FFF8EC; }
+
+  .ubundi-meeting-icon {
+    @apply flex flex-shrink-0 items-center justify-center;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    border-radius: 6px;
+    background: #EEF0FA;
+    color: var(--ubundi-primary);
+  }
+
+  .ubundi-footer {
+    @apply flex-shrink-0;
+    padding: 16px;
+    border-top: 1px solid var(--ubundi-border);
+    background: #FAFAFC;
+  }
+
+  .ubundi-record-action {
+    @apply flex w-full items-center justify-center transition-colors;
+    min-height: 40px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: var(--ubundi-primary);
+    color: var(--ubundi-on-primary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ubundi-record-action:hover { background: var(--ubundi-primary-dark); }
+  .ubundi-record-action[data-recording="true"] { background: var(--ubundi-salmon); color: var(--ubundi-ink); }
+
+  .ubundi-import-action {
+    @apply flex w-full items-center justify-center transition-colors;
+    min-height: 38px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(113, 136, 190, 0.55);
+    border-radius: 8px;
+    background: #F2F5FC;
+    color: var(--ubundi-primary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ubundi-import-action:hover { background: #E6EBF8; }
+
+  .ubundi-secondary-action {
+    @apply flex w-full items-center justify-center transition-colors;
+    min-height: 36px;
+    margin-top: 8px;
+    padding: 7px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--ubundi-ink-muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ubundi-secondary-action:hover { border-color: var(--ubundi-border); background: var(--ubundi-surface); color: var(--ubundi-ink); }
+
+  .ubundi-collapse-button {
+    @apply absolute z-50 flex items-center justify-center transition-colors;
+    top: 92px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--ubundi-border);
+    border-radius: 999px;
+    background: var(--ubundi-surface);
+    color: var(--ubundi-primary);
+    box-shadow: 0 4px 14px rgba(27, 31, 68, 0.12);
+  }
+
+  .ubundi-collapse-button:hover { background: #EEF0FA; }
+
+  .ubundi-transcript-surface {
+    @apply flex min-h-screen flex-col;
+    width: 100%;
+    background: var(--ubundi-surface-muted);
+  }
+
+  .ubundi-transcript-header {
+    @apply flex items-start justify-between gap-5;
+    padding: 34px 48px 22px;
+    border-bottom: 1px solid var(--ubundi-border);
+    background: var(--ubundi-surface);
+  }
+
+  .ubundi-eyebrow {
+    color: var(--ubundi-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .ubundi-transcript-title {
+    margin-top: 5px;
+    color: var(--ubundi-ink);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .ubundi-transcript-subtitle {
+    max-width: 520px;
+    margin-top: 7px;
+    color: var(--ubundi-ink-muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .ubundi-status-pill {
+    @apply inline-flex items-center gap-2 whitespace-nowrap;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #F2F5FC;
+    color: var(--ubundi-primary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .ubundi-status-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ubundi-electric);
+  }
+
+  .ubundi-transcript-body {
+    @apply flex-1 overflow-y-auto;
+    padding: 28px 48px 120px;
+  }
+
+  .ubundi-empty-state {
+    @apply mx-auto w-full;
+    max-width: 960px;
+    padding-top: 20px;
+  }
+
+  .ubundi-hero-band {
+    @apply relative grid overflow-hidden;
+    grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+    gap: 42px;
+    min-height: 360px;
+    padding: 44px 48px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 86% 22%, rgba(113, 136, 190, 0.24), transparent 32%),
+      radial-gradient(circle at 72% 110%, rgba(193, 131, 230, 0.18), transparent 36%),
+      var(--ubundi-primary-dark);
+    color: var(--ubundi-on-primary);
+    box-shadow: 0 22px 48px rgba(27, 31, 68, 0.16);
+  }
+
+  .ubundi-hero-band::after {
+    content: "";
+    position: absolute;
+    right: -60px;
+    bottom: -90px;
+    width: 240px;
+    height: 240px;
+    border: 1px solid rgba(193, 131, 230, 0.28);
+    border-radius: 50%;
+  }
+
+  .ubundi-hero-main, .ubundi-hero-aside { position: relative; z-index: 1; }
+
+  .ubundi-hero-kicker {
+    color: #C183E6;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .ubundi-hero-title {
+    max-width: 540px;
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .ubundi-hero-copy {
+    max-width: 520px;
+    margin-top: 14px;
+    color: rgba(255, 255, 255, 0.76);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .ubundi-hero-meta {
+    @apply inline-flex items-center gap-2;
+    margin-top: 0;
+    padding: 8px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+  }
+
+  .ubundi-hero-actions {
+    @apply flex flex-wrap items-center gap-3;
+    margin-top: 26px;
+  }
+
+  .ubundi-hero-action {
+    @apply inline-flex items-center gap-2 transition-colors;
+    min-height: 40px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: var(--ubundi-on-primary);
+    color: var(--ubundi-primary-dark);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .ubundi-hero-action:hover { background: #F3C57A; }
+  .ubundi-hero-action svg { width: 15px; height: 15px; }
+
+  .ubundi-hero-aside {
+    @apply flex flex-col justify-end;
+    padding-left: 28px;
+    border-left: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .ubundi-hero-aside-label {
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .ubundi-waveform {
+    @apply flex items-center gap-1;
+    height: 76px;
+    margin: 18px 0 20px;
+  }
+
+  .ubundi-waveform span {
+    flex: 1;
+    min-width: 4px;
+    max-width: 9px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #F3C57A 0%, #C183E6 100%);
+    opacity: 0.9;
+  }
+
+  .ubundi-hero-steps {
+    @apply flex flex-col;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .ubundi-hero-steps span { display: flex; gap: 10px; align-items: baseline; }
+  .ubundi-hero-steps strong { color: #C183E6; font-size: 11px; letter-spacing: 0.08em; }
+
+  .ubundi-recording-dock {
+    @apply flex items-center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--ubundi-border);
+    border-radius: 999px;
+    background: var(--ubundi-surface);
+    box-shadow: 0 14px 30px rgba(27, 31, 68, 0.12);
+  }
+
+  .ubundi-about { background: var(--ubundi-surface); color: var(--ubundi-ink); }
+}
+
+@media (max-width: 860px) {
+  .ubundi-transcript-header { flex-direction: column; padding: 28px 28px 20px; }
+  .ubundi-transcript-body { padding: 24px 28px 112px; }
+  .ubundi-hero-band { grid-template-columns: 1fr; gap: 28px; padding: 36px; }
+  .ubundi-hero-aside { padding: 24px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.18); border-left: 0; }
+}
+
+@media (max-width: 560px) {
+  .ubundi-transcript-header { padding: 24px 20px 18px; }
+  .ubundi-transcript-body { padding: 20px 20px 104px; }
+  .ubundi-hero-band { padding: 28px 24px; border-radius: 16px; }
+  .ubundi-hero-title { font-size: 26px; }
+  .ubundi-hero-copy { font-size: 14px; }
 }

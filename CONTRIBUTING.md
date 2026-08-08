@@ -1,36 +1,36 @@
-# Contributing to Meeting Minutes Updates
+# Contributing to Ubundi Meet
 
-Thank you for your interest in contributing to Meetily! This document provides guidelines and instructions for contributing to this project.
+Thank you for your interest in contributing to Ubundi Meet! This document provides guidelines and instructions for contributing to this project.
 
 ## Development Workflow
 
 ### Branch Strategy
 
-- `main` - Production branch
-- `devtest` - Development and testing branch
-- Feature branches should be created from `devtest`
+- `main` - Stable releases
+- `feat/*` - Feature enhancements
+- `fix/*` - Bug fixes
+- `enhance/*` - Feature enhancements
 
 ### Getting Started
 
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/meeting-minutes.git
+   git clone https://github.com/Schramm2/ubundi-meet.git
    ```
-3. Add the original repository as upstream:
+3. Add the original Meetily repository as upstream (optional, for syncing):
    ```bash
-   git remote add upstream https://github.com/Zackriya-Solutions/meeting-minutes.git
+   git remote add upstream https://github.com/Zackriya-Solutions/meetily.git
    ```
-4. Create a new branch from `devtest`:
+4. Create a new branch from `main`:
    ```bash
-   git checkout devtest
-   git pull upstream devtest
-   git checkout -b feature/your-feature-name
+   git checkout main
+   git checkout -b feat/your-feature-name
    ```
 
 ### Development Process
 
-1. Always start your work from the `devtest` branch
+1. Always start your work from the latest `main`
 2. Create a new branch for each feature/fix
 3. Make your changes
 4. Write or update tests as needed
@@ -52,13 +52,11 @@ Before starting work on a new feature or bug fix:
 
 ### Pull Request Process
 
-1. Create a PR from your feature branch to `devtest`
+1. Create a PR from your feature branch to `main`
 2. Link the PR to the related issue using the issue number (e.g., "Fixes #123")
 3. Fill out the PR template completely
 4. Ensure CI checks pass
-5. Request review from at least one maintainer
-6. Address any review comments
-7. Once approved, the PR will be merged into `devtest`
+5. Address any review comments
 
 ### PR Template
 
@@ -134,19 +132,11 @@ Types:
 - Document API changes
 - Add comments for complex code
 
-## Review Process
-
-1. PRs require at least one review
-2. Address all review comments
-3. Keep the PR up to date with `devtest`
-4. Squash commits if requested
-
 ## Getting Help
 
 - Create an issue for questions
-- Join our community chat
 - Contact maintainers
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's MIT License. 
+By contributing, you agree that your contributions will be licensed under the project's MIT License. Original code remains attributed to Meetily (Zackriya Solutions, © 2024) as required by the MIT license.
