@@ -38,6 +38,7 @@ pub mod playback_monitor; // NEW: Playback device detection for BT warnings
 
 // Transcription module (provider abstraction, engine management, worker pool)
 pub mod transcription;
+pub mod speaker_diarization;
 
 // Shared utilities for import and retranscription
 pub(crate) mod common;
@@ -118,4 +119,3 @@ pub use decoder::{decode_audio_file, DecodedAudio};
 
 // Export audio constants
 pub use constants::AUDIO_EXTENSIONS;
-

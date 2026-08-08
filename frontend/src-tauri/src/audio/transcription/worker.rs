@@ -36,6 +36,7 @@ pub struct TranscriptUpdate {
     pub audio_start_time: f64, // Seconds from recording start (e.g., 125.3)
     pub audio_end_time: f64,   // Seconds from recording start (e.g., 128.6)
     pub duration: f64,          // Segment duration in seconds (e.g., 3.3)
+    pub speaker: String,
 }
 
 // NOTE: get_transcript_history and get_recording_meeting_name functions
@@ -91,6 +92,14 @@ pub fn start_transcription_task<R: Runtime>(
 
             let worker_handle = tokio::spawn(async move {
                 info!("👷 Worker {} started", worker_id);
+                let mut diarizer = match crate::audio::speaker_diarization::SpeakerDiarizer::new().await {
+                    Ok(diarizer) => Some(diarizer),
+                    Err(error) => {
+                        warn!("Speaker diarization is unavailable: {}", error);
+                        let _ = app_clone.emit("speaker-diarization-warning", error);
+                        None
+                    }
+                };
 
                 // PRE-VALIDATE model state to avoid repeated async calls per chunk
                 let initial_model_loaded = engine_clone.is_model_loaded().await;
@@ -119,6 +128,7 @@ pub fn start_transcription_task<R: Runtime>(
 
                     match chunk {
                         Some(chunk) => {
+                            let diarization_samples = chunk.data.clone();
                             // PERFORMANCE OPTIMIZATION: Reduce logging in hot path
                             // Only log every 10th chunk per worker to reduce I/O overhead
                             let should_log_this_chunk = chunk.chunk_id % 10 == 0;
@@ -195,6 +205,10 @@ pub fn start_transcription_task<R: Runtime>(
                                         let sequence_id = SEQUENCE_COUNTER.fetch_add(1, Ordering::SeqCst);
                                         let audio_start_time = chunk_timestamp; // Already in seconds from recording start
                                         let audio_end_time = chunk_timestamp + chunk_duration;
+                                        let speaker = diarizer
+                                            .as_mut()
+                                            .and_then(|diarizer| diarizer.label(&diarization_samples))
+                                            .unwrap_or_else(|| "Unidentified speaker".to_string());
 
                                         // Save structured transcript segment to recording manager (only final results)
                                         // Save ALL segments (partial and final) to ensure complete JSON
@@ -217,6 +231,7 @@ pub fn start_transcription_task<R: Runtime>(
                                             audio_start_time,
                                             audio_end_time,
                                             duration: chunk_duration,
+                                            speaker,
                                         };
 
                                         if let Err(e) = app_clone.emit("transcript-update", &update)

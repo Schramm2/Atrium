@@ -41,6 +41,7 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 
 - **Local First:** All processing is done on your machine. No data ever leaves your computer.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
+- **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the live transcript.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
 - **macOS:** Built for macOS.
 - **Open Source:** Ubundi Meet is open source and free to use.
@@ -86,6 +87,7 @@ Required third-party notices are in [NOTICE.md](NOTICE.md).
 Acknowledgments:
 
 - [Whisper.cpp](https://github.com/ggerganov/whisper.cpp) — local transcription engine
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) and [3D-Speaker](https://github.com/modelscope/3D-Speaker) — local speaker embeddings for live speaker labels
 - [Screenpipe](https://github.com/mediar-ai/screenpipe) — borrowed code
 - [transcribe-rs](https://crates.io/crates/transcribe-rs) — borrowed code
 - **NVIDIA** for the **Parakeet** model

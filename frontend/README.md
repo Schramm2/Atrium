@@ -7,7 +7,7 @@ A modern desktop application for recording, transcribing, and analyzing meetings
 - Real-time audio recording from both microphone and system audio
 - Live transcription using Whisper ASR (locally running)
 - Native desktop integration using Tauri
-- Speaker diarization support
+- Automatic speaker labels during a recording
 - Rich text editor for note-taking
 - Privacy-focused: All processing happens locally
 
@@ -130,6 +130,18 @@ pnpm run tauri:build
 ## Local Transcription
 
 Current Ubundi Meet does not require a separate FastAPI service, Docker backend, or manually started whisper-server process. Local transcription is handled by the Rust/Tauri desktop app.
+
+## Automatic Speaker Labels
+
+During a live recording, Ubundi Meet compares local speaker embeddings for each completed speech segment. It groups similar voices and writes anonymous labels such as `Speaker 1` into the transcript. The labels identify a distinct voice in the current recording. They do not identify a person's real name and they are discarded when the recording ends.
+
+The app downloads its small local speaker-embedding model the first time this feature is needed. It stores the model in the application local-data directory. On macOS, this is under:
+
+```text
+~/Library/Application Support/Ubundi Meet/models/speaker-diarization/
+```
+
+The audio and speaker embeddings stay on the device. Short speech, overlapping voices, or low-quality audio can result in `Unidentified speaker`.
 
 For build and acceleration details, see:
 
