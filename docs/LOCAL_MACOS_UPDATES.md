@@ -35,21 +35,13 @@ git rev-parse HEAD
 
 The `commit` value in the receipt should match `git rev-parse HEAD`.
 
-## Data directory after the rebrand
+## Data directory
 
 The Ubundi Meet bundle identifier is `com.ubundi.meet`. On macOS, the current data directory is:
 
 ```text
 ~/Library/Application Support/com.ubundi.meet/
 ```
-
-Older Meetily installations used:
-
-```text
-~/Library/Application Support/com.meetily.ai/
-```
-
-Keep the legacy directory until the current app shows your meetings, transcripts, models, and preferences. Do not copy or replace SQLite files while the app is running. Make a dated backup before a manual migration.
 
 ## Expected local-build warning
 

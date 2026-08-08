@@ -10,8 +10,6 @@
 
 A privacy-first AI meeting assistant that captures, transcribes, and summarizes meetings entirely on your local infrastructure. No data leaves your machine unless you choose an external AI provider for summaries.
 
-Ubundi Meet is a personal fork of [Meetily](https://github.com/Zackriya-Solutions/meetily), maintained as its own product while keeping the original MIT license and attribution.
-
 ---
 
 <details>
@@ -24,7 +22,7 @@ Ubundi Meet is a personal fork of [Meetily](https://github.com/Zackriya-Solution
 - [System Architecture](#system-architecture)
 - [For Developers](#for-developers)
 - [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md)
-- [License & Attribution](#license--attribution)
+- [License](#license)
 
 </details>
 
@@ -91,11 +89,11 @@ pnpm run tauri:dev
 
 For the short local macOS update path, use [`scripts/update-local-macos.sh`](scripts/update-local-macos.sh). It builds the current checkout and updates `/Applications/Ubundi Meet.app` without a GitHub release. See the [Local macOS Updates guide](docs/LOCAL_MACOS_UPDATES.md) for verification and data-directory details.
 
-## License & Attribution
+## License
 
 Ubundi Meet is distributed under the [MIT License](LICENSE.md).
 
-This project is a fork of [Meetily](https://github.com/Zackriya-Solutions/meetily), originally created by Zackriya Solutions (MIT, © 2024). The original copyright notice and license are preserved in [LICENSE.md](LICENSE.md), as required by the MIT license.
+Required third-party notices are in [NOTICE.md](NOTICE.md).
 
 Acknowledgments:
 

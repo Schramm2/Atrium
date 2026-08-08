@@ -12,8 +12,8 @@ interface HomebrewDatabaseDetectorProps {
 
 // Homebrew paths differ between Intel and Apple Silicon Macs
 const HOMEBREW_PATHS = [
-  '/opt/homebrew/var/meetily/meeting_minutes.db',  // Apple Silicon (M1/M2/M3)
-  '/usr/local/var/meetily/meeting_minutes.db',      // Intel Macs
+  '/opt/homebrew/var/ubundi-meet/meeting_minutes.db',  // Apple Silicon (M1/M2/M3)
+  '/usr/local/var/ubundi-meet/meeting_minutes.db',      // Intel Macs
 ];
 
 export function HomebrewDatabaseDetector({ onImportSuccess, onDecline }: HomebrewDatabaseDetectorProps) {
@@ -148,4 +148,3 @@ export function HomebrewDatabaseDetector({ onImportSuccess, onDecline }: Homebre
     </div>
   );
 }
-

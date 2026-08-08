@@ -31,7 +31,7 @@ for command_name in cargo codesign date ditto git pnpm stat; do
   require_command "$command_name"
 done
 
-if /usr/bin/pgrep -x ubundi-meet >/dev/null 2>&1 || /usr/bin/pgrep -x meetily >/dev/null 2>&1; then
+if /usr/bin/pgrep -x ubundi-meet >/dev/null 2>&1; then
   fail "Ubundi Meet is running. Quit it before updating so an active recording is not interrupted."
 fi
 
