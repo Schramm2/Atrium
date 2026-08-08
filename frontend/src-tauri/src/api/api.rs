@@ -9,6 +9,7 @@ use crate::{
         models::MeetingModel,
         repositories::{
             meeting::MeetingsRepository, setting::SettingsRepository,
+            speaker_alias::SpeakerAliasesRepository,
             transcript::TranscriptsRepository,
         },
     },
@@ -139,6 +140,9 @@ pub struct MeetingTranscript {
     pub duration: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub speaker: Option<String>,
+    /// User-confirmed, meeting-scoped display name. The raw `speaker` remains unchanged.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speaker_display_name: Option<String>,
 }
 
 /// Meeting metadata without transcripts (for pagination)
@@ -872,18 +876,14 @@ pub async fn api_get_meeting_transcripts<R: Runtime>(
                 total_count
             );
 
-            // Convert Transcript to MeetingTranscript
+            let aliases = SpeakerAliasesRepository::alias_map(pool, &meeting_id)
+                .await
+                .map_err(|error| format!("Failed to retrieve speaker aliases: {}", error))?;
+
+            // Convert Transcript while keeping raw and resolved speaker names distinct.
             let meeting_transcripts = transcripts
                 .into_iter()
-                .map(|t| MeetingTranscript {
-                    id: t.id,
-                    text: t.transcript,
-                    timestamp: t.timestamp,
-                    audio_start_time: t.audio_start_time,
-                    audio_end_time: t.audio_end_time,
-                    duration: t.duration,
-                    speaker: t.speaker,
-                })
+                .map(|t| crate::database::repositories::meeting::meeting_transcript_from_model(t, &aliases))
                 .collect::<Vec<_>>();
 
             let has_more = (offset + meeting_transcripts.len() as i64) < total_count;

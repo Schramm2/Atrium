@@ -133,7 +133,11 @@ Current Ubundi Meet does not require a separate FastAPI service, Docker backend,
 
 ## Automatic Speaker Labels
 
-During a live recording, Ubundi Meet compares local speaker embeddings for each completed speech segment. It groups similar voices and writes anonymous labels such as `Speaker 1` into the transcript. The labels identify a distinct voice in the current recording. They do not identify a person's real name and they are discarded when the recording ends.
+During a live recording, Ubundi Meet compares local speaker embeddings for each completed speech segment. It groups similar voices and writes anonymous labels such as `Speaker 1` into the transcript. The labels identify a distinct voice in the current recording. They do not identify a person's real name. The saved transcript keeps the anonymous label, but the temporary speaker profiles and embeddings are discarded when recording stops.
+
+In a saved meeting, you can assign a readable alias to an anonymous label. The alias is user-entered, stored locally, and scoped to that meeting. Ubundi Meet keeps the original label in the transcript data. It shows the alias in the saved transcript and copied transcript. The next explicit summary generation or regeneration also uses the alias. Changing an alias does not regenerate an existing summary.
+
+Speaker aliases do not identify people, infer names, or match voices across meetings. `Unidentified speaker` cannot have an alias because its segments can contain more than one person.
 
 The app downloads its small local speaker-embedding model the first time this feature is needed. It stores the model in the application local-data directory. On macOS, this is under:
 
