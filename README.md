@@ -55,14 +55,14 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 
 ### 🍎 macOS
 
-1. Download the latest `.dmg` from [Releases](https://github.com/Schramm2/meetily/releases)
+1. Download the latest `.dmg` from [Releases](https://github.com/Schramm2/ubundi-meet/releases)
 2. Open the downloaded `.dmg` file
 3. Drag **Ubundi Meet** to your Applications folder
 4. Open **Ubundi Meet** from Applications folder
 
 ### 🪟 Windows
 
-1. Download the latest `x64-setup.exe` from [Releases](https://github.com/Schramm2/meetily/releases)
+1. Download the latest `x64-setup.exe` from [Releases](https://github.com/Schramm2/ubundi-meet/releases)
 2. Run the installer
 
 ### 🐧 Linux
@@ -83,8 +83,8 @@ For more details, see the [Architecture documentation](docs/architecture.md).
 You'll need Rust and Node.js (pnpm) installed to build from source. See the [Building from Source guide](docs/BUILDING.md) and the [GPU Acceleration guide](docs/GPU_ACCELERATION.md).
 
 ```bash
-git clone https://github.com/Schramm2/meetily
-cd meetily/frontend
+git clone https://github.com/Schramm2/ubundi-meet
+cd ubundi-meet/frontend
 pnpm install
 pnpm run tauri:dev
 ```

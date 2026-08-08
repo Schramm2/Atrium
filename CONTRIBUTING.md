@@ -16,7 +16,7 @@ Thank you for your interest in contributing to Ubundi Meet! This document provid
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/Schramm2/meetily.git
+   git clone https://github.com/Schramm2/ubundi-meet.git
    ```
 3. Add the original Meetily repository as upstream (optional, for syncing):
    ```bash
