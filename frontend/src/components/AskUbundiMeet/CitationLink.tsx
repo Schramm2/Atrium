@@ -16,4 +16,3 @@ export function CitationLink({ data, onNavigate }: { data: ClaimCitationData; on
     </button>
   );
 }
-

@@ -14,7 +14,6 @@ interface ScopeControlsProps {
   onDateFromChange: (value: string) => void;
   onDateToChange: (value: string) => void;
 }
-
 export function ScopeControls(props: ScopeControlsProps) {
   const scopeLabel = props.selectedMeetingIds.length === 0
     ? 'All meetings'
@@ -86,4 +85,3 @@ export function ScopeControls(props: ScopeControlsProps) {
     </div>
   );
 }
-
