@@ -41,4 +41,3 @@ export function AnswerView({ answer, onNavigate }: { answer: AskAnswer; onNaviga
     </div>
   );
 }
-
