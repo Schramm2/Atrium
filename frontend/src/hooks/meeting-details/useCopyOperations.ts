@@ -92,7 +92,6 @@ export function useCopyOperations({
     await navigator.clipboard.writeText(header + date + fullTranscript);
     toast.success("Transcript copied to clipboard");
 
-    // Track copy analytics
     const wordCount = allTranscripts
       .map(t => t.text.split(/\s+/).length)
       .reduce((a, b) => a + b, 0);
@@ -178,7 +177,6 @@ export function useCopyOperations({
       console.log('✅ Successfully copied to clipboard!');
       toast.success("Summary copied to clipboard");
 
-      // Track copy analytics
       await Analytics.trackCopy('summary', {
         meeting_id: meeting.id,
         has_markdown: (!!aiSummary && 'markdown' in aiSummary).toString()
