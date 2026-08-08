@@ -23,6 +23,7 @@ Ubundi Meet is a personal fork of [Meetily](https://github.com/Zackriya-Solution
 - [Installation](#installation)
 - [System Architecture](#system-architecture)
 - [For Developers](#for-developers)
+- [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md)
 - [License & Attribution](#license--attribution)
 
 </details>
@@ -87,6 +88,8 @@ cd meetily/frontend
 pnpm install
 pnpm run tauri:dev
 ```
+
+For the short local macOS update path, use [`scripts/update-local-macos.sh`](scripts/update-local-macos.sh). It builds the current checkout and updates `/Applications/Ubundi Meet.app` without a GitHub release. See the [Local macOS Updates guide](docs/LOCAL_MACOS_UPDATES.md) for verification and data-directory details.
 
 ## License & Attribution
 
