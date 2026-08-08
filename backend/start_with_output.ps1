@@ -709,7 +709,6 @@ $frontendPath = $null
 # Check common installation paths for ubundi-meet-frontend
 $possiblePaths = @(
     "$env:LOCALAPPDATA\Programs\ubundi-meet-frontend\ubundi-meet-frontend.exe",
-    "$env:LOCALAPPDATA\Programs\meetily\ubundi-meet-frontend.exe",
     "$env:ProgramFiles\ubundi-meet-frontend\ubundi-meet-frontend.exe",
     "${env:ProgramFiles(x86)}\ubundi-meet-frontend\ubundi-meet-frontend.exe",
     "$env:APPDATA\ubundi-meet-frontend\ubundi-meet-frontend.exe"
@@ -723,13 +722,13 @@ foreach ($path in $possiblePaths) {
     }
 }
 
-# Also check if meetily is in the registry (properly installed)
+# Also check the registry for the Ubundi Meet installation.
 try {
     $regPath = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | 
-               Where-Object { $_.DisplayName -like "*meetily*" }
+               Where-Object { $_.DisplayName -like "*ubundi meet*" }
     if (-not $regPath) {
         $regPath = Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | 
-                   Where-Object { $_.DisplayName -like "*meetily*" }
+                   Where-Object { $_.DisplayName -like "*ubundi meet*" }
     }
     if ($regPath) {
         $frontendInstalled = $true
@@ -738,7 +737,7 @@ try {
             $installLocation = $regPath.InstallLocation -replace '^"(.+)"$', '$1'
             
             # Try to find the executable in the install location
-            $possibleExeNames = @("ubundi-meet-frontend.exe", "meetily.exe")
+            $possibleExeNames = @("ubundi-meet-frontend.exe")
             foreach ($exeName in $possibleExeNames) {
                 $testPath = Join-Path $installLocation $exeName
                 if (Test-Path $testPath) {
@@ -823,7 +822,7 @@ if ($frontendInstalled) {
                 if ($installerProcess.ExitCode -eq 0) {
                     Write-Host "Installation completed successfully!"
                     
-                    # Check if meetily is now installed and launch it
+                    # Check whether Ubundi Meet is now installed and launch it.
                     Start-Sleep -Seconds 2  # Give the system a moment to register the installation
                     foreach ($path in $possiblePaths) {
                         if (Test-Path $path) {

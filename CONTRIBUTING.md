@@ -18,11 +18,7 @@ Thank you for your interest in contributing to Ubundi Meet! This document provid
    ```bash
    git clone https://github.com/Schramm2/ubundi-meet.git
    ```
-3. Add the original Meetily repository as upstream (optional, for syncing):
-   ```bash
-   git remote add upstream https://github.com/Zackriya-Solutions/meetily.git
-   ```
-4. Create a new branch from `main`:
+3. Create a new branch from `main`:
    ```bash
    git checkout main
    git checkout -b feat/your-feature-name
@@ -139,4 +135,4 @@ Types:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's MIT License. Original code remains attributed to Meetily (Zackriya Solutions, © 2024) as required by the MIT license.
+By contributing, you agree that your contributions will be licensed under the project's MIT License. Keep the required notices in [LICENSE.md](LICENSE.md) and [NOTICE.md](NOTICE.md).

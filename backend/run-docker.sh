@@ -843,8 +843,8 @@ find_existing_databases() {
     # Check other common locations
     local common_paths=(
         "/opt/homebrew/Cellar/ubundi-meet-backend/*/backend/meeting_minutes.db"
-        "$HOME/.meetily/meeting_minutes.db"
-        "$HOME/Documents/meetily/meeting_minutes.db"
+        "$HOME/.ubundi-meet/meeting_minutes.db"
+        "$HOME/Documents/ubundi-meet/meeting_minutes.db"
         "$HOME/Desktop/meeting_minutes.db"
         "./meeting_minutes.db"
         "$SCRIPT_DIR/data/meeting_minutes.db"

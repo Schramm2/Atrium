@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Use [AGENTS.md](AGENTS.md) for shared repository guidance. This file adds Claude Code-specific project context.
 
 ## Project Overview
 
