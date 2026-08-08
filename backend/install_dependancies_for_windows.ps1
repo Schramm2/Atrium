@@ -167,8 +167,8 @@ try {
     Write-Host "1. restart your terminal"
     Write-Host "2. Run the following commands:"
     Write-Host "cd Documents"
-    Write-Host "git clone https://github.com/Schramm2/meetily.git"
-    Write-Host "cd meeting-minutes/backend"
+    Write-Host "git clone https://github.com/Schramm2/ubundi-meet.git"
+    Write-Host "cd ubundi-meet/backend"
     Write-Host "./build_whisper.cmd"
     Write-Host ""
    

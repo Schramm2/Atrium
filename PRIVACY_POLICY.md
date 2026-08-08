@@ -110,7 +110,7 @@ We will notify users of any material changes to this privacy policy through:
 ## Contact Us
 
 For privacy-related questions or concerns:
-- **GitHub Issues**: [Create an issue](https://github.com/Schramm2/meetily/issues)
+- **GitHub Issues**: [Create an issue](https://github.com/Schramm2/ubundi-meet/issues)
 
 ## Open Source Commitment
 

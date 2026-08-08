@@ -7,7 +7,7 @@ Use this workflow when you are developing the Ubundi Meet fork on an Apple Silic
 Close Ubundi Meet before updating. The updater refuses to replace a running process so an active recording is not interrupted.
 
 ```bash
-cd /path/to/meetily
+cd /path/to/ubundi-meet
 ./scripts/update-local-macos.sh
 ```
 

@@ -105,7 +105,7 @@ server.listen(PORT, () => {
 
   console.log('⚠️  IMPORTANT: Restore production endpoint after testing!');
   console.log('   Change back to:');
-  console.log('   "endpoints": ["https://github.com/Schramm2/meetily/releases/latest/download/latest.json"]\n');
+  console.log('   "endpoints": ["https://github.com/Schramm2/ubundi-meet/releases/latest/download/latest.json"]\n');
 
   console.log('=========================================');
   console.log('Press Ctrl+C to stop the server');
