@@ -1,6 +1,6 @@
 # Ubundi Meet Privacy Policy
 
-*Last updated: [Current Date]*
+*Last updated: August 8, 2026*
 
 ## Our Privacy-First Commitment
 
@@ -11,8 +11,9 @@ Ubundi Meet is built on the principle that your meeting data should remain priva
 ### Local-First Processing
 - **Meeting transcription**: Processed entirely on your device using local Whisper models
 - **Audio recordings**: Never transmitted to external servers
-- **Meeting content**: Remains on your infrastructure
+- **Meeting content**: Stored locally. Selected transcript content can be sent to a provider when you use an external AI feature.
 - **AI summaries**: Generated locally or through your chosen LLM provider
+- **Ask Ubundi Meet**: Retrieves evidence locally. External Ask requests require an in-session confirmation before the question and selected transcript evidence are sent.
 
 ### Your Data Ownership
 - You own all meeting data, transcripts, and recordings
@@ -68,6 +69,9 @@ When enabled, analytics helps us with:
 If you choose to use external LLM providers:
 - **Anthropic Claude**: Subject to Anthropic's privacy policy
 - **Groq**: Subject to Groq's privacy policy
+- **OpenAI and OpenRouter**: Subject to the selected provider's privacy policy
+- **Custom OpenAI-compatible endpoints**: Subject to the endpoint operator's data practices
+- **Built-in AI**: Processed on your device
 - **Local Ollama**: Processed entirely on your device
 
 ### Analytics Service (Optional)
@@ -92,7 +96,7 @@ If you choose to use external LLM providers:
 
 ### Local Security
 - Data encrypted at rest using your device's security features
-- No transmission of sensitive meeting data
+- External AI features transmit only after the user selects or confirms the configured provider path
 - Standard file system permissions protect your data
 
 ### Open Source Transparency

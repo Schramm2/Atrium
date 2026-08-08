@@ -9,6 +9,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { LoaderIcon } from "lucide-react";
 import { useConfig } from "@/contexts/ConfigContext";
 import { usePaginatedTranscripts } from "@/hooks/usePaginatedTranscripts";
+import { readCitationTarget } from "@/lib/ask/logic";
 
 interface MeetingDetailsResponse {
   id: string;
@@ -21,7 +22,10 @@ interface MeetingDetailsResponse {
 
 function MeetingDetailsContent() {
   const searchParams = useSearchParams();
-  const meetingId = searchParams.get('id');
+  const citationTarget = readCitationTarget(searchParams);
+  const meetingId = citationTarget.meetingId;
+  const citationSegmentId = citationTarget.segmentId;
+  const citationTimestamp = citationTarget.timestamp;
   const source = searchParams.get('source'); // Check if navigated from recording
   const { setCurrentMeeting, refetchMeetings, stopSummaryPolling } = useSidebar();
   const { isAutoSummary } = useConfig(); // Get auto-summary toggle state
@@ -46,7 +50,11 @@ function MeetingDetailsContent() {
     loadMore,
     refetch,
     error: transcriptError,
-  } = usePaginatedTranscripts({ meetingId: meetingId || '' });
+  } = usePaginatedTranscripts({
+    meetingId: meetingId || '',
+    initialSegmentId: citationSegmentId,
+    initialTimestamp: citationTimestamp,
+  });
 
   // Check if gemma3:1b model is available in Ollama
   const checkForGemmaModel = useCallback(async (): Promise<boolean> => {
@@ -377,6 +385,7 @@ function MeetingDetailsContent() {
     totalCount={totalCount}
     loadedCount={loadedCount}
     onLoadMore={loadMore}
+    highlightedSegmentId={citationSegmentId}
   />;
 }
 
