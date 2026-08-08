@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import Image from 'next/image';
-import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch";
 import { UpdateDialog } from "./UpdateDialog";
 import { updateService, UpdateInfo } from '@/services/updateService';
 import { Button } from './ui/button';
@@ -118,13 +117,6 @@ export function About() {
                 </div>
             </div>
 
-            {/* Coming Soon - Compact */}
-            <div className="bg-[#1B1F44] rounded-lg p-4">
-                <p className="text-sm text-white/80">
-                    <span className="font-semibold text-[#C183E6]">On the horizon:</span> on-device agents for follow-ups, action tracking, and more.
-                </p>
-            </div>
-
             {/* CTA Section - Compact */}
             <div className="text-center space-y-2">
                 <h3 className="text-base font-semibold text-[#171B48]">Built for the Ubundi way of working</h3>
@@ -145,8 +137,6 @@ export function About() {
                     Built for Ubundi
                 </p>
             </div>
-            <AnalyticsConsentSwitch />
-
             {/* Update Dialog */}
             <UpdateDialog
                 open={showUpdateDialog}
