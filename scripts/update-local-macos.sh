@@ -9,6 +9,8 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 INSTALL_APP="/Applications/Ubundi Meet.app"
+STAGED_APP="/Applications/.Ubundi Meet.app.installing.$$"
+BACKUP_APP="/Applications/.Ubundi Meet.app.backup.$$"
 BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Ubundi Meet.app"
 SUPPORT_DIR="${HOME}/Library/Application Support/com.ubundi.meet"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
@@ -83,9 +85,25 @@ fi
 
 echo
 echo "Installing $BUILD_APP"
-ditto --rsrc --extattr --acl "$BUILD_APP" "$INSTALL_APP"
+ditto --rsrc --extattr --acl "$BUILD_APP" "$STAGED_APP"
+codesign --verify --deep --strict "$STAGED_APP"
 
-codesign --verify --deep --strict "$INSTALL_APP"
+if [[ -e "$INSTALL_APP" ]]; then
+  mv "$INSTALL_APP" "$BACKUP_APP"
+fi
+
+if ! mv "$STAGED_APP" "$INSTALL_APP"; then
+  [[ -e "$BACKUP_APP" ]] && mv "$BACKUP_APP" "$INSTALL_APP"
+  fail "Could not move the new app into /Applications."
+fi
+
+if ! codesign --verify --deep --strict "$INSTALL_APP"; then
+  rm -rf "$INSTALL_APP"
+  [[ -e "$BACKUP_APP" ]] && mv "$BACKUP_APP" "$INSTALL_APP"
+  fail "The installed app failed code-signature verification. The previous app was restored."
+fi
+
+[[ ! -e "$BACKUP_APP" ]] || rm -rf "$BACKUP_APP"
 
 INSTALLED_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$INSTALL_APP/Contents/Info.plist")"
 INSTALLED_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INSTALL_APP/Contents/Info.plist")"
