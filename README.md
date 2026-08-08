@@ -3,7 +3,7 @@
     <p><strong>Privacy-First AI Meeting Assistant</strong></p>
     <p>
         <img alt="License" src="https://img.shields.io/badge/License-MIT-blue">
-        <img alt="Supported OS" src="https://img.shields.io/badge/Supported_OS-macOS,_Windows,_Linux-white">
+        <img alt="Supported OS" src="https://img.shields.io/badge/Supported_OS-macOS-white">
     </p>
     <p>Open Source • Privacy-First • Local-First</p>
 </div>
@@ -42,11 +42,11 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 - **Local First:** All processing is done on your machine. No data ever leaves your computer.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
-- **Multi-Platform:** Works on macOS, Windows, and Linux.
+- **macOS:** Built for macOS.
 - **Open Source:** Ubundi Meet is open source and free to use.
 - **Flexible AI Provider Support:** Choose from Ollama (local), Claude, Groq, OpenRouter, or your own OpenAI-compatible endpoint.
 - **Professional Audio Mixing:** Microphone and system audio captured simultaneously with intelligent ducking and clipping prevention.
-- **GPU Acceleration:** Metal (macOS), CUDA/Vulkan (Windows/Linux), automatically enabled at build time.
+- **GPU Acceleration:** Metal and CoreML are enabled for macOS builds.
 - **Import & Enhance:** Import existing audio files to generate transcripts, or re-transcribe recorded meetings with a different model or language.
 
 ## Installation
@@ -57,18 +57,6 @@ Ubundi Meet is a privacy-first AI meeting assistant that runs entirely on your l
 2. Open the downloaded `.dmg` file
 3. Drag **Ubundi Meet** to your Applications folder
 4. Open **Ubundi Meet** from Applications folder
-
-### 🪟 Windows
-
-1. Download the latest `x64-setup.exe` from [Releases](https://github.com/Schramm2/ubundi-meet/releases)
-2. Run the installer
-
-### 🐧 Linux
-
-Build from source following our detailed guides:
-
-- [Building on Linux](docs/building_in_linux.md)
-- [General Build Instructions](docs/BUILDING.md)
 
 ## System Architecture
 

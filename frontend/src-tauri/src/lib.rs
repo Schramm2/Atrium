@@ -389,9 +389,7 @@ pub fn run() {
 
     let mut builder = tauri::Builder::default();
 
-    #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
-    {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+    builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             log_info!(
                 "Second app instance requested with args: {:?}, cwd: {:?}",
                 args,
@@ -400,7 +398,6 @@ pub fn run() {
 
             tray::focus_main_window(app);
         }));
-    }
 
     builder
         .plugin(tauri_plugin_notification::init())

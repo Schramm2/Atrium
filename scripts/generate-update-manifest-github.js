@@ -79,12 +79,8 @@ const bundleFiles = files.filter(filename => {
   // Only process files (not directories) and skip signature files
   return stats.isFile() && !filename.endsWith('.sig') && (
     filename.endsWith('.tar.gz') ||
-    filename.endsWith('.zip') ||
     filename.endsWith('.dmg') ||
-    filename.endsWith('.exe') ||
-    filename.endsWith('.msi') ||
-    filename.endsWith('.AppImage') ||
-    filename.endsWith('.deb')
+    filename.endsWith('.zip')
   );
 });
 
@@ -92,8 +88,7 @@ bundleFiles.forEach(filename => {
   const name = filename.toLowerCase();
   let platform = null;
 
-  // Detect platform from filename
-  // Check for tar.gz bundles first (most common for macOS/Linux)
+  // Detect the supported macOS bundle architecture.
   if (name.includes('darwin') || name.includes('macos') || name.includes('.dmg') || (name.includes('.app') && name.includes('.tar.gz'))) {
     if (name.includes('aarch64') || name.includes('arm64') || name.includes('m1') || name.includes('m2')) {
       platform = 'darwin-aarch64';
@@ -109,10 +104,6 @@ bundleFiles.forEach(filename => {
         platform = 'darwin-aarch64';
       }
     }
-  } else if (name.includes('windows') || name.includes('.exe') || name.includes('.msi') || (name.includes('.zip') && !name.includes('darwin') && !name.includes('macos'))) {
-    platform = 'windows-x86_64';
-  } else if (name.includes('linux') || name.includes('.appimage') || name.includes('.deb') || (name.includes('.tar.gz') && !name.includes('darwin') && !name.includes('macos'))) {
-    platform = 'linux-x86_64';
   }
 
   if (platform && !platforms[platform]) {
@@ -146,7 +137,7 @@ bundleFiles.forEach(filename => {
 
 if (Object.keys(platforms).length === 0) {
   console.error('Error: No platform bundles found in the directory');
-  console.error('Expected files with names containing: darwin, macos, windows, linux, .exe, .dmg, .app, .AppImage');
+  console.error('Expected macOS files with names containing: darwin, macos, .dmg, or .app.tar.gz');
   process.exit(1);
 }
 
