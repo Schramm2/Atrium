@@ -36,16 +36,12 @@ if (process.env.TAURI_GPU_FEATURE) {
 
 console.log(''); // Empty line for spacing
 
-// Platform-specific environment variables
-const platform = os.platform();
-const env = { ...process.env };
-
-if (platform === 'linux' && feature === 'cuda') {
-  console.log('🐧 Linux/CUDA detected: Setting CMAKE flags for NVIDIA GPU');
-  env.CMAKE_CUDA_ARCHITECTURES = '75';
-  env.CMAKE_CUDA_STANDARD = '17';
-  env.CMAKE_POSITION_INDEPENDENT_CODE = 'ON';
+if (os.platform() !== 'darwin') {
+  console.error('Ubundi Meet supports macOS only.');
+  process.exit(1);
 }
+
+const env = { ...process.env };
 
 // Build the tauri command
 let tauriCmd = `tauri ${command}`;
