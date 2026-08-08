@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload } from 'lucide-react';
+import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, MessageCircleQuestion } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidebar } from './SidebarProvider';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
@@ -446,6 +446,7 @@ const Sidebar: React.FC = () => {
 
     const isHomePage = pathname === '/';
     const isMeetingPage = pathname?.includes('/meeting-details');
+    const isAskPage = pathname === '/ask';
     const isSettingsPage = pathname === '/settings';
 
     return (
@@ -464,6 +465,20 @@ const Sidebar: React.FC = () => {
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Home</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => router.push('/ask')}
+                className={`ubundi-nav-link !mx-0 !p-2 ${isAskPage ? 'ubundi-nav-link-active' : ''}`}
+              >
+                <MessageCircleQuestion className="w-5 h-5 text-gray-600" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Ask Ubundi Meet</p>
             </TooltipContent>
           </Tooltip>
 
@@ -714,12 +729,21 @@ const Sidebar: React.FC = () => {
           {/* Fixed navigation items */}
           <div className="flex-shrink-0">
             {!isCollapsed && (
-              <div
-                onClick={() => router.push('/')}
-                className="ubundi-nav-link"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                <span>Home</span>
+              <div>
+                <div
+                  onClick={() => router.push('/')}
+                  className={`ubundi-nav-link ${pathname === '/' ? 'ubundi-nav-link-active' : ''}`}
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  <span>Home</span>
+                </div>
+                <div
+                  onClick={() => router.push('/ask')}
+                  className={`ubundi-nav-link ${pathname === '/ask' ? 'ubundi-nav-link-active' : ''}`}
+                >
+                  <MessageCircleQuestion className="w-4 h-4 mr-2" />
+                  <span>Ask Ubundi Meet</span>
+                </div>
               </div>
             )}
           </div>

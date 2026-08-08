@@ -36,6 +36,7 @@ pub(crate) use perf_trace;
 
 // Declare audio module
 pub mod api;
+pub mod ask;
 pub mod audio;
 pub mod config;
 pub mod console_utils;
@@ -601,6 +602,9 @@ pub fn run() {
             groq::groq::get_groq_models,
             api::api_get_meetings,
             api::api_search_transcripts,
+            ask::api_retrieve_ask_evidence,
+            ask::api_generate_ask_answer,
+            ask::api_cancel_ask,
             api::api_get_profile,
             api::api_save_profile,
             api::api_update_profile,
