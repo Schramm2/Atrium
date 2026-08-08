@@ -36,6 +36,8 @@ export interface VirtualizedTranscriptViewProps {
     totalCount?: number;
     loadedCount?: number;
     onLoadMore?: () => void;
+    /** Segment selected from an Ask citation. It is scrolled into view and highlighted. */
+    highlightedSegmentId?: string;
     /** Start a new recording from the empty home state */
     onStartRecording?: () => void;
 }
@@ -76,6 +78,7 @@ const TranscriptSegment = memo(function TranscriptSegment({
     speaker,
     isStreaming,
     showConfidence,
+    isHighlighted,
 }: {
     id: string;
     timestamp: number;
@@ -84,11 +87,16 @@ const TranscriptSegment = memo(function TranscriptSegment({
     speaker?: string;
     isStreaming: boolean;
     showConfidence: boolean;
+    isHighlighted: boolean;
 }) {
     const displayText = cleanStopWords(text) || (text.trim() === '' ? '[Silence]' : text);
 
     return (
-        <div id={`segment-${id}`} className="mb-3">
+        <div
+            id={`segment-${id}`}
+            tabIndex={isHighlighted ? -1 : undefined}
+            className={`mb-3 rounded-lg px-2 py-1 transition-colors ${isHighlighted ? 'bg-[#FFF2C7] ring-2 ring-[#D5A72F]/40' : ''}`}
+        >
             <div className="flex items-start gap-2">
                 <Tooltip>
                     <TooltipTrigger>
@@ -136,6 +144,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
     loadedCount = 0,
     onLoadMore,
     onStartRecording,
+    highlightedSegmentId,
 }) => {
     // Create scroll ref first - shared between virtualizer and auto-scroll hook
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -234,6 +243,22 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
 
     // Use simple rendering for small lists, virtualization for large lists
     const useVirtualization = segments.length >= VIRTUALIZATION_THRESHOLD;
+
+    // Focus an Ask citation after its page is loaded. Virtualized rows need an
+    // index scroll first so that the target DOM element exists.
+    useEffect(() => {
+        if (!highlightedSegmentId) return;
+        const index = segments.findIndex(segment => segment.id === highlightedSegmentId);
+        if (index < 0) return;
+
+        if (useVirtualization) virtualizer.scrollToIndex(index, { align: 'center' });
+        const frame = requestAnimationFrame(() => {
+            const element = document.getElementById(`segment-${highlightedSegmentId}`);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element?.focus({ preventScroll: true });
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [highlightedSegmentId, segments, useVirtualization, virtualizer]);
 
     return (
         <div ref={scrollRef} className="flex flex-col h-full overflow-y-auto px-4 py-2">
@@ -342,6 +367,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                                         speaker={segment.speaker}
                                         isStreaming={isStreaming}
                                         showConfidence={showConfidence}
+                                        isHighlighted={segment.id === highlightedSegmentId}
                                     />
                                 </div>
                             );
@@ -399,6 +425,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                                         speaker={segment.speaker}
                                         isStreaming={isStreaming}
                                         showConfidence={showConfidence}
+                                        isHighlighted={segment.id === highlightedSegmentId}
                                     />
                                 </motion.div>
                             );

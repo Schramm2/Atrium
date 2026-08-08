@@ -128,8 +128,14 @@ impl TranscriptsRepository {
 
         match transcript_lower.find(&query_lower) {
             Some(match_index) => {
-                let start_index = match_index.saturating_sub(100);
-                let end_index = (match_index + query.len() + 100).min(transcript.len());
+                let mut start_index = match_index.saturating_sub(100).min(transcript.len());
+                while start_index < transcript.len() && !transcript.is_char_boundary(start_index) {
+                    start_index += 1;
+                }
+                let mut end_index = (match_index + query.len() + 100).min(transcript.len());
+                while end_index > start_index && !transcript.is_char_boundary(end_index) {
+                    end_index -= 1;
+                }
 
                 let mut context = String::new();
                 if start_index > 0 {

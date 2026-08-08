@@ -9,7 +9,7 @@ A modern desktop application for recording, transcribing, and analyzing meetings
 - Native desktop integration using Tauri
 - Automatic speaker labels during a recording
 - Rich text editor for note-taking
-- Privacy-focused: All processing happens locally
+- Privacy-focused local transcription with explicit consent before Ask evidence is sent to a configured external AI provider
 
 ## Prerequisites
 

@@ -31,6 +31,7 @@ export default function PageContent({
   totalCount,
   loadedCount,
   onLoadMore,
+  highlightedSegmentId,
 }: {
   meeting: any;
   summaryData: Summary | null;
@@ -45,6 +46,7 @@ export default function PageContent({
   totalCount?: number;
   loadedCount?: number;
   onLoadMore?: () => void;
+  highlightedSegmentId?: string;
 }) {
   console.log('📄 PAGE CONTENT: Initializing with data:', {
     meetingId: meeting.id,
@@ -183,6 +185,7 @@ export default function PageContent({
           totalCount={totalCount}
           loadedCount={loadedCount}
           onLoadMore={onLoadMore}
+          highlightedSegmentId={highlightedSegmentId}
           // Retranscription props
           meetingId={meeting.id}
           meetingFolderPath={meeting.folder_path}
