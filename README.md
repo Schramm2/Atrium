@@ -8,7 +8,7 @@
     <p>Open Source • Privacy-First • Local-First</p>
 </div>
 
-A privacy-first desktop assistant that captures and transcribes meetings on your Mac. Local Dictation, a second main feature, is in development. It is designed to transcribe speech on your Mac and insert the text into the active app. Meeting evidence leaves your machine only when you confirm an Ask request to an external AI provider or choose an external provider for summaries.
+A privacy-first desktop assistant that captures and transcribes meetings on your Mac. Local Dictation records speech from a global shortcut, transcribes it on your Mac, and inserts the text into the active app. Meeting evidence leaves your machine only when you confirm an Ask request to an external AI provider or choose an external provider for summaries.
 
 ---
 
@@ -28,7 +28,7 @@ A privacy-first desktop assistant that captures and transcribes meetings on your
 
 ## Introduction
 
-Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings and Local Dictation. The meeting tools capture meetings, transcribe them in real time, and can generate summaries. Local Dictation is in development. Its planned flow records speech, transcribes it on your Mac, and inserts the text into the active app. Dictation audio and transcripts are designed to stay on your device.
+Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings and Local Dictation. The meeting tools capture meetings, transcribe them in real time, and can generate summaries. Local Dictation records speech from a global shortcut, transcribes it on your Mac, and inserts the text into the active app. Dictation audio and transcripts stay on your device.
 
 ## Why Ubundi Meet?
 
@@ -39,7 +39,7 @@ Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings a
 
 ## Features
 
-- **Local Dictation (work in progress):** The planned shortcut process will record speech, transcribe it on your Mac, and insert the text into the active app. It is designed to keep dictation audio and transcripts on the device.
+- **Local Dictation:** Hold Option+Space to record speech, then release it to transcribe on your Mac and insert the text into the active app. Dictation audio and transcripts stay on the device.
 - **Local First:** Recording, transcription, storage, retrieval, and citation construction stay on your Mac. External AI use is explicit.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
 - **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the transcript.

@@ -10,16 +10,16 @@ import {
 } from '@/types/dictation';
 
 class DictationService {
-  start(): Promise<void> {
-    return invoke<void>('start_dictation');
+  start(): Promise<DictationStatus> {
+    return invoke<DictationStatePayload>('start_dictation').then(normalizeStatus);
   }
 
-  stop(): Promise<void> {
-    return invoke<void>('stop_dictation');
+  stop(): Promise<DictationResult> {
+    return invoke<DictationResultPayload>('stop_dictation').then(normalizeResult);
   }
 
-  cancel(): Promise<void> {
-    return invoke<void>('cancel_dictation');
+  cancel(): Promise<DictationStatus> {
+    return invoke<DictationStatePayload>('cancel_dictation').then(normalizeStatus);
   }
 
   getStatus(): Promise<DictationStatus> {
@@ -51,6 +51,8 @@ function normalizeStatus(payload: DictationStatePayload): DictationStatus {
     ...DEFAULT_DICTATION_STATUS,
     ...payload,
     state,
+    accessibility_granted: payload.accessibility_granted ?? payload.accessibilityGranted ?? false,
+    retains_audio: payload.retains_audio ?? payload.retainsAudio ?? false,
     error: payload.error ?? null,
   };
 }
