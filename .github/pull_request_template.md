@@ -26,11 +26,11 @@
 - [ ] Self-reviewed the code
 - [ ] Added comments for complex code
 - [ ] Updated README if needed
-- [ ] Branch is up to date with devtest
+- [ ] Branch is based on current `main`
 - [ ] No merge conflicts
 
 ## Screenshots (if applicable)
 [Add screenshots here if your changes affect the UI]
 
 ## Additional Notes
-[Add any additional information that might be helpful for reviewers] 
+[Add any additional information that might be helpful for reviewers]

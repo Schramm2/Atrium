@@ -1,5 +1,7 @@
 # whisper.cpp/examples/server
 
+> Archived backend component. The supported Notive app does not use or start this standalone HTTP server. The material below is retained for historical reference only.
+
 Simple http server. WAV Files are passed to the inference model via http requests.
 
 https://github.com/ggerganov/whisper.cpp/assets/1991296/e983ee53-8741-4eb5-9048-afe5e4594b8f

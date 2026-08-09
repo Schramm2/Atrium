@@ -1,11 +1,11 @@
 # Legacy Backend Archive
 
 This directory contains the archived Python/FastAPI, Docker, and standalone
-whisper-server backend implementation from older Ubundi Meet releases.
+whisper-server backend implementation from older releases.
 
 ## Current Supported Architecture
 
-Ubundi Meet no longer uses this backend as the supported application path. The
+Notive no longer uses this backend as the supported application path. The
 current app is a self-contained Tauri desktop application:
 
 - Next.js provides the desktop UI from `frontend/src`.

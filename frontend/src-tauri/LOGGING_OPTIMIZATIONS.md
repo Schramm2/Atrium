@@ -1,4 +1,6 @@
-# Logging Optimizations for Transcription Performance
+# Historical Logging Optimization Notes
+
+> Historical implementation notes. Validate the current code before relying on reported files, measurements, or macros in this document.
 
 ## Summary
 This document outlines the comprehensive logging optimizations implemented to eliminate transcription delays caused by excessive output/logging overhead.
