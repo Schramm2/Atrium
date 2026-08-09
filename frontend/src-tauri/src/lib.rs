@@ -41,6 +41,12 @@ pub mod audio;
 pub mod config;
 pub mod console_utils;
 pub mod database;
+pub mod dictation;
+#[path = "dictation/integration.rs"]
+pub mod dictation_integration;
+#[cfg(target_os = "macos")]
+#[path = "dictation/platform/mod.rs"]
+pub mod dictation_platform;
 pub mod notifications;
 pub mod ollama;
 pub mod onboarding;
@@ -95,6 +101,8 @@ async fn start_recording<R: Runtime>(
         meeting_name
     );
 
+    dictation_integration::claim_meeting_audio()?;
+
     if is_recording().await {
         return Err("Recording already in progress".to_string());
     }
@@ -135,6 +143,7 @@ async fn start_recording<R: Runtime>(
             Ok(())
         }
         Err(e) => {
+            dictation_integration::release_meeting_audio();
             log_error!("Failed to start audio recording: {}", e);
             Err(format!("Failed to start recording: {}", e))
         }
@@ -148,6 +157,7 @@ async fn stop_recording<R: Runtime>(app: AppHandle<R>, args: RecordingArgs) -> R
     // Check the actual audio recording system state instead of the flag
     if !audio::recording_commands::is_recording().await {
         log_info!("Recording is already stopped");
+        dictation_integration::release_meeting_audio();
         return Ok(());
     }
 
@@ -162,6 +172,7 @@ async fn stop_recording<R: Runtime>(app: AppHandle<R>, args: RecordingArgs) -> R
     {
         Ok(_) => {
             RECORDING_FLAG.store(false, Ordering::SeqCst);
+            dictation_integration::release_meeting_audio();
             tray::update_tray_menu(&app);
 
             // Create the save directory if it doesn't exist
@@ -199,6 +210,7 @@ async fn stop_recording<R: Runtime>(app: AppHandle<R>, args: RecordingArgs) -> R
             log_error!("Failed to stop audio recording: {}", e);
             // Still update the flag even if stopping failed
             RECORDING_FLAG.store(false, Ordering::SeqCst);
+            dictation_integration::release_meeting_audio_if_stopped().await;
             tray::update_tray_menu(&app);
             Err(format!("Failed to stop recording: {}", e))
         }
@@ -311,6 +323,8 @@ async fn start_recording_with_devices_and_meeting<R: Runtime>(
     log_info!("🚀 CALLED start_recording_with_devices_and_meeting - Mic: {:?}, System: {:?}, Meeting: {:?}",
              mic_device_name, system_device_name, meeting_name);
 
+    dictation_integration::claim_meeting_audio()?;
+
     // Clone meeting_name for notification use later
     let meeting_name_for_notification = meeting_name.clone();
 
@@ -364,6 +378,7 @@ async fn start_recording_with_devices_and_meeting<R: Runtime>(
             Ok(())
         }
         Err(e) => {
+            dictation_integration::release_meeting_audio();
             log_error!("Failed to start recording via tauri command: {}", e);
             Err(e)
         }
@@ -414,6 +429,9 @@ pub fn run() {
         .manage(summary::summary_engine::ModelManagerState(Arc::new(tokio::sync::Mutex::new(None))))
         .setup(|_app| {
             log::info!("Application setup complete");
+
+            dictation_integration::initialize(_app.handle())
+                .map_err(|error| format!("Failed to initialize dictation: {error}"))?;
 
             // Initialize system tray
             if let Err(e) = tray::create_tray(_app.handle()) {
@@ -522,6 +540,10 @@ pub fn run() {
             start_recording,
             stop_recording,
             is_recording,
+            dictation_integration::start_dictation,
+            dictation_integration::stop_dictation,
+            dictation_integration::cancel_dictation,
+            dictation_integration::get_dictation_status,
             get_transcription_status,
             read_audio_file,
             save_transcript,
@@ -736,6 +758,7 @@ pub fn run() {
                 }
                 tauri::RunEvent::Exit => {
                     log::info!("Application exiting, cleaning up resources...");
+                    dictation_integration::cancel_on_exit(_app_handle);
                     tauri::async_runtime::block_on(async {
                         // Clean up database connection and checkpoint WAL
                         if let Some(app_state) = _app_handle.try_state::<state::AppState>() {
