@@ -23,6 +23,7 @@ import { RecordingPostProcessingProvider } from '@/contexts/RecordingPostProcess
 import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
+import { BrandThemeProvider } from '@/contexts/BrandThemeContext'
 
 
 const manrope = Manrope({
@@ -209,9 +210,10 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.className} font-sans antialiased`}>
-        <RecordingStateProvider>
+        <BrandThemeProvider>
+          <RecordingStateProvider>
             <TranscriptProvider>
               <ConfigProvider>
                 <OllamaDownloadProvider>
@@ -251,6 +253,7 @@ export default function RootLayout({
               </ConfigProvider>
             </TranscriptProvider>
           </RecordingStateProvider>
+        </BrandThemeProvider>
 
         <Toaster position="bottom-center" richColors closeButton />
       </body>

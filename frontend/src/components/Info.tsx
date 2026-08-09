@@ -16,12 +16,12 @@ const Info = React.forwardRef<HTMLButtonElement, InfoProps>(({ isCollapsed }, re
           ref={ref} 
           className={`flex items-center justify-center mb-2 cursor-pointer border-none transition-colors ${
             isCollapsed 
-              ? "bg-transparent p-2 hover:bg-[#F5F5F5] rounded-lg"
+              ? "brand-collapsed-secondary bg-transparent p-2 rounded-lg"
               : "ubundi-secondary-action"
           }`}
           title="About Ubundi Meet"
         >
-          <InfoIcon className={`text-[#2F3498] ${isCollapsed ? "w-5 h-5" : "w-4 h-4"}`} />
+          <InfoIcon className={`brand-primary-icon ${isCollapsed ? "w-5 h-5" : "w-4 h-4"}`} />
           {!isCollapsed && (
             <span className="ml-2 text-sm">About Ubundi</span>
           )}

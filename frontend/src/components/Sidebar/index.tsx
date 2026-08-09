@@ -29,6 +29,7 @@ import Logo from '../Logo';
 import Info from '../Info';
 import { ComplianceNotification } from '../ComplianceNotification';
 import { Input } from '../ui/input';
+import { BrandThemeToggle } from '../BrandThemeToggle';
 
 interface SidebarItem {
   id: string;
@@ -503,7 +504,7 @@ const Sidebar: React.FC = () => {
               <button
                 onClick={handleRecordingToggle}
                 disabled={isRecording}
-                className="ubundi-nav-link !mx-0 !rounded-full !p-2 !bg-[#D77A85] !text-[#171B48] hover:!bg-[#C66A75]"
+                className="ubundi-nav-link brand-collapsed-record !mx-0 !rounded-full !p-2"
               >
                 {isRecording ? (
                   <Square className="w-5 h-5 text-white" />
@@ -521,7 +522,7 @@ const Sidebar: React.FC = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={() => openImportDialog()}
-                className="ubundi-nav-link !mx-0 !p-2 !bg-[#F2F5FC] !text-[#2F3498] hover:!bg-[#E6EBF8]"
+                className="ubundi-nav-link brand-collapsed-import !mx-0 !p-2"
               >
                 <Upload className="w-5 h-5 text-blue-600" />
               </button>
@@ -563,6 +564,14 @@ const Sidebar: React.FC = () => {
           </Tooltip>
 
           <Info isCollapsed={isCollapsed} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span><BrandThemeToggle collapsed /></span>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Switch application theme</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </TooltipProvider>
     );
@@ -782,7 +791,7 @@ const Sidebar: React.FC = () => {
                     <div
                       className="ubundi-section-label"
                     >
-                      <NotebookPen className="w-4 h-4 mr-2 text-[#2F3498]" />
+                      <NotebookPen className="brand-primary-icon w-4 h-4 mr-2" />
                       <span>{item.title}</span>
                       {searchQuery && item.id === 'meetings' && isSearching && (
                         <span className="ml-2 text-xs text-blue-500 animate-pulse">Searching...</span>
@@ -847,7 +856,8 @@ const Sidebar: React.FC = () => {
               <span>Settings</span>
             </button>
             <Info isCollapsed={isCollapsed} />
-            <div className="w-full flex items-center justify-center px-3 py-1 text-[11px] text-[#697988]">
+            <BrandThemeToggle />
+            <div className="brand-version w-full flex items-center justify-center px-3 py-1 text-[11px]">
               Ubundi Meet · v0.5.0
             </div>
           </div>
