@@ -1,10 +1,11 @@
 use std::sync::atomic::{AtomicU64, AtomicU8, Ordering};
 use std::sync::mpsc::{self, Receiver, SyncSender};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, Wry};
+use tauri_plugin_store::StoreExt;
 
 use crate::audio::transcription::TranscriptionEngine;
 use crate::dictation::{
@@ -24,6 +25,26 @@ const TARGET_SAMPLE_RATE_HZ: u32 = 16_000;
 static AUDIO_OWNER: AtomicU8 = AtomicU8::new(OWNER_IDLE);
 static DICTATION_PHASE: AtomicU8 = AtomicU8::new(OWNER_IDLE);
 static DICTATION_SESSION_ID: AtomicU64 = AtomicU64::new(0);
+static DICTATION_PREFERENCES: OnceLock<RwLock<DictationPreferences>> = OnceLock::new();
+
+const DEFAULT_DICTATION_SHORTCUT: &str = "option+space";
+const DICTATION_PREFERENCES_STORE: &str = "dictation_preferences.json";
+const DICTATION_PREFERENCES_KEY: &str = "preferences";
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct DictationPreferences {
+    pub shortcut: String,
+    pub microphone: Option<String>,
+}
+
+impl Default for DictationPreferences {
+    fn default() -> Self {
+        Self {
+            shortcut: DEFAULT_DICTATION_SHORTCUT.to_string(),
+            microphone: None,
+        }
+    }
+}
 
 type AppDictationSession =
     DictationSession<CpalMicrophoneCapture, LocalTranscriber, MeetingAvailability, NoPersistence>;
@@ -54,9 +75,9 @@ enum WorkerCommand {
 pub struct DictationStatusPayload {
     pub state: &'static str,
     pub session_id: Option<u64>,
-    pub shortcut: &'static str,
-    pub microphone: &'static str,
-    pub model: &'static str,
+    pub shortcut: String,
+    pub microphone: String,
+    pub model: String,
     pub accessibility_granted: bool,
     pub retains_audio: bool,
     pub error: Option<&'static str>,
@@ -86,12 +107,15 @@ impl From<DictationStatus> for DictationStatusPayload {
 
 impl DictationStatusPayload {
     fn new(state: &'static str, session_id: Option<u64>) -> Self {
+        let preferences = current_dictation_preferences();
         Self {
             state,
             session_id,
-            shortcut: "⌥ Space",
-            microphone: "System default",
-            model: "Selected local speech model",
+            shortcut: shortcut_label(&preferences.shortcut),
+            microphone: preferences
+                .microphone
+                .unwrap_or_else(|| "System default".to_string()),
+            model: "Selected transcription model".to_string(),
             accessibility_granted: accessibility_is_granted(),
             retains_audio: false,
             error: None,
@@ -172,12 +196,15 @@ fn run_dictation_worker(receiver: Receiver<WorkerCommand>, mut session: AppDicta
 }
 
 pub fn initialize(app: &AppHandle<Wry>) -> Result<(), String> {
+    let preferences = load_dictation_preferences(app)?;
+    set_current_dictation_preferences(preferences.clone());
+
     if !app.manage(DictationIntegrationState::new(app.clone())?) {
         return Err("Dictation integration state is already initialized".to_string());
     }
 
     #[cfg(target_os = "macos")]
-    if let Err(error) = initialize_macos_hotkey(app) {
+    if let Err(error) = initialize_macos_hotkey(app, &preferences.shortcut) {
         log::warn!("Dictation shortcut is unavailable: {error}");
     }
 
@@ -185,20 +212,28 @@ pub fn initialize(app: &AppHandle<Wry>) -> Result<(), String> {
 }
 
 #[cfg(target_os = "macos")]
-fn initialize_macos_hotkey(app: &AppHandle<Wry>) -> Result<(), String> {
+fn initialize_macos_hotkey(app: &AppHandle<Wry>, binding: &str) -> Result<(), String> {
     if !crate::dictation_platform::macos::accessibility_is_trusted() {
         log::warn!("Dictation shortcut is disabled until Accessibility access is granted");
         return Ok(());
     }
 
-    let (hotkey, receiver) =
-        crate::dictation_platform::macos::GlobalHotkey::register("option+space")?;
+    let hotkey = register_macos_hotkey(app, binding)?;
     let state = app.state::<DictationIntegrationState>();
     *state
         .hotkey
         .lock()
         .map_err(|_| "Dictation hotkey state is unavailable".to_string())? = Some(hotkey);
 
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn register_macos_hotkey(
+    app: &AppHandle<Wry>,
+    binding: &str,
+) -> Result<crate::dictation_platform::macos::GlobalHotkey, String> {
+    let (hotkey, receiver) = crate::dictation_platform::macos::GlobalHotkey::register(binding)?;
     let app = app.clone();
     std::thread::Builder::new()
         .name("dictation-hotkey".to_string())
@@ -221,7 +256,7 @@ fn initialize_macos_hotkey(app: &AppHandle<Wry>) -> Result<(), String> {
         })
         .map_err(|error| format!("Failed to start dictation shortcut listener: {error}"))?;
 
-    Ok(())
+    Ok(hotkey)
 }
 
 pub fn claim_meeting_audio() -> Result<(), String> {
@@ -313,9 +348,23 @@ impl MicrophoneCapture for CpalMicrophoneCapture {
             ));
         }
 
-        let device = cpal::default_host()
-            .default_input_device()
-            .ok_or_else(|| DictationAdapterError::new("no microphone is available"))?;
+        let host = cpal::default_host();
+        let preferred_microphone = current_dictation_preferences().microphone;
+        let device = if let Some(preferred_name) = preferred_microphone {
+            host.input_devices()
+                .map_err(|error| DictationAdapterError::new(error.to_string()))?
+                .find(|device| device.name().ok().as_deref() == Some(preferred_name.as_str()))
+                .or_else(|| {
+                    log::warn!(
+                        "Preferred dictation microphone '{}' is unavailable; using the system default",
+                        preferred_name
+                    );
+                    host.default_input_device()
+                })
+        } else {
+            host.default_input_device()
+        }
+        .ok_or_else(|| DictationAdapterError::new("no microphone is available"))?;
         let supported = device
             .default_input_config()
             .map_err(|error| DictationAdapterError::new(error.to_string()))?;
@@ -511,8 +560,7 @@ pub async fn start_dictation_internal(
     if !crate::dictation_platform::macos::accessibility_is_trusted() {
         crate::dictation_platform::macos::request_accessibility();
         return Err(
-            "Allow Notive in Privacy & Security > Accessibility, then restart Notive"
-                .to_string(),
+            "Allow Notive in Privacy & Security > Accessibility, then restart Notive".to_string(),
         );
     }
 
@@ -674,6 +722,140 @@ pub async fn get_dictation_status(app: AppHandle<Wry>) -> Result<DictationStatus
     Ok(tray_status())
 }
 
+#[tauri::command]
+pub async fn get_dictation_preferences(
+    app: AppHandle<Wry>,
+) -> Result<DictationPreferences, String> {
+    let preferences = load_dictation_preferences(&app)?;
+    set_current_dictation_preferences(preferences.clone());
+    Ok(preferences)
+}
+
+#[tauri::command]
+pub async fn set_dictation_preferences(
+    app: AppHandle<Wry>,
+    preferences: DictationPreferences,
+) -> Result<DictationPreferences, String> {
+    if DICTATION_PHASE.load(Ordering::Acquire) != OWNER_IDLE {
+        return Err("Stop dictation before changing its settings".to_string());
+    }
+
+    let shortcut = preferences.shortcut.trim().to_ascii_lowercase();
+    if shortcut.is_empty() {
+        return Err("Choose a dictation shortcut".to_string());
+    }
+    let preferences = DictationPreferences {
+        shortcut,
+        microphone: preferences
+            .microphone
+            .filter(|value| !value.trim().is_empty()),
+    };
+    #[cfg(target_os = "macos")]
+    let current = current_dictation_preferences();
+
+    #[cfg(target_os = "macos")]
+    let _: handy_keys::Hotkey = preferences.shortcut.parse().map_err(|error| {
+        format!(
+            "Invalid dictation shortcut '{}': {error}",
+            preferences.shortcut
+        )
+    })?;
+
+    #[cfg(target_os = "macos")]
+    let replacement_hotkey = if current.shortcut != preferences.shortcut
+        && crate::dictation_platform::macos::accessibility_is_trusted()
+    {
+        Some(register_macos_hotkey(&app, &preferences.shortcut)?)
+    } else {
+        None
+    };
+
+    save_dictation_preferences(&app, &preferences)?;
+
+    #[cfg(target_os = "macos")]
+    if let Some(hotkey) = replacement_hotkey {
+        let state = app.state::<DictationIntegrationState>();
+        *state
+            .hotkey
+            .lock()
+            .map_err(|_| "Dictation hotkey state is unavailable".to_string())? = Some(hotkey);
+    }
+
+    set_current_dictation_preferences(preferences.clone());
+    let payload = tray_status();
+    emit_state(&app, &payload);
+    Ok(preferences)
+}
+
+fn preferences_lock() -> &'static RwLock<DictationPreferences> {
+    DICTATION_PREFERENCES.get_or_init(|| RwLock::new(DictationPreferences::default()))
+}
+
+fn current_dictation_preferences() -> DictationPreferences {
+    preferences_lock()
+        .read()
+        .map(|preferences| preferences.clone())
+        .unwrap_or_default()
+}
+
+fn set_current_dictation_preferences(preferences: DictationPreferences) {
+    if let Ok(mut current) = preferences_lock().write() {
+        *current = preferences;
+    }
+}
+
+fn load_dictation_preferences(app: &AppHandle<Wry>) -> Result<DictationPreferences, String> {
+    let store = app
+        .store(DICTATION_PREFERENCES_STORE)
+        .map_err(|error| format!("Could not open dictation settings: {error}"))?;
+    match store.get(DICTATION_PREFERENCES_KEY) {
+        Some(value) => match serde_json::from_value(value.clone()) {
+            Ok(preferences) => Ok(preferences),
+            Err(error) => {
+                log::warn!("Could not read dictation settings; using defaults: {error}");
+                Ok(DictationPreferences::default())
+            }
+        },
+        None => Ok(DictationPreferences::default()),
+    }
+}
+
+fn save_dictation_preferences(
+    app: &AppHandle<Wry>,
+    preferences: &DictationPreferences,
+) -> Result<(), String> {
+    let store = app
+        .store(DICTATION_PREFERENCES_STORE)
+        .map_err(|error| format!("Could not open dictation settings: {error}"))?;
+    let value = serde_json::to_value(preferences)
+        .map_err(|error| format!("Could not encode dictation settings: {error}"))?;
+    store.set(DICTATION_PREFERENCES_KEY, value);
+    store
+        .save()
+        .map_err(|error| format!("Could not save dictation settings: {error}"))
+}
+
+fn shortcut_label(binding: &str) -> String {
+    binding
+        .split('+')
+        .map(|part| match part.trim().to_ascii_lowercase().as_str() {
+            "command" | "cmd" | "meta" => "⌘".to_string(),
+            "option" | "alt" => "⌥".to_string(),
+            "control" | "ctrl" => "⌃".to_string(),
+            "shift" => "⇧".to_string(),
+            "space" => "Space".to_string(),
+            other => {
+                let mut characters = other.chars();
+                match characters.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + characters.as_str(),
+                    None => String::new(),
+                }
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 pub fn tray_status() -> DictationStatusPayload {
     let session_id = DICTATION_SESSION_ID.load(Ordering::Acquire);
     match DICTATION_PHASE.load(Ordering::Acquire) {
@@ -753,10 +935,29 @@ mod tests {
         assert_eq!(payload["sessionId"], 42);
         assert_eq!(payload["shortcut"], "⌥ Space");
         assert_eq!(payload["microphone"], "System default");
-        assert_eq!(payload["model"], "Selected local speech model");
+        assert_eq!(payload["model"], "Selected transcription model");
         assert!(payload["accessibilityGranted"].is_boolean());
         assert_eq!(payload["retainsAudio"], false);
         assert!(payload["error"].is_null());
         assert!(payload.get("session_id").is_none());
+    }
+
+    #[test]
+    fn formats_shortcut_labels_for_the_interface() {
+        assert_eq!(shortcut_label("option+space"), "⌥ Space");
+        assert_eq!(shortcut_label("command+shift+d"), "⌘ ⇧ D");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn accepts_every_shortcut_offered_by_settings() {
+        for binding in [
+            "option+space",
+            "control+space",
+            "option+d",
+            "command+shift+d",
+        ] {
+            assert!(binding.parse::<handy_keys::Hotkey>().is_ok(), "{binding}");
+        }
     }
 }

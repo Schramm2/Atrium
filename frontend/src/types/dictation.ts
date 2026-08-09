@@ -23,6 +23,11 @@ export interface DictationResult {
   created_at?: string | null;
 }
 
+export interface DictationPreferences {
+  shortcut: string;
+  microphone: string | null;
+}
+
 export type DictationStatePayload =
   | DictationStatus
   | DictationState

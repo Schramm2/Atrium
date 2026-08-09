@@ -410,16 +410,17 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       }
 
       // Load storage locations
-      const [dbDir, modelsDir, recordingsDir] = await Promise.all([
+      const [dbDir, modelsDir, recordingPreferences, defaultRecordingsDir] = await Promise.all([
         invoke<string>('get_database_directory'),
         invoke<string>('whisper_get_models_directory'),
+        configService.getRecordingPreferences(),
         invoke<string>('get_default_recordings_folder_path')
       ]);
 
       setStorageLocations({
         database: dbDir,
         models: modelsDir,
-        recordings: recordingsDir
+        recordings: recordingPreferences.save_folder || defaultRecordingsDir
       });
 
       // Mark as loaded
@@ -430,6 +431,15 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       isLoadingRef.current = false;
       setIsLoadingPreferences(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleRecordingLocationChange = (event: Event) => {
+      const recordings = (event as CustomEvent<string>).detail;
+      setStorageLocations(current => current ? { ...current, recordings } : current);
+    };
+    window.addEventListener('recording-location-changed', handleRecordingLocationChange);
+    return () => window.removeEventListener('recording-location-changed', handleRecordingLocationChange);
   }, []);
 
   // Update notification settings
