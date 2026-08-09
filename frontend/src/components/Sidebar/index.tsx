@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, MessageCircleQuestion } from 'lucide-react';
+import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, MessageCircleQuestion, AudioLines } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidebar } from './SidebarProvider';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
@@ -447,6 +447,7 @@ const Sidebar: React.FC = () => {
     const isHomePage = pathname === '/';
     const isMeetingPage = pathname?.includes('/meeting-details');
     const isAskPage = pathname === '/ask';
+    const isDictationPage = pathname === '/dictation';
     const isSettingsPage = pathname === '/settings';
 
     return (
@@ -465,6 +466,21 @@ const Sidebar: React.FC = () => {
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Home</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => router.push('/dictation')}
+                className={`ubundi-nav-link !mx-0 !p-2 ${isDictationPage ? 'ubundi-nav-link-active' : ''}`}
+                aria-label="Dictation"
+              >
+                <AudioLines className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Dictation</p>
             </TooltipContent>
           </Tooltip>
 
@@ -743,6 +759,13 @@ const Sidebar: React.FC = () => {
                 >
                   <MessageCircleQuestion className="w-4 h-4 mr-2" />
                   <span>Ask Ubundi Meet</span>
+                </div>
+                <div
+                  onClick={() => router.push('/dictation')}
+                  className={`ubundi-nav-link ${pathname === '/dictation' ? 'ubundi-nav-link-active' : ''}`}
+                >
+                  <AudioLines className="w-4 h-4 mr-2" />
+                  <span>Dictation</span>
                 </div>
               </div>
             )}

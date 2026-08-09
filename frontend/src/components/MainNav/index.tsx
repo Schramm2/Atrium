@@ -4,15 +4,19 @@ import React from 'react';
 
 interface MainNavProps {
   title: string;
+  eyebrow?: string;
+  status?: React.ReactNode;
 }
 
-const MainNav: React.FC<MainNavProps> = ({ title }) => {
+const MainNav: React.FC<MainNavProps> = ({ title, eyebrow, status }) => {
   return (
-    <div className="h-0 flex items-center border-b">
-      <div className="max-w-5xl mx-auto w-full px-8">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+    <header className="ubundi-main-nav">
+      <div>
+        {eyebrow && <p className="ubundi-eyebrow">{eyebrow}</p>}
+        <h1>{title}</h1>
       </div>
-    </div>
+      {status}
+    </header>
   );
 };
 
