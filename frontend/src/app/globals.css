@@ -1049,6 +1049,7 @@ html[data-brand-theme="first-motive"] {
 
 .brand-theme-toggle-collapsed:hover { color: var(--ubundi-primary); }
 .brand-theme-toggle-collapsed svg { width: 17px; height: 17px; }
+.ubundi-main-content { background: var(--ubundi-surface-muted); }
 .brand-primary-icon { color: var(--ubundi-primary); }
 .brand-version { color: var(--ubundi-grey); }
 .brand-collapsed-secondary:hover { background: var(--ubundi-surface-muted); }
@@ -1087,6 +1088,90 @@ html[data-brand-theme="first-motive"] {
 .brand-permission-action-secondary:hover { filter: brightness(0.94); }
 .brand-permission-action-recheck { background: var(--ubundi-amber); color: var(--ubundi-ink); }
 .brand-permission-action-recheck:hover { filter: brightness(0.94); }
+
+/* Ask workspace */
+.ask-page {
+  background: var(--ubundi-surface-muted);
+  color: var(--ubundi-ink);
+}
+
+.ask-heading { color: var(--ubundi-ink); }
+.ask-heading-icon {
+  background: color-mix(in srgb, var(--ubundi-primary) 13%, var(--ubundi-surface));
+  color: var(--ubundi-primary);
+}
+
+.ask-composer,
+.ask-result {
+  border-color: var(--ubundi-border);
+  background: var(--ubundi-surface);
+  color: var(--ubundi-ink);
+}
+
+.ask-composer { box-shadow: 0 2px 8px rgba(27, 31, 68, 0.07); }
+.ask-question { color: var(--ubundi-ink); }
+.ask-question::placeholder { color: var(--ubundi-ink-muted); }
+.ask-support-copy,
+.ask-progress,
+.ask-result-detail,
+.ask-answer-meta { color: var(--ubundi-ink-muted); }
+.ask-result-title,
+.ask-answer-text { color: var(--ubundi-ink); }
+.ask-progress-icon { color: var(--ubundi-primary); }
+
+.ask-submit {
+  background: var(--ubundi-primary) !important;
+  color: var(--ubundi-on-primary) !important;
+}
+
+.ask-submit:hover:not(:disabled) { filter: brightness(1.06); }
+.ask-submit:disabled { opacity: 0.5; }
+.ask-scope { border-color: var(--ubundi-border); }
+.ask-scope-trigger,
+.ask-scope-label { color: var(--ubundi-ink-muted); }
+.ask-scope-trigger:hover { color: var(--ubundi-primary); }
+.ask-scope-panel { background: var(--ubundi-surface-muted); }
+.ask-scope-legend { color: var(--ubundi-ink-muted); }
+.ask-checkbox { accent-color: var(--ubundi-primary); }
+.ask-date-input {
+  border-color: var(--ubundi-border);
+  background: var(--ubundi-surface);
+  color: var(--ubundi-ink);
+}
+
+.ask-insufficient {
+  border-color: color-mix(in srgb, var(--ubundi-salmon) 55%, transparent);
+  background: color-mix(in srgb, var(--ubundi-salmon) 10%, var(--ubundi-surface));
+  color: var(--ubundi-ink);
+}
+
+.ask-citation {
+  border-color: color-mix(in srgb, var(--ubundi-blue) 45%, transparent);
+  background: color-mix(in srgb, var(--ubundi-blue) 12%, var(--ubundi-surface));
+  color: var(--ubundi-primary);
+  --tw-ring-color: var(--ubundi-primary);
+}
+
+.ask-citation:hover {
+  background: color-mix(in srgb, var(--ubundi-blue) 20%, var(--ubundi-surface));
+}
+
+/* About dialog */
+.brand-about-heading { color: var(--ubundi-ink); }
+.brand-about-muted { color: var(--ubundi-ink-muted); }
+.brand-about-card {
+  border-color: var(--ubundi-border);
+  background: var(--ubundi-surface-muted);
+}
+.brand-about-card:hover { background: color-mix(in srgb, var(--ubundi-blue) 8%, var(--ubundi-surface-muted)); }
+.brand-about-check {
+  border-color: var(--ubundi-border) !important;
+  color: var(--ubundi-primary) !important;
+}
+.brand-about-check:hover { background: var(--ubundi-surface-muted) !important; }
+.brand-about-primary { background: var(--ubundi-primary); color: var(--ubundi-on-primary); }
+.brand-about-primary:hover { filter: brightness(1.06); }
+.brand-about-footer { border-color: var(--ubundi-border); }
 
 .brand-theme-changing,
 .brand-theme-changing * {
@@ -1211,6 +1296,37 @@ html[data-brand-theme="first-motive"] .ubundi-hero-steps strong {
 html[data-brand-theme="first-motive"] .ubundi-dictation-notice {
   border-color: rgba(216, 155, 159, 0.48);
   background: rgba(216, 155, 159, 0.1);
+}
+
+html[data-brand-theme="first-motive"] .ask-composer,
+html[data-brand-theme="first-motive"] .ask-result {
+  box-shadow: none;
+}
+
+html[data-brand-theme="first-motive"] .ask-heading-icon {
+  background: rgba(127, 169, 184, 0.13);
+  color: #9ABBC6;
+}
+
+html[data-brand-theme="first-motive"] .ask-submit,
+html[data-brand-theme="first-motive"] .ask-scope-trigger,
+html[data-brand-theme="first-motive"] .ask-scope-legend,
+html[data-brand-theme="first-motive"] .ask-citation {
+  font-family: "Anonymous Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-dictation-visual .first-motive-mark {
+  width: 52px;
+  height: 52px;
+  filter: none;
+  opacity: 1;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-dictation-visual .first-motive-wordmark {
+  gap: 9px;
+  color: var(--brand-on-dark);
+  font-size: 18px;
+  white-space: nowrap;
 }
 
 html[data-brand-theme="first-motive"] .brand-permission-alert {

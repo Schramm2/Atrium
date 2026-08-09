@@ -9,12 +9,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { RecordingStatusBar } from "./RecordingStatusBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { TranscriptSegmentData } from "@/types";
-import Image from "next/image";
 import { ArrowUpRight, Mic, Pencil } from "lucide-react";
 import {
     getRenameSpeakerAccessibleLabel,
     isAliasableSpeakerLabel,
 } from "@/lib/speaker-aliases";
+import { BrandMark } from "./BrandIdentity";
 
 export interface VirtualizedTranscriptViewProps {
     /** Transcript segments to display */
@@ -328,13 +328,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                         <div className="ubundi-empty-state text-left">
                             <div className="ubundi-hero-band">
                                 <div className="ubundi-hero-main">
-                                    <Image
-                                        src="/ubundi-mark.png"
-                                        alt=""
-                                        width={56}
-                                        height={56}
-                                        className="relative z-10 mb-6 rounded-xl"
-                                    />
+                                    <BrandMark size={56} className="relative z-10 mb-6" />
                                     <p className="ubundi-hero-kicker">A clear record of the work</p>
                                     <p className="ubundi-hero-title">Keep the conversation. Move the work forward.</p>
                                     <p className="ubundi-hero-copy">

@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import {
   AudioLines,
   Check,
@@ -23,6 +22,7 @@ import {
   type DictationState,
   type DictationStatus,
 } from '@/types/dictation';
+import { BrandWordmark } from '@/components/BrandIdentity';
 
 interface DictationWorkspaceProps {
   renderHeader: (status: ReactNode) => ReactNode;
@@ -171,7 +171,7 @@ export function DictationWorkspace({ renderHeader }: DictationWorkspaceProps) {
           </div>
 
           <div className="ubundi-dictation-visual" aria-hidden="true">
-            <Image src="/brand/ubundi-logo-navy.png" alt="" width={164} height={46} priority />
+            <BrandWordmark priority />
             <div className="ubundi-dictation-wave">
               {[16, 34, 54, 76, 46, 66, 88, 58, 38, 70, 50, 26].map((height, index) => (
                 <span key={index} style={{ height: `${height}%` }} />
