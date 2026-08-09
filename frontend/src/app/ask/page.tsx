@@ -119,14 +119,14 @@ export default function AskUbundiMeetPage() {
   const isWorking = state.phase === 'retrieving' || state.phase === 'generating';
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] px-5 py-10 md:px-10">
+    <div className="ask-page min-h-screen px-5 py-10 md:px-10">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-8 flex items-center gap-3 text-[#2F3498]">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-[#E6EBF8]"><Sparkles className="size-5" /></span>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#171B48]">Ask Ubundi Meet</h1>
+        <div className="ask-heading mb-8 flex items-center gap-3">
+          <span className="ask-heading-icon flex size-10 items-center justify-center rounded-xl"><Sparkles className="size-5" /></span>
+          <h1 className="text-2xl font-semibold tracking-tight">Ask Ubundi Meet</h1>
         </div>
 
-        <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <form onSubmit={submit} className="ask-composer rounded-2xl border p-4 md:p-5">
           <label htmlFor="ask-question" className="sr-only">Question</label>
           <textarea
             id="ask-question"
@@ -135,7 +135,7 @@ export default function AskUbundiMeetPage() {
             placeholder="What decisions did we make about the launch?"
             rows={4}
             disabled={isWorking}
-            className="w-full resize-none bg-transparent text-lg leading-7 text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-60"
+            className="ask-question w-full resize-none bg-transparent text-lg leading-7 outline-none disabled:opacity-60"
             onKeyDown={event => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -155,11 +155,11 @@ export default function AskUbundiMeetPage() {
             onDateToChange={setDateTo}
           />
           <div className="mt-4 flex items-center justify-between gap-3">
-            <span className="text-xs text-slate-500">Answers use only cited meeting transcript evidence.</span>
+            <span className="ask-support-copy text-xs">Answers use only cited meeting transcript evidence.</span>
             {isWorking ? (
               <Button type="button" variant="outline" onClick={cancel}><Square className="size-3 fill-current" />Cancel</Button>
             ) : (
-              <Button type="submit" disabled={!question.trim()} className="bg-[#2F3498] text-white hover:bg-[#242978]">
+              <Button type="submit" disabled={!question.trim()} className="ask-submit">
                 Ask <ArrowUp className="size-4" />
               </Button>
             )}
@@ -187,7 +187,7 @@ export default function AskUbundiMeetPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={cancel}>Cancel</Button>
-            <Button onClick={confirmExternalProvider} className="bg-[#2F3498] text-white hover:bg-[#242978]">Continue</Button>
+            <Button onClick={confirmExternalProvider} className="ask-submit">Continue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -196,14 +196,14 @@ export default function AskUbundiMeetPage() {
 }
 
 function ProgressLine({ label }: { label: string }) {
-  return <div className="flex items-center gap-3 py-5 text-sm text-slate-600" role="status"><Loader2 className="size-5 animate-spin text-[#2F3498]" />{label}</div>;
+  return <div className="ask-progress flex items-center gap-3 py-5 text-sm" role="status"><Loader2 className="ask-progress-icon size-5 animate-spin" />{label}</div>;
 }
 
 function ResultMessage({ text, detail, onRetry }: { text: string; detail?: string; onRetry: () => void }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <p className="font-medium text-slate-800">{text}</p>
-      {detail && <p className="mt-1 text-sm text-slate-500">{detail}</p>}
+    <div className="ask-result rounded-xl border p-5">
+      <p className="ask-result-title font-medium">{text}</p>
+      {detail && <p className="ask-result-detail mt-1 text-sm">{detail}</p>}
       <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}><RotateCcw className="size-4" />Retry</Button>
     </div>
   );

@@ -10,7 +10,7 @@ export function AnswerView({ answer, onNavigate }: { answer: AskAnswer; onNaviga
   return (
     <div className="space-y-5" aria-live="polite">
       {answer.status === 'insufficient' && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="ask-insufficient rounded-lg border px-4 py-3 text-sm">
           The selected meetings do not contain enough evidence for a complete answer.
         </div>
       )}
@@ -21,7 +21,7 @@ export function AnswerView({ answer, onNavigate }: { answer: AskAnswer; onNaviga
             const citationData = citationDataForClaim(claim.citationIds, answer.citations);
             return (
               <div key={`${index}-${claim.text.slice(0, 24)}`} className="space-y-2">
-                <p className="text-[15px] leading-7 text-slate-800">{claim.text}</p>
+                <p className="ask-answer-text text-[15px] leading-7">{claim.text}</p>
                 {citationData.length > 0 && (
                   <div className="flex flex-wrap gap-2" aria-label={`Sources for claim ${index + 1}`}>
                     {citationData.map(data => (
@@ -34,10 +34,10 @@ export function AnswerView({ answer, onNavigate }: { answer: AskAnswer; onNaviga
           })}
         </div>
       ) : (
-        <p className="whitespace-pre-wrap text-[15px] leading-7 text-slate-800">{answer.answer}</p>
+        <p className="ask-answer-text whitespace-pre-wrap text-[15px] leading-7">{answer.answer}</p>
       )}
 
-      <p className="text-xs text-slate-500">Answered by {answer.provider} · {answer.model}</p>
+      <p className="ask-answer-meta text-xs">Answered by {answer.provider} · {answer.model}</p>
     </div>
   );
 }
