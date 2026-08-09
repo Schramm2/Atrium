@@ -34,8 +34,11 @@ export type DictationStatePayload =
       microphone?: string;
       model?: string;
       accessibility_granted?: boolean;
+      accessibilityGranted?: boolean;
       retains_audio?: boolean;
+      retainsAudio?: boolean;
       error?: string | null;
+      sessionId?: number | null;
       Idle?: unknown;
       Recording?: unknown;
       Processing?: unknown;
@@ -52,6 +55,8 @@ export type DictationResultPayload =
       result?: { text?: string; transcript?: { text: string } };
       duration_ms?: number | null;
       created_at?: string | null;
+      sessionId?: number;
+      confidence?: number | null;
     };
 
 export const DEFAULT_DICTATION_STATUS: DictationStatus = {

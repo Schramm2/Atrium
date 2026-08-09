@@ -54,6 +54,12 @@ enum WorkerCommand {
 pub struct DictationStatusPayload {
     pub state: &'static str,
     pub session_id: Option<u64>,
+    pub shortcut: &'static str,
+    pub microphone: &'static str,
+    pub model: &'static str,
+    pub accessibility_granted: bool,
+    pub retains_audio: bool,
+    pub error: Option<&'static str>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -67,19 +73,41 @@ pub struct DictationResultPayload {
 impl From<DictationStatus> for DictationStatusPayload {
     fn from(status: DictationStatus) -> Self {
         match status {
-            DictationStatus::Idle => Self {
-                state: "idle",
-                session_id: None,
-            },
-            DictationStatus::Recording { session_id } => Self {
-                state: "recording",
-                session_id: Some(session_id.get()),
-            },
-            DictationStatus::Processing { session_id } => Self {
-                state: "processing",
-                session_id: Some(session_id.get()),
-            },
+            DictationStatus::Idle => Self::new("idle", None),
+            DictationStatus::Recording { session_id } => {
+                Self::new("recording", Some(session_id.get()))
+            }
+            DictationStatus::Processing { session_id } => {
+                Self::new("processing", Some(session_id.get()))
+            }
         }
+    }
+}
+
+impl DictationStatusPayload {
+    fn new(state: &'static str, session_id: Option<u64>) -> Self {
+        Self {
+            state,
+            session_id,
+            shortcut: "⌥ Space",
+            microphone: "System default",
+            model: "Selected local speech model",
+            accessibility_granted: accessibility_is_granted(),
+            retains_audio: false,
+            error: None,
+        }
+    }
+}
+
+fn accessibility_is_granted() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        crate::dictation_platform::macos::accessibility_is_trusted()
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
     }
 }
 
@@ -548,10 +576,7 @@ pub async fn stop_dictation_internal(
     DICTATION_PHASE.store(2, Ordering::Release);
     emit_state(
         &app,
-        &DictationStatusPayload {
-            state: "processing",
-            session_id: Some(session_id),
-        },
+        &DictationStatusPayload::new("processing", Some(session_id)),
     );
 
     let (response_sender, response_receiver) = mpsc::sync_channel(1);
@@ -652,14 +677,8 @@ pub async fn get_dictation_status(app: AppHandle<Wry>) -> Result<DictationStatus
 pub fn tray_status() -> DictationStatusPayload {
     let session_id = DICTATION_SESSION_ID.load(Ordering::Acquire);
     match DICTATION_PHASE.load(Ordering::Acquire) {
-        1 => DictationStatusPayload {
-            state: "recording",
-            session_id: Some(session_id),
-        },
-        2 => DictationStatusPayload {
-            state: "processing",
-            session_id: Some(session_id),
-        },
+        1 => DictationStatusPayload::new("recording", Some(session_id)),
+        2 => DictationStatusPayload::new("processing", Some(session_id)),
         _ => DictationStatusPayload::from(DictationStatus::Idle),
     }
 }
@@ -723,5 +742,21 @@ mod tests {
         claim_dictation_audio().expect("dictation claim");
         assert!(claim_meeting_audio().is_err());
         release_dictation_audio();
+    }
+
+    #[test]
+    fn status_payload_keeps_the_frontend_contract() {
+        let payload = serde_json::to_value(DictationStatusPayload::new("recording", Some(42)))
+            .expect("serialize dictation status");
+
+        assert_eq!(payload["state"], "recording");
+        assert_eq!(payload["sessionId"], 42);
+        assert_eq!(payload["shortcut"], "⌥ Space");
+        assert_eq!(payload["microphone"], "System default");
+        assert_eq!(payload["model"], "Selected local speech model");
+        assert!(payload["accessibilityGranted"].is_boolean());
+        assert_eq!(payload["retainsAudio"], false);
+        assert!(payload["error"].is_null());
+        assert!(payload.get("session_id").is_none());
     }
 }
