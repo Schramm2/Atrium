@@ -1,6 +1,10 @@
 # Local macOS Updates
 
-Use this workflow when you are developing Notive on an Apple Silicon Mac. It builds the current checkout and replaces the local application without creating a tag, publishing a GitHub release, or running the release workflow.
+## Current status
+
+The checked-in updater is not currently usable: `scripts/update-local-macos.sh` calls `frontend/build-gpu.sh`, but that helper is not in this repository. Do not rely on the script to install a local build until its build command is restored. This page preserves the intended install and data-path details for that workflow.
+
+Use this workflow when you are developing Notive on an Apple Silicon Mac. When restored, it should build the current checkout and replace the local application without creating a tag, publishing a GitHub release, or running the release workflow.
 
 ## Update the installed app
 
@@ -11,7 +15,7 @@ cd /path/to/ubundi-meet
 ./scripts/update-local-macos.sh
 ```
 
-The script:
+The intended script behavior is:
 
 1. Reads the current branch and commit.
 2. Builds the frontend, Rust application, and llama-helper sidecar with Metal and CoreML detection.
@@ -24,7 +28,7 @@ The script:
    ~/Library/Application Support/com.ubundi.meet/installed-build.txt
    ```
 
-The script includes uncommitted working-tree changes in the local build and prints them before building. Review the list if you expected a clean commit build.
+The script includes uncommitted working-tree changes in the local build and prints them before building. Review the list if you expected a clean commit build. This behavior is not currently reachable because the removed helper stops the script first.
 
 ## Verify the installed commit
 
@@ -61,7 +65,7 @@ To distribute updates to other computers or use the in-app updater, configure th
 
 ## Build artifacts
 
-The local build creates these files under `target/release/bundle/`:
+When the updater is restored, the local build should create these files under `target/release/bundle/`:
 
 - `macos/Notive.app`
 - `macos/Notive.app.tar.gz`

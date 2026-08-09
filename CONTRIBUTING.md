@@ -11,6 +11,8 @@ Thank you for your interest in contributing to Notive! This document provides gu
 - `fix/*` - Bug fixes
 - `enhance/*` - Feature enhancements
 
+Use `feat/<short-name>` for documentation-only work.
+
 ### Getting Started
 
 1. Fork the repository
@@ -20,8 +22,8 @@ Thank you for your interest in contributing to Notive! This document provides gu
    ```
 3. Create a new branch from `main`:
    ```bash
-   git checkout main
-   git checkout -b feat/your-feature-name
+   git switch main
+   git switch -c feat/your-feature-name
    ```
 
 ### Development Process

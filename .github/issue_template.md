@@ -13,9 +13,9 @@
 3. [And so on...]
 
 ## Environment
-- OS: [e.g., macOS, Windows, Linux]
-- Browser: [e.g., Chrome, Firefox, Safari]
-- Version: [e.g., 1.0.0]
+- macOS version:
+- Notive version:
+- Mac model and chip:
 
 ## Screenshots
 [If applicable, add screenshots to help explain your problem]
@@ -24,4 +24,4 @@
 [Add any other context about the problem here]
 
 ## Possible Solution
-[If you have suggestions on how to fix the issue, please describe them here] 
+[If you have suggestions on how to fix the issue, please describe them here]

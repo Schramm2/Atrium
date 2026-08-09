@@ -9,10 +9,10 @@ Notive is built on the principle that your meeting data should remain private an
 ## Data Processing Philosophy
 
 ### Local-First Processing
-- **Meeting transcription**: Processed entirely on your device using local Whisper models
-- **Audio recordings**: Never transmitted to external servers
+- **Meeting transcription**: Processed on your device with the local Whisper or Parakeet path.
+- **Audio recordings**: Stored on your device unless you move or share them.
 - **Meeting content**: Stored locally. Selected transcript content can be sent to a provider when you use an external AI feature.
-- **AI summaries**: Generated locally or through your chosen LLM provider
+- **AI summaries**: Generated locally with Built-in AI or local Ollama, or sent to the provider you configure when you request an external summary.
 - **Ask Notive**: Retrieves evidence locally. External Ask requests require an in-session confirmation before the question and selected transcript evidence are sent.
 
 ### Your Data Ownership
@@ -24,18 +24,7 @@ Notive is built on the principle that your meeting data should remain private an
 ## Usage Analytics
 
 ### What We Collect
-Usage analytics is optional and off by default. When you choose to enable it, Notive collects minimal, anonymized usage data:
-
-**Application Usage:**
-- Feature usage patterns (which tools you use most)
-- Session duration and frequency
-- Performance metrics (transcription success rates, error frequencies)
-- UI interaction patterns (button clicks, navigation flows)
-
-**Technical Metrics:**
-- Application version and platform information
-- Error logs and crash reports (anonymized)
-- Performance benchmarks (processing times, resource usage)
+Notive does not collect product analytics or send usage telemetry. The analytics interface in the application is a no-op compatibility layer.
 
 ### What We DON'T Collect
 We never collect:
@@ -45,23 +34,6 @@ We never collect:
 - ❌ Audio data or voice patterns
 - ❌ Participant names or contact information
 - ❌ LLM conversations or AI-generated content
-
-### Why We Collect This Data
-When enabled, analytics helps us with:
-- **Product Quality**: Identifying and fixing bugs that impact user experience
-- **Performance Optimization**: Understanding resource usage and system bottlenecks
-- **Security**: Detecting potential security issues and vulnerabilities
-- **Feature Development**: Making data-driven decisions about new features
-- **Open Source Sustainability**: Ensuring the project meets user needs effectively
-
-### Analytics Implementation
-- **Provider**: PostHog (privacy-focused analytics platform)
-- **Default**: Off by default; analytics starts only after you enable it in settings
-- **Anonymization**: All data linked to generated user IDs only - no personal identification
-- **Data retention**: 12 months maximum, then automatically deleted
-- **Encryption**: All data encrypted in transit using industry-standard protocols
-- **Location**: Data processed in accordance with PostHog's privacy policy
-- **Access Control**: Strictly limited to core development team members
 
 ## Third-Party Services
 
@@ -74,28 +46,17 @@ If you choose to use external LLM providers:
 - **Built-in AI**: Processed on your device
 - **Local Ollama**: Processed entirely on your device
 
-### Analytics Service (Optional)
-- **PostHog**: Used for usage analytics when enabled
-- **Data**: Only anonymized usage patterns, no meeting content
-- **Control**: Completely optional, off by default, and user-controlled
-
 ## Your Privacy Rights
 
 ### Data Control
 - **Access**: View all data stored locally on your device
-- **Export**: Export your data in standard formats
-- **Delete**: Remove all data from your device
+- **Delete**: Delete saved meetings in the app. You can also remove the local app data with normal operating-system file controls.
 
-
-### Analytics Transparency
-- **Open source**: Full analytics implementation available for review in our source code
-- **Opt-in**: New and existing installs have analytics disabled until you turn it on
-- **Questions**: Contact us for any analytics-related concerns
 
 ## Data Security
 
 ### Local Security
-- Data encrypted at rest using your device's security features
+- Local data uses the access controls of your operating system and user account. Notive does not add application-level encryption at rest.
 - External AI features transmit only after the user selects or confirms the configured provider path
 - Standard file system permissions protect your data
 
