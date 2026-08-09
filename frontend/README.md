@@ -1,4 +1,4 @@
-# Ubundi Meet - Frontend
+# Notive - Frontend
 
 A modern desktop application for recording, transcribing, and analyzing meetings with AI assistance. Built with Next.js and Tauri for a native desktop experience.
 
@@ -129,17 +129,17 @@ pnpm run tauri:build
 
 ## Local Transcription
 
-Current Ubundi Meet does not require a separate FastAPI service, Docker backend, or manually started whisper-server process. Local transcription is handled by the Rust/Tauri desktop app.
+Current Notive does not require a separate FastAPI service, Docker backend, or manually started whisper-server process. Local transcription is handled by the Rust/Tauri desktop app.
 
 ## Automatic Speaker Labels
 
-During a live recording, Ubundi Meet compares local speaker embeddings for each completed speech segment. It groups similar voices and writes anonymous labels such as `Speaker 1` into the transcript. The labels identify a distinct voice in the current recording. They do not identify a person's real name. The saved transcript keeps the anonymous label, but the temporary speaker profiles and embeddings are discarded when recording stops.
+During a live recording, Notive compares local speaker embeddings for each completed speech segment. It groups similar voices and writes anonymous labels such as `Speaker 1` into the transcript. The labels identify a distinct voice in the current recording. They do not identify a person's real name. The saved transcript keeps the anonymous label, but the temporary speaker profiles and embeddings are discarded when recording stops.
 
-In a saved meeting, you can assign a readable alias to an anonymous label. The alias is user-entered, stored locally, and scoped to that meeting. Ubundi Meet keeps the original label in the transcript data. It shows the alias in the saved transcript and copied transcript. The next explicit summary generation or regeneration also uses the alias. Changing an alias does not regenerate an existing summary.
+In a saved meeting, you can assign a readable alias to an anonymous label. The alias is user-entered, stored locally, and scoped to that meeting. Notive keeps the original label in the transcript data. It shows the alias in the saved transcript and copied transcript. The next explicit summary generation or regeneration also uses the alias. Changing an alias does not regenerate an existing summary.
 
 Speaker aliases do not identify people, infer names, or match voices across meetings. `Unidentified speaker` cannot have an alias because its segments can contain more than one person.
 
-The app downloads its small local speaker-embedding model the first time this feature is needed. It stores the model in the application local-data directory. On macOS, this is under:
+The app downloads its small local speaker-embedding model the first time this feature is needed. It keeps the legacy-compatible model directory so existing downloads remain available. On macOS, this is under:
 
 ```text
 ~/Library/Application Support/Ubundi Meet/models/speaker-diarization/

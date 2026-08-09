@@ -1,5 +1,5 @@
 <div align="center">
-    <h1>Ubundi Meet</h1>
+    <h1>Notive</h1>
     <p><strong>Privacy-First Meetings and Local Dictation</strong></p>
     <p>
         <img alt="License" src="https://img.shields.io/badge/License-MIT-blue">
@@ -16,7 +16,7 @@ A privacy-first desktop assistant that captures and transcribes meetings on your
 <summary>Table of Contents</summary>
 
 - [Introduction](#introduction)
-- [Why Ubundi Meet?](#why-ubundi-meet)
+- [Why Notive?](#why-notive)
 - [Features](#features)
 - [Installation](#installation)
 - [System Architecture](#system-architecture)
@@ -28,9 +28,9 @@ A privacy-first desktop assistant that captures and transcribes meetings on your
 
 ## Introduction
 
-Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings and Local Dictation. The meeting tools capture meetings, transcribe them in real time, and can generate summaries. Local Dictation records speech from a global shortcut, transcribes it on your Mac, and inserts the text into the active app. Dictation audio and transcripts stay on your device.
+Notive is a privacy-first desktop assistant with two main areas: meetings and Local Dictation. The meeting tools capture meetings, transcribe them in real time, and can generate summaries. Local Dictation records speech from a global shortcut, transcribes it on your Mac, and inserts the text into the active app. Dictation audio and transcripts stay on your device.
 
-## Why Ubundi Meet?
+## Why Notive?
 
 - **Privacy First:** All processing happens locally on your device.
 - **Cost-Effective:** Uses open-source AI models instead of expensive APIs.
@@ -42,12 +42,12 @@ Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings a
 - **Local Dictation:** Hold Option+Space to record speech, then release it to transcribe on your Mac and insert the text into the active app. Dictation audio and transcripts stay on the device.
 - **Local First:** Recording, transcription, storage, retrieval, and citation construction stay on your Mac. External AI use is explicit.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
-- **Automatic Speaker Labels:** During a recording, Ubundi Meet groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the transcript.
-- **Meeting Speaker Aliases:** In a saved meeting, assign a readable name to an anonymous speaker label. The alias stays on the device and applies only to that meeting. Ubundi Meet keeps the original label and does not infer identity or match voices across meetings.
+- **Automatic Speaker Labels:** During a recording, Notive groups distinct voices and adds private `Speaker 1`, `Speaker 2`, and similar labels to the transcript.
+- **Meeting Speaker Aliases:** In a saved meeting, assign a readable name to an anonymous speaker label. The alias stays on the device and applies only to that meeting. Notive keeps the original label and does not infer identity or match voices across meetings.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
 - **Evidence-backed questions:** Ask across saved meetings and open each cited transcript segment at its recording-relative time.
 - **macOS:** Built for macOS.
-- **Open Source:** Ubundi Meet is open source and free to use.
+- **Open Source:** Notive is open source and free to use.
 - **Flexible AI Provider Support:** Choose from Ollama (local), Claude, Groq, OpenRouter, or your own OpenAI-compatible endpoint.
 - **Professional Audio Mixing:** Microphone and system audio captured simultaneously with intelligent ducking and clipping prevention.
 - **GPU Acceleration:** Metal and CoreML are enabled for macOS builds.
@@ -59,16 +59,16 @@ Ubundi Meet is a privacy-first desktop assistant with two main areas: meetings a
 
 1. Download the latest `.dmg` from [Releases](https://github.com/Schramm2/ubundi-meet/releases)
 2. Open the downloaded `.dmg` file
-3. Drag **Ubundi Meet** to your Applications folder
-4. Open **Ubundi Meet** from Applications folder
+3. Drag **Notive** to your Applications folder
+4. Open **Notive** from Applications folder
 
 ## System Architecture
 
-Ubundi Meet is a single, self-contained desktop application built with [Tauri](https://tauri.app/). It uses a Rust-based backend to handle audio capture, mixing, transcription, and storage, with a Next.js frontend for the user interface.
+Notive is a single, self-contained desktop application built with [Tauri](https://tauri.app/). It uses a Rust-based backend to handle audio capture, mixing, transcription, and storage, with a Next.js frontend for the user interface.
 
 For more details, see the [Architecture documentation](docs/architecture.md).
 
-Ask Ubundi Meet retrieves and ranks transcript evidence in the local SQLite database. Citation metadata and meeting navigation stay on the device. Built-in AI and Ollama on a loopback address can answer without an external evidence notice. If the configured endpoint is external, the app names the provider and requires confirmation before it sends the question and selected transcript evidence for the first Ask request in the app session.
+Ask Notive retrieves and ranks transcript evidence in the local SQLite database. Citation metadata and meeting navigation stay on the device. Built-in AI and Ollama on a loopback address can answer without an external evidence notice. If the configured endpoint is external, the app names the provider and requires confirmation before it sends the question and selected transcript evidence for the first Ask request in the app session.
 
 ## For Developers
 
@@ -81,15 +81,15 @@ pnpm install
 pnpm run tauri:dev
 ```
 
-For the short local macOS update path, use [`scripts/update-local-macos.sh`](scripts/update-local-macos.sh). It builds the current checkout and updates `/Applications/Ubundi Meet.app` without a GitHub release. See the [Local macOS Updates guide](docs/LOCAL_MACOS_UPDATES.md) for verification and data-directory details.
+For the short local macOS update path, use [`scripts/update-local-macos.sh`](scripts/update-local-macos.sh). It builds the current checkout and updates `/Applications/Notive.app` without a GitHub release. See the [Local macOS Updates guide](docs/LOCAL_MACOS_UPDATES.md) for verification and data-directory details.
 
 ## License
 
-Ubundi Meet is distributed under the [MIT License](LICENSE.md).
+Notive is distributed under the [MIT License](LICENSE.md).
 
 Required third-party notices are in [NOTICE.md](NOTICE.md).
 
-Local Dictation includes work adapted from [Handy](https://github.com/cjpais/Handy), by CJ Pais. See the [Handy attribution](docs/handy-attribution.md). Ubundi Meet does not use Handy names, logos, icons, or other brand assets. Speech model licenses are separate and must be checked before distribution.
+Local Dictation includes work adapted from [Handy](https://github.com/cjpais/Handy), by CJ Pais. See the [Handy attribution](docs/handy-attribution.md). Notive does not use Handy names, logos, icons, or other brand assets. Speech model licenses are separate and must be checked before distribution.
 
 Acknowledgments:
 

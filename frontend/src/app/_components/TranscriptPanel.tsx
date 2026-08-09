@@ -56,7 +56,7 @@ export function TranscriptPanel({
     <div ref={transcriptContainerRef} className="ubundi-transcript-surface overflow-hidden">
       <header className="ubundi-transcript-header">
         <div>
-          <p className="ubundi-eyebrow">Ubundi Meet · Private workspace</p>
+          <p className="ubundi-eyebrow">Notive · Private workspace</p>
           <h1 className="ubundi-transcript-title">Conversation capture</h1>
           <p className="ubundi-transcript-subtitle">
             Record, transcribe, and keep the context of important conversations close to the work.

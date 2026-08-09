@@ -1,6 +1,6 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "Ubundi Meet",
+    "productName": "Notive",
     "version": "0.5.0",
     "identifier": "com.ubundi.meet",
     "build": {
@@ -12,7 +12,7 @@
     "app": {
         "windows": [
             {
-                "title": "Ubundi Meet",
+                "title": "Notive",
                 "width": 1100,
                 "height": 700,
                 "resizable": true,

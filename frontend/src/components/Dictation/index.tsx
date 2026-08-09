@@ -143,7 +143,7 @@ export function DictationWorkspace({ renderHeader }: DictationWorkspaceProps) {
             <h2 id="dictation-workspace-title">{isRecording ? 'Speak naturally.' : status.state === 'transcribing' ? 'Turning speech into text.' : 'Ready when you are.'}</h2>
             <p>
               {isRecording
-                ? 'Release the shortcut or stop here when you finish. Ubundi Meet will insert the result in the active app.'
+                ? 'Release the shortcut or stop here when you finish. Notive will insert the result in the active app.'
                 : status.state === 'transcribing'
                   ? 'Your local model is processing the recording.'
                   : 'Hold the shortcut anywhere, or start here.'}
@@ -223,7 +223,7 @@ export function DictationWorkspace({ renderHeader }: DictationWorkspaceProps) {
             <div className="ubundi-dictation-support-icon"><Command aria-hidden="true" /></div>
             <div>
               <h2 id="accessibility-title">Accessibility access</h2>
-              <p>{status.accessibility_granted ? 'Access is ready. Ubundi Meet can insert text in the active app.' : 'Allow Ubundi Meet in System Settings → Privacy & Security → Accessibility, then restart Ubundi Meet.'}</p>
+              <p>{status.accessibility_granted ? 'Access is ready. Notive can insert text in the active app.' : 'Allow Notive in System Settings → Privacy & Security → Accessibility, then restart Notive.'}</p>
               <span className={`ubundi-dictation-detail ${status.accessibility_granted ? 'is-ready' : ''}`}>
                 {status.accessibility_granted ? <Check aria-hidden="true" /> : <AudioLines aria-hidden="true" />}
                 {status.accessibility_granted ? 'Access granted' : 'Access required for text insertion'}

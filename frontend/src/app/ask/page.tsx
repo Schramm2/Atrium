@@ -5,8 +5,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { useRouter } from 'next/navigation';
 import { ArrowUp, Loader2, RotateCcw, Sparkles, Square } from 'lucide-react';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
-import { AnswerView } from '@/components/AskUbundiMeet/AnswerView';
-import { ScopeControls } from '@/components/AskUbundiMeet/ScopeControls';
+import { AnswerView } from '@/components/AskNotive/AnswerView';
+import { ScopeControls } from '@/components/AskNotive/ScopeControls';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { initialAskState, needsExternalProviderConfirmation, reduceAskState } from '@/lib/ask/logic';
@@ -22,7 +22,7 @@ function readConfirmedProviders(): string[] {
   }
 }
 
-export default function AskUbundiMeetPage() {
+export default function AskNotivePage() {
   const router = useRouter();
   const { meetings } = useSidebar();
   const [state, dispatch] = useReducer(reduceAskState, initialAskState);
@@ -123,7 +123,7 @@ export default function AskUbundiMeetPage() {
       <div className="mx-auto max-w-3xl">
         <div className="ask-heading mb-8 flex items-center gap-3">
           <span className="ask-heading-icon flex size-10 items-center justify-center rounded-xl"><Sparkles className="size-5" /></span>
-          <h1 className="text-2xl font-semibold tracking-tight">Ask Ubundi Meet</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Ask Notive</h1>
         </div>
 
         <form onSubmit={submit} className="ask-composer rounded-2xl border p-4 md:p-5">
@@ -172,7 +172,7 @@ export default function AskUbundiMeetPage() {
           {state.phase === 'empty' && <ResultMessage text="No relevant transcript evidence was found in this scope." onRetry={() => lastRequest.current && runAsk(lastRequest.current)} />}
           {state.phase === 'insufficient' && state.answer && <AnswerView answer={state.answer} onNavigate={router.push} />}
           {state.phase === 'answered' && state.answer && <AnswerView answer={state.answer} onNavigate={router.push} />}
-          {state.phase === 'error' && <ResultMessage text="Ubundi Meet could not complete this answer." detail={state.error || undefined} onRetry={() => lastRequest.current && runAsk(lastRequest.current)} />}
+          {state.phase === 'error' && <ResultMessage text="Notive could not complete this answer." detail={state.error || undefined} onRetry={() => lastRequest.current && runAsk(lastRequest.current)} />}
           {state.phase === 'cancelled' && <ResultMessage text="The request was cancelled." onRetry={() => lastRequest.current && runAsk(lastRequest.current)} />}
         </div>
       </div>

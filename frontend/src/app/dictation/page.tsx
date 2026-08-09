@@ -8,7 +8,7 @@ export default function DictationPage() {
     <div className="ubundi-dictation-page">
       <DictationWorkspace
         renderHeader={(status) => (
-          <MainNav title="Dictation" eyebrow="Ubundi Meet" status={status} />
+          <MainNav title="Dictation" eyebrow="Notive" status={status} />
         )}
       />
     </div>

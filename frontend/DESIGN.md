@@ -1,10 +1,10 @@
-# Ubundi Meet Design Contract
+# Notive Design Contract
 
-Ubundi Meet is an operational desktop application. Keep the meeting workspace calm, direct, and useful. Do not change information architecture when you change the brand theme.
+Notive is an operational desktop application. Keep the meeting workspace calm, direct, and useful. Do not change information architecture when you change the brand theme.
 
 ## Themes
 
-The application has two brand themes. The active theme is set with `data-brand-theme` on the root `html` element and saved in local storage as `ubundi-meet-brand-theme`.
+The application has two brand themes. The active theme is set with `data-brand-theme` on the root `html` element and saved in local storage with the legacy-compatible `ubundi-meet-brand-theme` key.
 
 ### Ubundi
 
@@ -39,3 +39,7 @@ The source contract is `/Users/matthew-schramm-ubundi/Workspace.nosync/Work/Comp
 ## Theme Toggle
 
 Keep the theme toggle in the sidebar footer and provide it in the collapsed sidebar. It must state both choices, identify the active choice, work with a keyboard, and persist between application launches.
+
+## Appearance Settings
+
+Keep interface theme and app icon as independent choices in Settings. Both choices must show Ubundi and First Motive previews, identify the active choice, work with a keyboard, and persist between launches. On macOS, the app icon choice updates the Dock and app switcher through the smallest direct AppKit bridge. Do not rewrite the signed application bundle.

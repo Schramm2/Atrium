@@ -24,7 +24,7 @@ export function WelcomeStep() {
 
   return (
     <OnboardingContainer
-      title="Welcome to Ubundi Meet"
+      title="Welcome to Notive"
       description="Record. Transcribe. Summarize. All on your device."
       step={1}
       hideProgress={true}

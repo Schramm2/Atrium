@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build the current checkout and replace the local Ubundi Meet app.
+# Build the current checkout and replace the local Notive app.
 # This is intentionally separate from the GitHub release workflow. It does
 # not create a tag, publish an artifact, or touch the updater manifest.
 
@@ -8,10 +8,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
-INSTALL_APP="/Applications/Ubundi Meet.app"
-STAGED_APP="/Applications/.Ubundi Meet.app.installing.$$"
-BACKUP_APP="/Applications/.Ubundi Meet.app.backup.$$"
-BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Ubundi Meet.app"
+INSTALL_APP="/Applications/Notive.app"
+STAGED_APP="/Applications/.Notive.app.installing.$$"
+BACKUP_APP="/Applications/.Notive.app.backup.$$"
+BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Notive.app"
 SUPPORT_DIR="${HOME}/Library/Application Support/com.ubundi.meet"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -31,8 +31,8 @@ for command_name in cargo codesign date ditto git pnpm stat; do
   require_command "$command_name"
 done
 
-if /usr/bin/pgrep -x ubundi-meet >/dev/null 2>&1; then
-  fail "Ubundi Meet is running. Quit it before updating so an active recording is not interrupted."
+if /usr/bin/pgrep -x notive >/dev/null 2>&1 || /usr/bin/pgrep -x ubundi-meet >/dev/null 2>&1; then
+  fail "Notive is running. Quit it before updating so an active recording is not interrupted."
 fi
 
 COMMIT="$(git -C "$ROOT_DIR" rev-parse HEAD)"
@@ -41,7 +41,7 @@ BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
 VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$FRONTEND_DIR/src-tauri/tauri.conf.json" | head -n 1)"
 WORKTREE_STATUS="$(git -C "$ROOT_DIR" status --short)"
 
-echo "Ubundi Meet local updater"
+echo "Notive local updater"
 echo "  branch:  ${BRANCH:-detached HEAD}"
 echo "  commit:  $COMMIT"
 echo "  version: $VERSION"
@@ -107,7 +107,7 @@ fi
 
 INSTALLED_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$INSTALL_APP/Contents/Info.plist")"
 INSTALLED_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INSTALL_APP/Contents/Info.plist")"
-[[ "$INSTALLED_NAME" == "Ubundi Meet" ]] || fail "Installed app name is '$INSTALLED_NAME', not 'Ubundi Meet'."
+[[ "$INSTALLED_NAME" == "Notive" ]] || fail "Installed app name is '$INSTALLED_NAME', not 'Notive'."
 [[ "$INSTALLED_VERSION" == "$VERSION" ]] || fail "Installed version is '$INSTALLED_VERSION', expected '$VERSION'."
 
 mkdir -p "$SUPPORT_DIR"
@@ -124,6 +124,6 @@ if [[ -x "$LSREGISTER" ]]; then
 fi
 
 echo
-echo "Installed Ubundi Meet $VERSION from commit $SHORT_COMMIT."
+echo "Installed Notive $VERSION from commit $SHORT_COMMIT."
 echo "Receipt: $RECEIPT_FILE"
 echo "Open it with: open -n '$INSTALL_APP'"

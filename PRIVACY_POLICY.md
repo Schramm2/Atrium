@@ -1,10 +1,10 @@
-# Ubundi Meet Privacy Policy
+# Notive Privacy Policy
 
 *Last updated: August 8, 2026*
 
 ## Our Privacy-First Commitment
 
-Ubundi Meet is built on the principle that your meeting data should remain private and under your control. This privacy policy explains how we handle data in our open-source meeting assistant.
+Notive is built on the principle that your meeting data should remain private and under your control. This privacy policy explains how we handle data in our open-source meeting assistant.
 
 ## Data Processing Philosophy
 
@@ -13,7 +13,7 @@ Ubundi Meet is built on the principle that your meeting data should remain priva
 - **Audio recordings**: Never transmitted to external servers
 - **Meeting content**: Stored locally. Selected transcript content can be sent to a provider when you use an external AI feature.
 - **AI summaries**: Generated locally or through your chosen LLM provider
-- **Ask Ubundi Meet**: Retrieves evidence locally. External Ask requests require an in-session confirmation before the question and selected transcript evidence are sent.
+- **Ask Notive**: Retrieves evidence locally. External Ask requests require an in-session confirmation before the question and selected transcript evidence are sent.
 
 ### Your Data Ownership
 - You own all meeting data, transcripts, and recordings
@@ -24,7 +24,7 @@ Ubundi Meet is built on the principle that your meeting data should remain priva
 ## Usage Analytics
 
 ### What We Collect
-Usage analytics is optional and off by default. When you choose to enable it, Ubundi Meet collects minimal, anonymized usage data:
+Usage analytics is optional and off by default. When you choose to enable it, Notive collects minimal, anonymized usage data:
 
 **Application Usage:**
 - Feature usage patterns (which tools you use most)
@@ -126,4 +126,4 @@ As an open-source project under MIT license, you can:
 
 ---
 
-*This privacy policy applies to Ubundi Meet v0.5.0 and later versions. For enterprise deployments, additional privacy controls may be available.*
+*This privacy policy applies to Notive v0.5.0 and later versions. For enterprise deployments, additional privacy controls may be available.*

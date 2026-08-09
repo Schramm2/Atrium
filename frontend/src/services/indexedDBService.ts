@@ -31,6 +31,7 @@ export interface StoredTranscript {
 
 class IndexedDBService {
   private db: IDBDatabase | null = null;
+  // Keep the legacy database name so pending transcript recovery survives the product rename.
   private readonly DB_NAME = 'UbundiMeetRecoveryDB';
   private readonly DB_VERSION = 1;
   private initPromise: Promise<void> | null = null;

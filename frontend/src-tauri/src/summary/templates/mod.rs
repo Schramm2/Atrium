@@ -31,9 +31,8 @@
 //! # Custom Templates
 //!
 //! Users can add custom templates to:
-//! - macOS: `~/Library/Application Support/Ubundi Meet/templates/`
-//! - Windows: `%APPDATA%\Ubundi Meet\templates\`
-//! - Linux: `~/.config/Ubundi Meet/templates/`
+//! Custom templates use the legacy-compatible application-data directory so
+//! the Notive rename does not hide existing user templates.
 //!
 //! Custom templates must follow the JSON schema defined in `types::Template`.
 

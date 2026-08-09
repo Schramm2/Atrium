@@ -114,7 +114,7 @@ async fn ensure_model() -> Result<PathBuf, String> {
     info!("Downloading the local speaker-diarization model");
     let response = reqwest::Client::new()
         .get(MODEL_URL)
-        .header(reqwest::header::USER_AGENT, "Ubundi-Meet")
+        .header(reqwest::header::USER_AGENT, "Notive")
         .send()
         .await
         .map_err(|error| format!("Could not download the speaker model: {error}"))?

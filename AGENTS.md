@@ -1,8 +1,8 @@
-# Ubundi Meet Agent Guide
+# Notive Agent Guide
 
 ## Product identity
 
-This repository builds **Ubundi Meet**, a privacy-first, local-first AI meeting assistant. Use `Ubundi Meet` in prose and user-facing labels. Use `ubundi-meet` for repository, package, and artifact names.
+This repository builds **Notive**, a privacy-first, local-first AI meeting assistant for internal use by Ubundi and First Motive. Use `Notive` in prose and user-facing labels. The Ubundi and First Motive names remain theme identities. Keep `ubundi-meet`, `com.ubundi.meet`, and existing GitHub URLs only where compatibility or repository identity requires them.
 
 The supported application is the Tauri desktop app in `frontend/`, with a Rust core and a Next.js interface. The `backend/` directory is an archived Python/FastAPI implementation. Do not use it for new development, installation, deployment, or supported-app issue triage.
 

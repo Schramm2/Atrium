@@ -18,10 +18,8 @@ pub fn set_bundled_templates_dir(path: PathBuf) {
 
 /// Get the user's custom templates directory path
 ///
-/// Returns the platform-specific application data directory for custom templates:
-/// - macOS: ~/Library/Application Support/Ubundi Meet/templates/
-/// - Windows: %APPDATA%\Ubundi Meet\templates\
-/// - Linux: ~/.config/Ubundi Meet/templates/
+/// Returns the legacy-compatible application data directory for custom templates.
+/// Keeping this path prevents the Notive rename from hiding existing templates.
 fn get_custom_templates_dir() -> Option<PathBuf> {
     let mut path = dirs::data_dir()?;
     path.push("Ubundi Meet");

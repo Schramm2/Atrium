@@ -36,6 +36,7 @@ pub(crate) use perf_trace;
 
 // Declare audio module
 pub mod api;
+pub mod app_icon;
 pub mod ask;
 pub mod audio;
 pub mod config;
@@ -537,6 +538,7 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            app_icon::set_app_icon,
             start_recording,
             stop_recording,
             is_recording,

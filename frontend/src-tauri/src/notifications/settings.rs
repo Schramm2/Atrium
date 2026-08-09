@@ -115,6 +115,7 @@ impl<R: Runtime> ConsentManager<R> {
         let mut path = dirs::config_dir()
             .ok_or_else(|| anyhow!("Could not find config directory"))?;
 
+        // Keep the legacy path so existing notification preferences survive the rename.
         path.push("ubundi-meet");
         path.push("notifications.json");
 
