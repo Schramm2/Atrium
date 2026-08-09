@@ -2,7 +2,7 @@ use tauri::{
     Emitter,
     menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Manager, Runtime,
+    AppHandle, Manager, Runtime, Wry,
 };
 
 #[derive(Debug, Clone)]
@@ -16,10 +16,15 @@ pub enum RecordingState {
     Stopping,
 }
 
-pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+pub fn create_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
     // Start with default menu, will update with actual state after initialization
     // Pass can_record=true initially, will be updated by update_tray_menu immediately
-    let menu = build_menu(app, RecordingState::Stopped, true)?;
+    let menu = build_menu(
+        app,
+        RecordingState::Stopped,
+        &crate::dictation_integration::tray_status(),
+        true,
+    )?;
 
     TrayIconBuilder::with_id("main-tray")
         .menu(&menu)
@@ -34,8 +39,11 @@ pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, item_id: &str) {
+fn handle_menu_event(app: &AppHandle<Wry>, item_id: &str) {
     match item_id {
+        "start_dictation" => start_dictation_handler(app),
+        "stop_dictation" => stop_dictation_handler(app),
+        "cancel_dictation" => cancel_dictation_handler(app),
         "toggle_recording" => toggle_recording_handler(app),
         "pause_recording" => pause_recording_handler(app),
         "resume_recording" => resume_recording_handler(app),
@@ -52,6 +60,34 @@ fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, item_id: &str) {
         _ => {}
     }
 }
+
+fn start_dictation_handler(app: &AppHandle<Wry>) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = crate::dictation_integration::start_dictation_internal(app).await {
+            log::warn!("Failed to start dictation from the tray: {error}");
+        }
+    });
+}
+
+fn stop_dictation_handler(app: &AppHandle<Wry>) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = crate::dictation_integration::stop_dictation_internal(app).await {
+            log::warn!("Failed to stop dictation from the tray: {error}");
+        }
+    });
+}
+
+fn cancel_dictation_handler(app: &AppHandle<Wry>) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = crate::dictation_integration::cancel_dictation(app).await {
+            log::warn!("Failed to cancel dictation from the tray: {error}");
+        }
+    });
+}
+
 fn toggle_recording_handler<R: Runtime>(app: &AppHandle<R>) {
     focus_main_window(app);
     let app_clone = app.clone();
@@ -83,6 +119,7 @@ fn toggle_recording_handler<R: Runtime>(app: &AppHandle<R>) {
                 },
             )
             .await;
+            crate::dictation_integration::release_meeting_audio_if_stopped().await;
 
             // Handle result
             match stop_result {
@@ -179,6 +216,7 @@ fn stop_recording_handler<R: Runtime>(app: &AppHandle<R>) {
             },
         )
         .await;
+        crate::dictation_integration::release_meeting_audio_if_stopped().await;
 
         // Handle result
         match stop_result {
@@ -222,7 +260,12 @@ pub fn update_tray_menu<R: Runtime>(app: &AppHandle<R>) {
 pub fn set_tray_state<R: Runtime>(app: &AppHandle<R>, state: RecordingState) {
     log::info!("Tray: Setting intermediate state: {:?}", state);
     // During recording state transitions, we assume recording is allowed (we're already recording)
-    if let Ok(menu) = build_menu(app, state, true) {
+    if let Ok(menu) = build_menu(
+        app,
+        state,
+        &crate::dictation_integration::tray_status(),
+        true,
+    ) {
         if let Some(tray) = app.tray_by_id("main-tray") {
             let result = tray.set_menu(Some(menu));
             log::info!("Tray: Intermediate state menu update result: {:?}", result);
@@ -300,8 +343,9 @@ pub async fn update_tray_menu_async<R: Runtime>(app: &AppHandle<R>) {
     // Only block recording during incomplete onboarding when no transcription model is ready
     let can_record = check_can_record(app).await;
     log::info!("Tray: can_record: {}", can_record);
+    let dictation_status = crate::dictation_integration::tray_status();
 
-    if let Ok(menu) = build_menu(app, recording_state, can_record) {
+    if let Ok(menu) = build_menu(app, recording_state, &dictation_status, can_record) {
         if let Some(tray) = app.tray_by_id("main-tray") {
             let result = tray.set_menu(Some(menu));
             log::info!("Tray: Menu update result: {:?}", result);
@@ -316,12 +360,25 @@ pub async fn update_tray_menu_async<R: Runtime>(app: &AppHandle<R>) {
 fn build_menu<R: Runtime>(
     app: &AppHandle<R>,
     state: RecordingState,
+    dictation_status: &crate::dictation_integration::DictationStatusPayload,
     can_record: bool, // True if recording is allowed (onboarding complete OR transcription model ready)
 ) -> tauri::Result<tauri::menu::Menu<R>> {
     let mut builder = MenuBuilder::new(app);
 
+    if dictation_status.state == "recording" {
+        builder = builder
+            .item(&MenuItemBuilder::with_id("stop_dictation", "Stop Dictation").build(app)?)
+            .item(
+                &MenuItemBuilder::with_id("cancel_dictation", "Cancel Dictation").build(app)?,
+            );
+    } else if dictation_status.state == "processing" {
+        builder = builder.item(
+            &MenuItemBuilder::new("Processing Dictation…")
+                .enabled(false)
+                .build(app)?,
+        );
     // If recording is not allowed (during onboarding, no transcription model), show disabled message
-    if !can_record {
+    } else if !can_record {
         builder = builder.item(
             &MenuItemBuilder::new("⏳ Downloading transcription model...")
                 .enabled(false)
@@ -331,6 +388,10 @@ fn build_menu<R: Runtime>(
         match state {
             RecordingState::Stopped => {
                 builder = builder
+                    .item(
+                        &MenuItemBuilder::with_id("start_dictation", "Start Dictation")
+                            .build(app)?,
+                    )
                     .item(&MenuItemBuilder::with_id("toggle_recording", "Start Recording").build(app)?);
             }
             RecordingState::Starting => {

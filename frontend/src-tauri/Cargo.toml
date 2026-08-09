@@ -131,11 +131,15 @@ tauri-plugin-single-instance = "=2.3.7"
 tauri = { version = "2.6.2", features = ["protocol-asset", "macos-private-api", "tray-icon"] }
 once_cell = "1.17.1"
 objc = "0.2.7"
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSData", "NSString"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["NSPasteboard", "NSRunningApplication", "NSWorkspace"] }
 tauri-plugin-log = { version = "2.6.0", features = ["colored"] }
 anyhow = "1.0"
 time = { version = "0.3", features = ["formatting"] }
 reqwest = { version = "0.11", features = ["multipart", "json"] }
 core-graphics = "0.23"
+handy-keys = "0.3.3"
 cidre = { git = "https://github.com/yury/cidre", rev = "a9587fa", features = ["av"] }
 dasp = "0.11.0"
 futures-channel = "0.3.31"

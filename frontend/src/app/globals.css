@@ -526,3 +526,397 @@
   .ubundi-hero-title { font-size: 26px; }
   .ubundi-hero-copy { font-size: 14px; }
 }
+
+/* Dictation keeps the active task prominent and moves setup details below it. */
+.ubundi-dictation-page {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--ubundi-surface-muted);
+}
+
+.ubundi-main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 96px;
+  padding: 24px clamp(24px, 4vw, 48px);
+  border-bottom: 1px solid var(--ubundi-border);
+  background: color-mix(in srgb, var(--ubundi-surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.ubundi-main-nav h1 {
+  margin-top: 3px;
+  color: var(--ubundi-ink);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.ubundi-dictation-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--ubundi-border);
+  border-radius: 999px;
+  background: var(--ubundi-surface);
+  color: var(--ubundi-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ubundi-dictation-state > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ubundi-blue);
+}
+
+.ubundi-dictation-state-recording > span {
+  background: var(--ubundi-salmon);
+  box-shadow: 0 0 0 5px rgba(215, 122, 133, 0.16);
+  animation: dictation-pulse 1.8s ease-in-out infinite;
+}
+
+.ubundi-dictation-state-starting > span,
+.ubundi-dictation-state-transcribing > span { background: var(--ubundi-amber); }
+.ubundi-dictation-state-error > span { background: var(--ubundi-salmon); }
+.ubundi-dictation-state-completed > span { background: var(--ubundi-primary); }
+
+.ubundi-dictation-content {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  padding: 32px clamp(24px, 4vw, 48px) 64px;
+}
+
+.ubundi-dictation-console {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.65fr);
+  align-items: stretch;
+  min-height: 300px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--ubundi-primary-dark);
+  color: var(--ubundi-on-primary);
+}
+
+.ubundi-dictation-console::after {
+  content: '';
+  position: absolute;
+  right: -100px;
+  bottom: -150px;
+  width: 360px;
+  height: 360px;
+  border: 1px solid rgba(193, 131, 230, 0.22);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ubundi-dictation-console-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 42px;
+}
+
+.ubundi-dictation-kicker {
+  color: var(--ubundi-electric);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.ubundi-dictation-console h2 {
+  max-width: 520px;
+  margin-top: 10px;
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.ubundi-dictation-console-copy > p:last-of-type {
+  max-width: 540px;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ubundi-dictation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.ubundi-dictation-primary,
+.ubundi-dictation-secondary,
+.ubundi-dictation-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.ubundi-dictation-primary {
+  border: 1px solid var(--ubundi-on-primary);
+  background: var(--ubundi-on-primary);
+  color: var(--ubundi-primary-dark);
+}
+
+.ubundi-dictation-primary:hover:not(:disabled) { background: var(--ubundi-amber); border-color: var(--ubundi-amber); }
+.ubundi-dictation-primary:active:not(:disabled), .ubundi-dictation-secondary:active:not(:disabled) { transform: translateY(1px); }
+
+.ubundi-dictation-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: var(--ubundi-on-primary);
+}
+
+.ubundi-dictation-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.ubundi-dictation-primary:disabled, .ubundi-dictation-secondary:disabled { cursor: not-allowed; opacity: 0.55; }
+.ubundi-dictation-primary svg, .ubundi-dictation-secondary svg, .ubundi-dictation-copy svg { width: 16px; height: 16px; }
+
+.ubundi-dictation-visual {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 36px 38px 36px 30px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  background: radial-gradient(circle at 70% 30%, rgba(113, 136, 190, 0.22), transparent 65%);
+}
+
+.ubundi-dictation-visual img {
+  width: 132px;
+  height: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.88;
+}
+
+.ubundi-dictation-wave {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 88px;
+  margin-top: 34px;
+}
+
+.ubundi-dictation-wave span {
+  flex: 1;
+  min-width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--ubundi-amber), var(--ubundi-electric));
+  opacity: 0.78;
+  transform-origin: center;
+}
+
+.ubundi-dictation-console-recording .ubundi-dictation-wave span {
+  animation: dictation-wave 900ms ease-in-out infinite alternate;
+}
+
+.ubundi-dictation-console-recording .ubundi-dictation-wave span:nth-child(3n + 2) { animation-delay: -280ms; }
+.ubundi-dictation-console-recording .ubundi-dictation-wave span:nth-child(3n) { animation-delay: -520ms; }
+
+.ubundi-dictation-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(215, 122, 133, 0.55);
+  border-radius: 8px;
+  background: #FFF4F5;
+  color: var(--ubundi-ink);
+  font-size: 13px;
+}
+
+.ubundi-dictation-notice button { display: inline-flex; flex: none; color: var(--ubundi-primary); }
+.ubundi-dictation-notice svg { width: 16px; height: 16px; }
+
+.ubundi-dictation-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 20px;
+  overflow: hidden;
+  border: 1px solid var(--ubundi-border);
+  border-radius: 12px;
+  background: var(--ubundi-surface);
+}
+
+.ubundi-dictation-info-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border-right: 1px solid var(--ubundi-border);
+}
+
+.ubundi-dictation-info-row:last-child { border-right: 0; }
+.ubundi-dictation-info-row > div { min-width: 0; }
+.ubundi-dictation-info-row > div > span { display: block; color: var(--ubundi-ink-muted); font-size: 11px; font-weight: 600; }
+.ubundi-dictation-info-row strong { display: block; margin-top: 3px; overflow: hidden; color: var(--ubundi-ink); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+
+.ubundi-dictation-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #EEF0FA;
+  color: var(--ubundi-primary);
+}
+
+.ubundi-dictation-info-icon svg { width: 17px; height: 17px; }
+.ubundi-dictation-info-row kbd { display: none; }
+
+.ubundi-dictation-result {
+  margin-top: 32px;
+  padding: 26px;
+  border: 1px solid var(--ubundi-border);
+  border-radius: 12px;
+  background: var(--ubundi-surface);
+}
+
+.ubundi-dictation-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.ubundi-dictation-section-heading h2,
+.ubundi-dictation-support h2 { margin-top: 3px; color: var(--ubundi-ink); font-size: 18px; font-weight: 600; }
+.ubundi-dictation-section-heading .ubundi-dictation-kicker { color: var(--ubundi-primary); }
+
+.ubundi-dictation-copy {
+  border: 1px solid var(--ubundi-border);
+  background: var(--ubundi-surface);
+  color: var(--ubundi-primary);
+}
+
+.ubundi-dictation-copy:hover:not(:disabled) { border-color: var(--ubundi-blue); background: #F2F5FC; }
+.ubundi-dictation-copy:disabled { cursor: not-allowed; color: var(--ubundi-grey); opacity: 0.6; }
+
+.ubundi-dictation-result-text {
+  min-height: 116px;
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--ubundi-surface-muted);
+  color: var(--ubundi-ink);
+  font-size: 16px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.ubundi-dictation-result-text.is-empty { display: flex; align-items: center; color: var(--ubundi-ink-muted); font-size: 14px; }
+
+.ubundi-dictation-support-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ubundi-dictation-support {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid var(--ubundi-border);
+  border-radius: 12px;
+  background: var(--ubundi-surface);
+}
+
+.ubundi-dictation-support-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #EEF0FA;
+  color: var(--ubundi-primary);
+}
+
+.ubundi-dictation-support-icon svg { width: 19px; height: 19px; }
+.ubundi-dictation-support p { margin-top: 7px; color: var(--ubundi-ink-muted); font-size: 13px; line-height: 1.55; }
+
+.ubundi-dictation-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--ubundi-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ubundi-dictation-detail svg { width: 13px; height: 13px; }
+.ubundi-dictation-detail.is-ready { color: #32674A; }
+
+@keyframes dictation-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(215, 122, 133, 0.12); }
+  50% { box-shadow: 0 0 0 7px rgba(215, 122, 133, 0.22); }
+}
+
+@keyframes dictation-wave {
+  from { transform: scaleY(0.68); opacity: 0.58; }
+  to { transform: scaleY(1); opacity: 0.92; }
+}
+
+@media (max-width: 860px) {
+  .ubundi-dictation-console { grid-template-columns: 1fr; }
+  .ubundi-dictation-console-copy { padding: 34px; }
+  .ubundi-dictation-visual { min-height: 150px; padding: 26px 34px; border-top: 1px solid rgba(255, 255, 255, 0.14); border-left: 0; }
+  .ubundi-dictation-visual img { width: 112px; }
+  .ubundi-dictation-wave { height: 52px; margin-top: 20px; }
+  .ubundi-dictation-details { grid-template-columns: 1fr; }
+  .ubundi-dictation-info-row { border-right: 0; border-bottom: 1px solid var(--ubundi-border); }
+  .ubundi-dictation-info-row:last-child { border-bottom: 0; }
+  .ubundi-dictation-support-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .ubundi-main-nav { min-height: 82px; padding: 20px; }
+  .ubundi-main-nav h1 { font-size: 24px; }
+  .ubundi-dictation-content { padding: 20px 20px 44px; }
+  .ubundi-dictation-console-copy { padding: 28px 24px; }
+  .ubundi-dictation-console h2 { font-size: 27px; }
+  .ubundi-dictation-actions { align-items: stretch; flex-direction: column; }
+  .ubundi-dictation-primary, .ubundi-dictation-secondary { width: 100%; }
+  .ubundi-dictation-result { margin-top: 20px; padding: 20px; }
+  .ubundi-dictation-result-text { min-height: 100px; padding: 16px; }
+  .ubundi-dictation-support { padding: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ubundi-dictation-state-recording > span,
+  .ubundi-dictation-console-recording .ubundi-dictation-wave span { animation: none; }
+}
