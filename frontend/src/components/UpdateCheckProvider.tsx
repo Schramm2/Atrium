@@ -17,13 +17,17 @@ const UpdateCheckContext = createContext<UpdateCheckContextType | undefined>(und
 
 export function UpdateCheckProvider({ children }: { children: React.ReactNode }) {
   const [showDialog, setShowDialog] = useState(false);
+  const [automaticChecks, setAutomaticChecks] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.localStorage.getItem('automaticUpdateChecks') !== 'false';
+  });
 
   const handleShowDialog = useCallback(() => {
     setShowDialog(true);
   }, []);
 
   const { updateInfo, isChecking, checkForUpdates } = useUpdateCheck({
-    checkOnMount: true,
+    checkOnMount: automaticChecks,
     showNotification: true,
     onUpdateAvailable: (info) => {
       // Show notification, dialog will be shown when user clicks notification
@@ -38,6 +42,14 @@ export function UpdateCheckProvider({ children }: { children: React.ReactNode })
       setUpdateDialogCallback(() => {});
     };
   }, [handleShowDialog]);
+
+  useEffect(() => {
+    const handlePreferenceChange = (event: Event) => {
+      setAutomaticChecks((event as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener('automatic-update-checks-changed', handlePreferenceChange);
+    return () => window.removeEventListener('automatic-update-checks-changed', handlePreferenceChange);
+  }, []);
 
   // Listen for tray menu events
   useEffect(() => {

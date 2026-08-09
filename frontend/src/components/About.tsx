@@ -47,7 +47,7 @@ export function About() {
     };
 
     return (
-        <div className="ubundi-about p-6 space-y-6 h-[80vh] overflow-y-auto">
+        <div className="ubundi-about rounded-xl border border-gray-200 bg-white p-6 space-y-6 shadow-sm">
             {/* Compact Header */}
             <div className="text-center">
                 <div className="mb-3">

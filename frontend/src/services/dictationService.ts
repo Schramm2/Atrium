@@ -3,6 +3,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import {
   DEFAULT_DICTATION_STATUS,
   type DictationResult,
+  type DictationPreferences,
   type DictationResultPayload,
   type DictationState,
   type DictationStatePayload,
@@ -10,6 +11,14 @@ import {
 } from '@/types/dictation';
 
 class DictationService {
+  getPreferences(): Promise<DictationPreferences> {
+    return invoke<DictationPreferences>('get_dictation_preferences');
+  }
+
+  setPreferences(preferences: DictationPreferences): Promise<DictationPreferences> {
+    return invoke<DictationPreferences>('set_dictation_preferences', { preferences });
+  }
+
   start(): Promise<DictationStatus> {
     return invoke<DictationStatePayload>('start_dictation').then(normalizeStatus);
   }

@@ -1,135 +1,90 @@
 'use client';
 
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { ArrowLeft, Settings2, Mic, Database as DatabaseIcon, Palette, SparkleIcon } from 'lucide-react';
+import { ArrowLeft, Bot, Info, Keyboard, Mic, Palette, Settings2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { invoke } from '@tauri-apps/api/core';
-import { motion } from 'framer-motion';
-import { TranscriptSettings } from '@/components/TranscriptSettings';
-import { RecordingSettings } from '@/components/RecordingSettings';
-import { PreferenceSettings } from '@/components/PreferenceSettings';
 import { AppearanceSettings } from '@/components/AppearanceSettings';
+import { About } from '@/components/About';
+import { DictationSettings } from '@/components/DictationSettings';
+import { PreferenceSettings } from '@/components/PreferenceSettings';
+import { RecordingSettings } from '@/components/RecordingSettings';
 import { SummaryModelSettings } from '@/components/SummaryModelSettings';
+import { TranscriptSettings } from '@/components/TranscriptSettings';
+import { TranscriptionPreferences } from '@/components/TranscriptionPreferences';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useConfig } from '@/contexts/ConfigContext';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-// Tabs configuration (constant)
 const TABS = [
-  { value: 'appearance', label: 'Appearance', icon: Palette },
   { value: 'general', label: 'General', icon: Settings2 },
-  { value: 'recording', label: 'Recordings', icon: Mic },
-  { value: 'Transcriptionmodels', label: 'Transcription', icon: DatabaseIcon },
-  { value: 'summaryModels', label: 'Summary', icon: SparkleIcon }
+  { value: 'appearance', label: 'Appearance', icon: Palette },
+  { value: 'recording', label: 'Recording', icon: Mic },
+  { value: 'dictation', label: 'Dictation', icon: Keyboard },
+  { value: 'transcription', label: 'Transcription', icon: Bot },
+  { value: 'summary', label: 'Summary', icon: Sparkles },
+  { value: 'about', label: 'About', icon: Info },
 ] as const;
 
 export default function SettingsPage() {
   const router = useRouter();
   const { transcriptModelConfig, setTranscriptModelConfig } = useConfig();
 
-  // Animation state for tabs
-  const [activeTab, setActiveTab] = useState('appearance');
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
-
-  // Load saved transcript configuration on mount
-  useEffect(() => {
-    const loadTranscriptConfig = async () => {
-      try {
-        const config = await invoke('api_get_transcript_config') as any;
-        if (config) {
-          console.log('Loaded saved transcript config:', config);
-          setTranscriptModelConfig({
-            provider: config.provider || 'localWhisper',
-            model: config.model || 'large-v3',
-            apiKey: config.apiKey || null
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load transcript config:', error);
-      }
-    };
-    loadTranscriptConfig();
-  }, [setTranscriptModelConfig]);
-
-  // Update underline position when active tab changes
-  useLayoutEffect(() => {
-    const activeIndex = TABS.findIndex(tab => tab.value === activeTab);
-    const activeTabElement = tabRefs.current[activeIndex];
-
-    if (activeTabElement) {
-      const { offsetLeft, offsetWidth } = activeTabElement;
-      setUnderlineStyle({ left: offsetLeft, width: offsetWidth });
-    }
-  }, [activeTab]);
-
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-gray-50 border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-8 py-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </button>
-            <h1 className="text-3xl font-bold">Settings</h1>
-          </div>
+    <div className="flex h-screen flex-col bg-gray-50 text-gray-950">
+      <header className="shrink-0 border-b border-gray-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-5 sm:px-8">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-950"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back
+          </button>
+          <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         </div>
-      </div>
+      </header>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto p-8 pt-6">
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-transparent relative rounded-none border-b border-gray-200 p-0 h-auto">
-              {TABS.map((tab, index) => {
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Tabs defaultValue="general" orientation="vertical" className="mx-auto grid max-w-7xl gap-6 px-5 py-6 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
+          <aside>
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-white p-2 shadow-sm lg:sticky lg:top-6 lg:flex-col lg:overflow-visible">
+              {TABS.map(tab => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    ref={el => { tabRefs.current[index] = el }}
-                    className="flex items-center gap-2 px-6 py-4 bg-transparent rounded-none border-0 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none text-gray-600 hover:text-gray-900 relative z-10"
+                    className="justify-start gap-3 rounded-lg px-3 py-2.5 text-gray-600 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-none"
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="h-4 w-4" aria-hidden="true" />
                     {tab.label}
                   </TabsTrigger>
                 );
               })}
-
-              <motion.div
-                className="absolute bottom-0 z-20 h-0.5 bg-blue-600"
-                layoutId="underline"
-                style={{ left: underlineStyle.left, width: underlineStyle.width }}
-                transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-              />
             </TabsList>
+          </aside>
 
-            <TabsContent value="general">
-              <PreferenceSettings />
+          <main className="min-w-0 pb-10">
+            <TabsContent value="general" className="mt-0"><PreferenceSettings /></TabsContent>
+            <TabsContent value="appearance" className="mt-0"><AppearanceSettings /></TabsContent>
+            <TabsContent value="recording" className="mt-0"><RecordingSettings /></TabsContent>
+            <TabsContent value="dictation" className="mt-0"><DictationSettings /></TabsContent>
+            <TabsContent value="transcription" className="mt-0">
+              <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900">Speech model</h2>
+                <div className="mt-5">
+                  <TranscriptSettings
+                    transcriptModelConfig={transcriptModelConfig}
+                    setTranscriptModelConfig={setTranscriptModelConfig}
+                  />
+                </div>
+              </section>
+              <TranscriptionPreferences />
             </TabsContent>
-            <TabsContent value="appearance">
-              <AppearanceSettings />
-            </TabsContent>
-            <TabsContent value="recording">
-              <RecordingSettings />
-            </TabsContent>
-            <TabsContent value="Transcriptionmodels">
-              <TranscriptSettings
-                transcriptModelConfig={transcriptModelConfig}
-                setTranscriptModelConfig={setTranscriptModelConfig}
-              />
-            </TabsContent>
-            <TabsContent value="summaryModels">
-              <SummaryModelSettings />
-            </TabsContent>
-          </Tabs>
-        </div>
+            <TabsContent value="summary" className="mt-0"><SummaryModelSettings /></TabsContent>
+            <TabsContent value="about" className="mt-0"><About /></TabsContent>
+          </main>
+        </Tabs>
       </div>
     </div>
   );
-};
+}

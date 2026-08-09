@@ -546,6 +546,8 @@ pub fn run() {
             dictation_integration::stop_dictation,
             dictation_integration::cancel_dictation,
             dictation_integration::get_dictation_status,
+            dictation_integration::get_dictation_preferences,
+            dictation_integration::set_dictation_preferences,
             get_transcription_status,
             read_audio_file,
             save_transcript,
