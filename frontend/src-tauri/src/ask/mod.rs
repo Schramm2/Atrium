@@ -156,6 +156,12 @@ struct NeighborRow {
     speaker: Option<String>,
 }
 
+#[derive(Debug, FromRow)]
+struct MeetingTitleRow {
+    id: String,
+    title: String,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ModelAnswer {
@@ -187,22 +193,100 @@ fn bounded_chars(value: &str, max: usize) -> String {
     }
 }
 
-fn build_fts_query(question: &str) -> Option<String> {
+fn question_terms(question: &str) -> Vec<String> {
     const STOP_WORDS: &[&str] = &[
         "a", "an", "and", "are", "as", "at", "be", "by", "did", "do", "does", "for", "from", "how",
-        "i", "in", "is", "it", "of", "on", "or", "that", "the", "this", "to", "was", "were",
-        "what", "when", "where", "which", "who", "why", "with",
+        "had", "has", "have", "i", "in", "is", "it", "meeting", "of", "on", "or", "that", "the",
+        "this", "to", "was", "were", "what", "when", "where", "which", "who", "why", "with",
     ];
     let mut seen = HashSet::new();
-    let terms: Vec<String> = question
+    question
         .split(|c: char| !c.is_alphanumeric())
         .map(str::to_lowercase)
         .filter(|term| term.chars().count() >= 2 && !STOP_WORDS.contains(&term.as_str()))
         .filter(|term| seen.insert(term.clone()))
         .take(12)
+        .collect()
+}
+
+fn build_fts_query(question: &str) -> Option<String> {
+    let normalized_words: HashSet<String> = question
+        .split(|c: char| !c.is_alphanumeric())
+        .map(str::to_lowercase)
+        .collect();
+    let mut terms = question_terms(question);
+    if normalized_words.iter().any(|word| {
+        matches!(
+            word.as_str(),
+            "action" | "actions" | "do" | "next" | "task" | "tasks" | "todo"
+        )
+    }) {
+        for term in ["need", "should", "test", "look", "next", "gonna"] {
+            if !terms.iter().any(|existing| existing == term) {
+                terms.push(term.to_string());
+            }
+        }
+    }
+    let terms: Vec<String> = terms
+        .into_iter()
+        .take(18)
         .map(|term| format!("\"{}\"", term.replace('"', "\"\"")))
         .collect();
     (!terms.is_empty()).then(|| terms.join(" OR "))
+}
+
+async fn infer_meeting_title_scope(
+    pool: &SqlitePool,
+    request: &AskScopeRequest,
+) -> Result<Vec<String>, String> {
+    if !request.meeting_ids.is_empty() {
+        return Ok(request.meeting_ids.clone());
+    }
+    let terms: Vec<String> = question_terms(&request.question)
+        .into_iter()
+        .filter(|term| term.chars().count() >= 4)
+        .collect();
+    if terms.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let mut query = QueryBuilder::<Sqlite>::new("SELECT id, title FROM meetings WHERE 1 = 1");
+    if let Some(date_from) = request
+        .date_from
+        .as_deref()
+        .filter(|v| !v.trim().is_empty())
+    {
+        query
+            .push(" AND created_at >= ")
+            .push_bind(format!("{}T00:00:00", date_from));
+    }
+    if let Some(date_to) = request.date_to.as_deref().filter(|v| !v.trim().is_empty()) {
+        query
+            .push(" AND created_at < ")
+            .push_bind(format!("{}T23:59:59.999999", date_to));
+    }
+    let meetings: Vec<MeetingTitleRow> = query
+        .build_query_as()
+        .fetch_all(pool)
+        .await
+        .map_err(|e| format!("Failed to match the meeting title: {}", e))?;
+
+    let scored: Vec<(String, usize)> = meetings
+        .into_iter()
+        .filter_map(|meeting| {
+            let title = meeting.title.to_lowercase();
+            let score = terms
+                .iter()
+                .filter(|term| title.contains(term.as_str()))
+                .count();
+            (score > 0).then_some((meeting.id, score))
+        })
+        .collect();
+    let best_score = scored.iter().map(|(_, score)| *score).max().unwrap_or(0);
+    Ok(scored
+        .into_iter()
+        .filter_map(|(id, score)| (score == best_score).then_some(id))
+        .collect())
 }
 
 fn validate_scope(request: &AskScopeRequest) -> Result<(), String> {
@@ -250,6 +334,7 @@ pub async fn retrieve_evidence(
     request: &AskScopeRequest,
 ) -> Result<Vec<AskEvidence>, String> {
     validate_scope(request)?;
+    let effective_meeting_ids = infer_meeting_title_scope(pool, request).await?;
     let Some(fts_query) = build_fts_query(&request.question) else {
         return Ok(Vec::new());
     };
@@ -266,10 +351,10 @@ pub async fn retrieve_evidence(
          WHERE transcripts_fts MATCH ",
     );
     query.push_bind(fts_query);
-    if !request.meeting_ids.is_empty() {
+    if !effective_meeting_ids.is_empty() {
         query.push(" AND t.meeting_id IN (");
         let mut separated = query.separated(", ");
-        for meeting_id in &request.meeting_ids {
+        for meeting_id in &effective_meeting_ids {
             separated.push_bind(meeting_id);
         }
         separated.push_unseparated(")");
@@ -302,11 +387,16 @@ pub async fn retrieve_evidence(
         .max_results
         .unwrap_or(DEFAULT_RESULT_LIMIT)
         .clamp(1, MAX_RESULT_LIMIT);
+    let per_meeting_limit = if effective_meeting_ids.len() == 1 {
+        limit
+    } else {
+        MAX_RESULTS_PER_MEETING
+    };
     let mut meeting_counts: HashMap<String, usize> = HashMap::new();
     let mut selected = Vec::new();
     for row in candidates {
         let count = meeting_counts.entry(row.meeting_id.clone()).or_default();
-        if *count >= MAX_RESULTS_PER_MEETING {
+        if *count >= per_meeting_limit {
             continue;
         }
         *count += 1;
@@ -803,6 +893,38 @@ mod tests {
         assert_eq!(result[0].transcript_id, "t4");
         assert_eq!(result[0].audio_start_time, Some(12.0));
         assert_eq!(result[0].speaker.as_deref(), Some("Finance lead"));
+    }
+
+    #[tokio::test]
+    async fn retrieval_uses_the_meeting_title_to_disambiguate_a_task_question() {
+        let pool = test_pool().await;
+        sqlx::query(
+            "INSERT INTO meetings (id,title,created_at,updated_at) VALUES \
+             ('grounding','Wynand Matt Grounding Meeting','2026-08-06T10:00:00','2026-08-06T10:00:00'), \
+             ('risk','Risk Lab','2026-08-06T11:00:00','2026-08-06T11:00:00')",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO transcripts (id,meeting_id,transcript,timestamp,audio_start_time) VALUES \
+             ('grounding-task','grounding','You need to test the integrations and review onboarding performance.','10:05',305), \
+             ('risk-noise','risk','We have three unrelated risk observations.','11:05',305)",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        let result = retrieve_evidence(&pool, &request("What do we have to do for Grounding?"))
+            .await
+            .unwrap();
+
+        assert!(result.iter().any(|evidence| {
+            evidence.meeting_id == "grounding" && evidence.transcript_id == "grounding-task"
+        }));
+        assert!(result
+            .iter()
+            .all(|evidence| evidence.meeting_id == "grounding"));
     }
 
     #[tokio::test]
