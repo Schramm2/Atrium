@@ -1,6 +1,6 @@
 # System Architecture
 
-Notive is a self-contained desktop application built with [Tauri](https://tauri.app/). It combines a Rust-based backend with a Next.js frontend into a single, efficient, and cross-platform application.
+Notive is a self-contained macOS desktop application built with [Tauri](https://tauri.app/). It combines a Rust core with a Next.js frontend in one application.
 
 ## High-Level Architecture Diagram
 
@@ -25,6 +25,7 @@ graph TD
     B -- Manages --> E
     B -- Manages --> F
     B -- Manages --> G
+    B -- Manages --> H[Local Dictation]
     G -- Local FTS5 retrieval --> E
     G -- Configured model --> F
 ```
@@ -45,6 +46,7 @@ graph TD
 *   **Resolved Transcript Names:** The frontend resolves an alias for saved transcript display and copied text while it retains the original label as context. The same resolution is used for the next explicit summary generation or regeneration. An alias change does not change an existing summary.
 *   **Summary Engine:** Generates meeting summaries with different Large Language Models (LLMs), including local models through Ollama. The selected model receives user-confirmed speaker aliases in the resolved transcript input.
 *   **Ask Service:** Separates deterministic local evidence retrieval from answer generation. A bounded SQLite FTS5 query ranks transcript segments and adds nearby context. The model receives labelled evidence as untrusted data and must return structured claims with valid source IDs. Rust rejects malformed citations and claims without retrieved evidence.
+*   **Local Dictation:** A macOS global shortcut captures microphone audio, transcribes it locally, and inserts the result into the focused app after the required Accessibility permission is granted. Dictation does not retain its audio or transcript.
 
 ## Ask data boundary
 

@@ -21,11 +21,10 @@ assignees: ''
 3. [And so on...]
 
 ## Environment
-- OS: [e.g., macOS, Windows, Linux]
-- Browser: [e.g., Chrome, Firefox, Safari]
-- Version: [e.g., 1.0.0]
-- Node Version: [e.g., 18.0.0]
-- npm/pnpm Version: [e.g., 8.0.0]
+- macOS version:
+- Notive version:
+- Mac model and chip:
+- Recording or transcription model, if relevant:
 
 ## Screenshots/Videos
 [If applicable, add screenshots or videos to help explain your problem]
@@ -43,4 +42,4 @@ assignees: ''
 - [ ] I have searched for similar issues
 - [ ] I have provided all required information
 - [ ] I have included screenshots/videos if applicable
-- [ ] I have included error messages if applicable 
+- [ ] I have included error messages if applicable

@@ -1,5 +1,7 @@
 # Bluetooth Headphone Playback Notice
 
+> Historical support note. Verify the behavior with the current macOS version and playback device before treating this document as a diagnosis or a product limitation.
+
 ## Important Information for Recording Review
 
 When **reviewing recordings** in Notive, we recommend using **computer speakers** or **wired headphones** rather than Bluetooth headphones for accurate playback.
@@ -222,11 +224,9 @@ From [Apple Technical Note TN2321](https://developer.apple.com/library/archive/t
 
 ---
 
-## Related Documentation
+## Related documentation
 
-- [AIRPODS_BLUETOOTH_FIX.md](AIRPODS_BLUETOOTH_FIX.md) - Bluetooth device reconnection handling
-- [BLUETOOTH_SAMPLE_RATE_FIX.md](BLUETOOTH_SAMPLE_RATE_FIX.md) - Microphone sample rate resampling
-- [Apple Technical Note TN2321](https://developer.apple.com/library/archive/technotes/tn2321/) - Bluetooth Audio Best Practices
+- [Apple Technical Note TN2321](https://developer.apple.com/library/archive/technotes/tn2321/) - Bluetooth audio information
 
 ---
 

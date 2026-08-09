@@ -1,4 +1,6 @@
-# Src-Tauri Codebase Cleanup Plan
+# Historical Src-Tauri Cleanup Plan
+
+> Historical planning record. It describes an earlier code snapshot and is not a current implementation map or an approved removal plan.
 
 ## Analysis Summary
 After analyzing the src-tauri codebase, I've identified several areas requiring cleanup and optimization. The codebase shows signs of rapid development with some architectural debt that can be addressed systematically.

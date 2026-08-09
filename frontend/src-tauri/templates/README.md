@@ -1,32 +1,24 @@
 # Meeting Summary Templates
 
-This directory contains template definitions for meeting summary generation.
+This directory contains JSON definitions for meeting-summary generation.
 
-## Available Templates
+## Template sources
 
-### 1. `daily_standup.json`
-Time-boxed daily updates template designed for engineering/product teams.
+The app loads a template in this order: a custom template, a bundled resource, then an embedded fallback. The embedded fallback includes `daily_standup.json` and `standard_meeting.json`. This directory also contains bundled examples for project sync, retrospective, sales and marketing client calls, and a psychiatric session.
 
-**Sections:**
-- Date
-- Attendees
-- Yesterday (completed work)
-- Today (planned work)
-- Blockers
-- Notes
+## Custom templates
 
-### 2. `standard_meeting.json`
-General-purpose meeting notes template focusing on key outcomes and actions.
+Users can add a custom JSON template to:
 
-**Sections:**
-- Summary
-- Key Decisions
-- Action Items
-- Discussion Highlights
+```text
+~/Library/Application Support/Ubundi Meet/templates/
+```
 
-## Template Structure
+The legacy directory name keeps existing templates available after the Notive rename. A custom template overrides a bundled or embedded template with the same filename.
 
-Each template JSON file follows this schema:
+## Structure
+
+Each template uses this JSON structure:
 
 ```json
 {
@@ -35,52 +27,14 @@ Each template JSON file follows this schema:
   "sections": [
     {
       "title": "Section Title",
-      "instruction": "Instructions for the LLM on what to extract/include",
+      "instruction": "Instructions for the model",
       "format": "paragraph|list|string",
-      "item_format": "Optional: Markdown table format for list items"
+      "item_format": "Optional Markdown formatting hint"
     }
   ]
 }
 ```
 
-## Custom Templates
+`name`, `description`, and `sections` are required. Each section requires `title`, `instruction`, and `format`; `item_format` and `example_item_format` are optional.
 
-Users can add custom templates to the application data directory:
-
-- **macOS**: `~/Library/Application Support/com.ubundi.meet/templates/`
-- **Windows**: `%APPDATA%\com.ubundi.meet\templates\`
-- **Linux**: `~/.config/com.ubundi.meet/templates/`
-
-Custom templates override built-in templates with the same filename.
-
-## Template Fields
-
-### Root Level
-- `name` (required): Display name for the template
-- `description` (required): Brief explanation of the template's use case
-- `sections` (required): Array of section definitions
-
-### Section Object
-- `title` (required): Section heading text
-- `instruction` (required): LLM guidance for this section
-- `format` (required): One of `"paragraph"`, `"list"`, or `"string"`
-- `item_format` (optional): Markdown formatting hint for list items (e.g., table structure)
-- `example_item_format` (optional): Alternative formatting hint
-
-## Usage in Code
-
-Templates are loaded using the `templates` module:
-
-```rust
-use crate::summary::templates;
-
-// Get a specific template
-let template = templates::get_template("daily_standup")?;
-
-// List available templates
-let available = templates::list_templates();
-
-// Validate custom template JSON
-let custom_json = std::fs::read_to_string("custom.json")?;
-let validated = templates::validate_template(&custom_json)?;
-```
+The Rust loader in `src/summary/templates/loader.rs` validates a template before it is used.
