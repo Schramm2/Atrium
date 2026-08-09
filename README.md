@@ -32,7 +32,7 @@ Notive is a privacy-first desktop assistant with two main areas: meetings and Lo
 
 ## Why Notive?
 
-- **Privacy First:** All processing happens locally on your device.
+- **Privacy First:** Recording, transcription, storage, retrieval, and citation construction run locally. You choose whether to use an external AI provider for summaries or Ask.
 - **Cost-Effective:** Uses open-source AI models instead of expensive APIs.
 - **Flexible:** Works offline and supports multiple meeting platforms.
 - **Customizable:** Self-host and modify for your specific needs.
@@ -81,7 +81,7 @@ pnpm install
 pnpm run tauri:dev
 ```
 
-For the short local macOS update path, use [`scripts/update-local-macos.sh`](scripts/update-local-macos.sh). It builds the current checkout and updates `/Applications/Notive.app` without a GitHub release. See the [Local macOS Updates guide](docs/LOCAL_MACOS_UPDATES.md) for verification and data-directory details.
+The repository contains a local macOS updater script, but it currently calls a removed build helper and is not a working update path. See [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md) for its current status and local-data details.
 
 ## License
 
