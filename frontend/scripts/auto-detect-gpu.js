@@ -21,7 +21,7 @@ function detectGPU() {
     }
   }
 
-  throw new Error(`Ubundi Meet supports macOS only (received ${platform}).`);
+  throw new Error(`Notive supports macOS only (received ${platform}).`);
 }
 
 // Redirect console.log to stderr so only the feature goes to stdout

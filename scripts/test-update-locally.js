@@ -22,7 +22,7 @@ const PORT = 8080;
 const LATEST_JSON_PATH = path.join(__dirname, '..', 'latest.json');
 
 console.log('=========================================');
-console.log('  Ubundi Meet Update Testing Server');
+console.log('  Notive Update Testing Server');
 console.log('=========================================\n');
 
 // Check if latest.json exists

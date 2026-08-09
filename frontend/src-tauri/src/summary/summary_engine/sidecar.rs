@@ -107,11 +107,13 @@ impl SidecarManager {
     /// Resolve the path to llama-helper binary
     fn resolve_helper_binary() -> Result<PathBuf> {
         // 1. Check environment variable (dev mode or manual override)
-        if let Ok(env_path) = std::env::var("UBUNDI_MEET_LLAMA_HELPER") {
+        if let Ok(env_path) = std::env::var("NOTIVE_LLAMA_HELPER")
+            .or_else(|_| std::env::var("UBUNDI_MEET_LLAMA_HELPER"))
+        {
             if !env_path.is_empty() {
                 let path = PathBuf::from(env_path);
                 if path.exists() {
-                    log::info!("Using llama-helper from UBUNDI_MEET_LLAMA_HELPER: {}", path.display());
+                    log::info!("Using llama-helper from a Notive helper override: {}", path.display());
                     return Ok(path);
                 }
             }
@@ -255,7 +257,7 @@ impl SidecarManager {
         }
 
         Err(anyhow!(
-            "llama-helper binary not found. Build with 'cd llama-helper && cargo build --release' or set UBUNDI_MEET_LLAMA_HELPER env var."
+            "llama-helper binary not found. Build with 'cd llama-helper && cargo build --release' or set NOTIVE_LLAMA_HELPER."
         ))
     }
 

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="Ubundi Meet"
-PROCESS_NAME="ubundi-meet"
+APP_NAME="Notive"
+PROCESS_NAME="notive"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"

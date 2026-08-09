@@ -1,6 +1,6 @@
 # Dictation verification
 
-This specification defines the minimum evidence for local dictation in Ubundi Meet. Run commands from `frontend/`. Do not report a contract as verified until an automated test or the manual macOS check passes.
+This specification defines the minimum evidence for local dictation in Notive. Run commands from `frontend/`. Do not report a contract as verified until an automated test or the manual macOS check passes.
 
 Handy is the primary behavior reference:
 
@@ -59,12 +59,12 @@ Restoration must also run after paste failure. On macOS, do not use a fixed dela
 Manual macOS check:
 
 1. Put unique text on the clipboard.
-2. Start Ubundi Meet with `../script/build_and_run.sh --verify`.
+2. Start Notive with `../script/build_and_run.sh --verify`.
 3. Focus TextEdit and dictate a unique sentence.
 4. Confirm that the sentence appears once.
 5. Paste again and confirm that the original clipboard text appears.
 6. Repeat with an image copied from Preview.
-7. During dictation paste, copy new text in another app. Confirm that Ubundi Meet does not overwrite it.
+7. During dictation paste, copy new text in another app. Confirm that Notive does not overwrite it.
 
 ## D4. No-persistence default
 
@@ -96,7 +96,7 @@ Dictation is application-level work. Route changes must not cancel an active dic
 Use a frontend test with a fake Tauri event source:
 
 1. Mount the application listener.
-2. Navigate through Home, Ask Ubundi Meet, Settings, and meeting details.
+2. Navigate through Home, Ask Notive, Settings, and meeting details.
 3. Emit each dictation state once during navigation.
 4. Confirm that each event updates the UI once.
 5. Unmount the application listener and confirm that its unlisten function runs once.

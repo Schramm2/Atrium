@@ -1,10 +1,10 @@
 # Local macOS Updates
 
-Use this workflow when you are developing the Ubundi Meet fork on an Apple Silicon Mac. It builds the current checkout and replaces the local application without creating a tag, publishing a GitHub release, or running the release workflow.
+Use this workflow when you are developing Notive on an Apple Silicon Mac. It builds the current checkout and replaces the local application without creating a tag, publishing a GitHub release, or running the release workflow.
 
 ## Update the installed app
 
-Close Ubundi Meet before updating. The updater refuses to replace a running process so an active recording is not interrupted.
+Close Notive before updating. The updater refuses to replace a running process so an active recording is not interrupted.
 
 ```bash
 cd /path/to/ubundi-meet
@@ -15,7 +15,7 @@ The script:
 
 1. Reads the current branch and commit.
 2. Builds the frontend, Rust application, and llama-helper sidecar with Metal and CoreML detection.
-3. Installs the fresh bundle at `/Applications/Ubundi Meet.app`.
+3. Installs the fresh bundle at `/Applications/Notive.app`.
 4. Verifies the bundle name, version, and ad-hoc code signature.
 5. Registers the application with macOS.
 6. Records the installed commit in:
@@ -37,7 +37,7 @@ The `commit` value in the receipt should match `git rev-parse HEAD`.
 
 ## Data directory
 
-The Ubundi Meet bundle identifier is `com.ubundi.meet`. On macOS, the current data directory is:
+Notive keeps the legacy bundle identifier `com.ubundi.meet` so existing local data remains available. On macOS, the current data directory is:
 
 ```text
 ~/Library/Application Support/com.ubundi.meet/
@@ -45,7 +45,7 @@ The Ubundi Meet bundle identifier is `com.ubundi.meet`. On macOS, the current da
 
 ## Speaker-labelling model
 
-When a recording first needs automatic speaker labels, Ubundi Meet downloads the local 3D-Speaker embedding model to:
+When a recording first needs automatic speaker labels, Notive downloads the local 3D-Speaker embedding model to its legacy-compatible model directory:
 
 ```text
 ~/Library/Application Support/Ubundi Meet/models/speaker-diarization/
@@ -63,8 +63,8 @@ To distribute updates to other computers or use the in-app updater, configure th
 
 The local build creates these files under `target/release/bundle/`:
 
-- `macos/Ubundi Meet.app`
-- `macos/Ubundi Meet.app.tar.gz`
-- `dmg/Ubundi Meet_*.dmg`
+- `macos/Notive.app`
+- `macos/Notive.app.tar.gz`
+- `dmg/Notive_*.dmg`
 
 The installed application is always copied from the fresh `.app` bundle, not from a previous DMG.

@@ -1,5 +1,5 @@
 {
-    "name": "ubundi-meet",
+    "name": "notive",
     "version": "0.5.0",
     "private": true,
     "main": "electron/main.js",

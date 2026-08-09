@@ -345,7 +345,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
                                         <span className="ubundi-hero-meta">Local transcription · Your files stay on this Mac</span>
                                     </div>
                                 </div>
-                                <div className="ubundi-hero-aside" aria-label="Ubundi Meet workflow">
+                                <div className="ubundi-hero-aside" aria-label="Notive workflow">
                                     <p className="ubundi-hero-aside-label">Your private workflow</p>
                                     <div className="ubundi-waveform" aria-hidden="true">
                                         {[24, 42, 68, 34, 54, 30, 76, 46, 62, 28, 50, 36].map((height, index) => (

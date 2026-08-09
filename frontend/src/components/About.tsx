@@ -53,9 +53,9 @@ export function About() {
                 <div className="mb-3">
                     <BrandMark size={72} className="mx-auto" />
                 </div>
-                {/* <h1 className="text-xl font-bold text-gray-900">Ubundi Meet</h1> */}
+                {/* <h1 className="text-xl font-bold text-gray-900">Notive</h1> */}
                 <p className="brand-about-muted text-sm mt-2">
-                    Ubundi Meet · v{currentVersion}
+                    Notive · v{currentVersion}
                 </p>
                 <p className="brand-about-muted text-sm mt-2">
                     Real-time notes and summaries that keep your context close to the work.
@@ -90,7 +90,7 @@ export function About() {
 
             {/* Features Grid - Compact */}
             <div className="space-y-3">
-                <h2 className="brand-about-heading text-base font-semibold">What makes Ubundi Meet different</h2>
+                <h2 className="brand-about-heading text-base font-semibold">What makes Notive different</h2>
                 <div className="grid grid-cols-2 gap-2">
                     <div className="brand-about-card border rounded-lg p-4 transition-colors">
                         <h3 className="brand-about-heading font-semibold text-sm mb-1">Private by default</h3>

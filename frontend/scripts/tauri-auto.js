@@ -37,7 +37,7 @@ if (process.env.TAURI_GPU_FEATURE) {
 console.log(''); // Empty line for spacing
 
 if (os.platform() !== 'darwin') {
-  console.error('Ubundi Meet supports macOS only.');
+  console.error('Notive supports macOS only.');
   process.exit(1);
 }
 

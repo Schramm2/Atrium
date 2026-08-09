@@ -1,5 +1,5 @@
 #!/bin/bash
-# GPU-accelerated development script for Ubundi Meet
+# GPU-accelerated development script for Notive
 # Automatically detects and runs in development mode with optimal GPU features
 
 set -e
@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Ubundi Meet GPU-Accelerated Development Mode${NC}"
+echo -e "${BLUE}🚀 Notive GPU-Accelerated Development Mode${NC}"
 echo ""
 
 # Export CUDA flags for Linux/NVIDIA
@@ -50,7 +50,7 @@ else
 fi
 
 echo ""
-echo -e "${BLUE}📦 Starting Ubundi Meet in development mode...${NC}"
+echo -e "${BLUE}📦 Starting Notive in development mode...${NC}"
 echo ""
 
 # Check for pnpm or npm

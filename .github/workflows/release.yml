@@ -75,7 +75,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `v${{ steps.get-version.outputs.version }}`,
-              name: `Ubundi Meet v${{ steps.get-version.outputs.version }}`,
+              name: `Notive v${{ steps.get-version.outputs.version }}`,
               draft: true,
               prerelease: false,
               generate_release_notes: true
@@ -102,7 +102,7 @@ jobs:
       target: ${{ matrix.target }}
       build-args: ${{ matrix.args }}
       sign-binaries: false  # ad-hoc signing: updater still works via TAURI_SIGNING_PRIVATE_KEY
-      asset-prefix: "ubundi-meet"
+      asset-prefix: "notive"
       upload-artifacts: false  # tauri-action uploads directly to release
       release-id: ${{ needs.create-release.outputs.release-id }}
     secrets: inherit

@@ -1,5 +1,5 @@
 #!/bin/bash
-# GPU-accelerated build script for Ubundi Meet
+# GPU-accelerated build script for Notive
 # Automatically detects and builds with optimal GPU features
 
 set -e
@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Ubundi Meet GPU-Accelerated Build Script${NC}"
+echo -e "${BLUE}🚀 Notive GPU-Accelerated Build Script${NC}"
 echo ""
 
 # Export CUDA flags for Linux/NVIDIA
@@ -52,7 +52,7 @@ else
 fi
 
 echo ""
-echo -e "${BLUE}📦 Building Ubundi Meet...${NC}"
+echo -e "${BLUE}📦 Building Notive...${NC}"
 echo ""
 
 # Check for pnpm or npm
@@ -187,4 +187,3 @@ else
   echo -e "${RED}❌ Build failed${NC}"
   exit 1
 fi
-

@@ -19,17 +19,17 @@ const Info = React.forwardRef<HTMLButtonElement, InfoProps>(({ isCollapsed }, re
               ? "brand-collapsed-secondary bg-transparent p-2 rounded-lg"
               : "ubundi-secondary-action"
           }`}
-          title="About Ubundi Meet"
+          title="About Notive"
         >
           <InfoIcon className={`brand-primary-icon ${isCollapsed ? "w-5 h-5" : "w-4 h-4"}`} />
           {!isCollapsed && (
-            <span className="ml-2 text-sm">About Ubundi</span>
+            <span className="ml-2 text-sm">About Notive</span>
           )}
         </button>
       </DialogTrigger>
       <DialogContent>
         <VisuallyHidden>
-          <DialogTitle>About Ubundi Meet</DialogTitle>
+          <DialogTitle>About Notive</DialogTitle>
         </VisuallyHidden>
         <About />
       </DialogContent>

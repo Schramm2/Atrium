@@ -1,7 +1,7 @@
 /**
  * Compatibility surface for old event call sites.
  *
- * Ubundi Meet does not collect product analytics. These methods intentionally
+ * Notive does not collect product analytics. These methods intentionally
  * perform no I/O, persist no identifiers, and never contact a remote service.
  * Keeping the small surface avoids coupling recording workflows to telemetry
  * cleanup while older feature code is retired incrementally.

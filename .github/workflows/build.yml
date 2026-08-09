@@ -19,7 +19,7 @@ on:
       asset-prefix:
         required: false
         type: string
-        default: "ubundi-meet"
+        default: "notive"
       upload-artifacts:
         required: false
         type: boolean

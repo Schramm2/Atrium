@@ -104,7 +104,7 @@ This document provides a quick overview of all available CI/CD workflows in this
 - All platforms in parallel
 - Uses reusable `build.yml` workflow
 - 30-day artifact retention
-- Artifacts prefixed with `ubundi-meet-test-`
+- Artifacts prefixed with `notive-test-`
 
 **Triggers:**
 - Manual dispatch only
@@ -263,13 +263,13 @@ Standalone (don't use build.yml):
 ## Artifact Naming Convention
 
 ```
-ubundi-meet-{workflow}-{platform}-{target}-{version}
+notive-{workflow}-{platform}-{target}-{version}
 ```
 
 **Examples:**
-- `ubundi-meet-devtest-macOS-aarch64-apple-darwin-0.1.3`
-- `ubundi-meet-test-windows-x86_64-pc-windows-msvc-0.1.3`
-- `ubundi-meet-macos-aarch64-release-0.1.3`
+- `notive-devtest-macOS-aarch64-apple-darwin-0.1.3`
+- `notive-test-windows-x86_64-pc-windows-msvc-0.1.3`
+- `notive-macos-aarch64-release-0.1.3`
 
 ---
 
@@ -297,7 +297,7 @@ All workflows require these secrets to be configured:
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` - Key password
 
 ### Application Configuration
-- `UBUNDI_MEET_RSA_PUBLIC_KEY` - License validation public key
+- `UBUNDI_MEET_RSA_PUBLIC_KEY` - Legacy-compatible license validation public key
 - `SUPABASE_URL` - Online license verification
 - `SUPABASE_ANON_KEY` - Supabase anonymous key
 

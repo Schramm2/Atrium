@@ -292,7 +292,7 @@ async fn infer_meeting_title_scope(
 fn validate_scope(request: &AskScopeRequest) -> Result<(), String> {
     let length = request.question.trim().chars().count();
     if length == 0 {
-        return Err("Enter a question before asking Ubundi Meet.".to_string());
+        return Err("Enter a question before asking Notive.".to_string());
     }
     if length > MAX_QUESTION_CHARS {
         return Err(format!(
@@ -536,9 +536,9 @@ async fn resolve_model(pool: &SqlitePool) -> Result<ResolvedModel, String> {
     let config = SettingsRepository::get_model_config(pool)
         .await
         .map_err(|e| format!("Failed to load model settings: {}", e))?
-        .ok_or_else(|| "Configure an AI model before asking Ubundi Meet.".to_string())?;
+        .ok_or_else(|| "Configure an AI model before asking Notive.".to_string())?;
     if config.model.trim().is_empty() {
-        return Err("Configure an AI model before asking Ubundi Meet.".to_string());
+        return Err("Configure an AI model before asking Notive.".to_string());
     }
     let provider = LLMProvider::from_str(&config.provider)?;
     let mut model_name = config.model.clone();
@@ -557,7 +557,7 @@ async fn resolve_model(pool: &SqlitePool) -> Result<ResolvedModel, String> {
             .await
             .map_err(|e| format!("Failed to load custom provider settings: {}", e))?
             .ok_or_else(|| {
-                "Configure the custom OpenAI provider before asking Ubundi Meet.".to_string()
+                "Configure the custom OpenAI provider before asking Notive.".to_string()
             })?;
         api_key = custom.api_key.unwrap_or_default();
         custom_openai_endpoint = Some(custom.endpoint);
@@ -572,7 +572,7 @@ async fn resolve_model(pool: &SqlitePool) -> Result<ResolvedModel, String> {
             .filter(|key| !key.trim().is_empty())
             .ok_or_else(|| {
                 format!(
-                    "Add an API key for {} before asking Ubundi Meet.",
+                    "Add an API key for {} before asking Notive.",
                     config.provider
                 )
             })?;

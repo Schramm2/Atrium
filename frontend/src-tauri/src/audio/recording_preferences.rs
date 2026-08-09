@@ -43,36 +43,36 @@ impl Default for RecordingPreferences {
 pub fn get_default_recordings_folder() -> PathBuf {
     #[cfg(target_os = "windows")]
     {
-        // Windows: %USERPROFILE%\Music\ubundi-meet-recordings
+        // Windows: %USERPROFILE%\Music\notive-recordings
         if let Some(music_dir) = dirs::audio_dir() {
-            music_dir.join("ubundi-meet-recordings")
+            music_dir.join("notive-recordings")
         } else {
             // Fallback to Documents if Music folder is not available
             dirs::document_dir()
                 .unwrap_or_else(|| PathBuf::from("."))
-                .join("ubundi-meet-recordings")
+                .join("notive-recordings")
         }
     }
 
     #[cfg(target_os = "macos")]
     {
-        // macOS: ~/Movies/ubundi-meet-recordings
+        // macOS: ~/Movies/notive-recordings
         if let Some(movies_dir) = dirs::video_dir() {
-            movies_dir.join("ubundi-meet-recordings")
+            movies_dir.join("notive-recordings")
         } else {
             // Fallback to Documents if Movies folder is not available
             dirs::document_dir()
                 .unwrap_or_else(|| PathBuf::from("."))
-                .join("ubundi-meet-recordings")
+                .join("notive-recordings")
         }
     }
 
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {
-        // Linux/Others: ~/Documents/ubundi-meet-recordings
+        // Linux/Others: ~/Documents/notive-recordings
         dirs::document_dir()
             .unwrap_or_else(|| PathBuf::from("."))
-            .join("ubundi-meet-recordings")
+            .join("notive-recordings")
     }
 }
 
@@ -384,4 +384,3 @@ pub async fn get_audio_backend_info() -> Result<Vec<BackendInfo>, String> {
         }])
     }
 }
-

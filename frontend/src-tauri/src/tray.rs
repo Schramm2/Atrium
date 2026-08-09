@@ -28,7 +28,7 @@ pub fn create_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id("main-tray")
         .menu(&menu)
-        .tooltip("Ubundi Meet")
+        .tooltip("Notive")
         .icon(app.default_window_icon().unwrap().clone())
         .on_menu_event(|app, event| handle_menu_event(app, event.id.as_ref()))
         .build(app)?;

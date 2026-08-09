@@ -1,6 +1,6 @@
-# Contributing to Ubundi Meet
+# Contributing to Notive
 
-Thank you for your interest in contributing to Ubundi Meet! This document provides guidelines and instructions for contributing to this project.
+Thank you for your interest in contributing to Notive! This document provides guidelines and instructions for contributing to this project.
 
 ## Development Workflow
 

@@ -1,13 +1,13 @@
-# Building Ubundi Meet from Source
+# Building Notive from Source
 
-This guide provides detailed instructions for building Ubundi Meet from source on different operating systems.
+This guide provides detailed instructions for building Notive from source on different operating systems.
 
 <details>
 <summary>Linux</summary>
 
 ## 🐧 Building on Linux
 
-This guide helps you build Ubundi Meet on Linux with **automatic GPU acceleration**. The build system detects your hardware and configures the best performance automatically.
+This guide helps you build Notive on Linux with **automatic GPU acceleration**. The build system detects your hardware and configures the best performance automatically.
 
 ---
 
@@ -227,7 +227,7 @@ TAURI_GPU_FEATURE=openblas ./build-gpu.sh
 After successful build:
 
 ```
-src-tauri/target/release/bundle/appimage/Ubundi Meet_<version>_amd64.AppImage
+src-tauri/target/release/bundle/appimage/Notive_<version>_amd64.AppImage
 ```
 
 ---

@@ -511,7 +511,7 @@ pub async fn start_dictation_internal(
     if !crate::dictation_platform::macos::accessibility_is_trusted() {
         crate::dictation_platform::macos::request_accessibility();
         return Err(
-            "Allow Ubundi Meet in Privacy & Security > Accessibility, then restart Ubundi Meet"
+            "Allow Notive in Privacy & Security > Accessibility, then restart Notive"
                 .to_string(),
         );
     }
