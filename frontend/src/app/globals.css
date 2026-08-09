@@ -18,6 +18,7 @@
   --ubundi-ink: #171B48;
   --ubundi-ink-muted: #5F6368;
   --ubundi-border: #DADCE0;
+  --brand-on-dark: #FFFFFF;
 
   --background: 0 0% 96.1%;
   --foreground: 236 54% 19%;
@@ -39,6 +40,46 @@
   --input: 216 13% 86%;
   --ring: 237 53% 39%;
   --radius: 0.5rem;
+}
+
+/* First Motive theme tokens are taken from the canonical brand design
+ * contract in Company Media:Assets/First Motive/01_Brand. */
+html[data-brand-theme="first-motive"] {
+  color-scheme: dark;
+  --ubundi-primary: #9CB89E;
+  --ubundi-primary-dark: #433B47;
+  --ubundi-on-primary: #2A3A2C;
+  --ubundi-blue: #7FA9B8;
+  --ubundi-grey: rgba(232, 226, 215, 0.72);
+  --ubundi-electric: #9B8FB8;
+  --ubundi-salmon: #D89B9F;
+  --ubundi-amber: #7FA9B8;
+  --ubundi-surface: #4B434E;
+  --ubundi-surface-muted: #433B47;
+  --ubundi-ink: #E8E2D7;
+  --ubundi-ink-muted: rgba(232, 226, 215, 0.72);
+  --ubundi-border: rgba(232, 226, 215, 0.14);
+  --brand-on-dark: #E8E2D7;
+
+  --background: 288 9% 25%;
+  --foreground: 39 21% 88%;
+  --card: 286 8% 28%;
+  --card-foreground: 39 21% 88%;
+  --popover: 286 8% 31%;
+  --popover-foreground: 39 21% 88%;
+  --primary: 123 14% 67%;
+  --primary-foreground: 124 16% 20%;
+  --secondary: 286 8% 31%;
+  --secondary-foreground: 39 21% 88%;
+  --muted: 286 8% 28%;
+  --muted-foreground: 39 15% 72%;
+  --accent: 194 26% 61%;
+  --accent-foreground: 199 24% 16%;
+  --destructive: 356 40% 73%;
+  --destructive-foreground: 356 23% 19%;
+  --border: 39 10% 42%;
+  --input: 39 10% 42%;
+  --ring: 194 26% 61%;
 }
 
 @keyframes vibrate {
@@ -250,7 +291,7 @@
     @apply flex-shrink-0;
     padding: 16px;
     border-top: 1px solid var(--ubundi-border);
-    background: #FAFAFC;
+    background: var(--ubundi-surface);
   }
 
   .ubundi-record-action {
@@ -388,7 +429,7 @@
       radial-gradient(circle at 86% 22%, rgba(113, 136, 190, 0.24), transparent 32%),
       radial-gradient(circle at 72% 110%, rgba(193, 131, 230, 0.18), transparent 36%),
       var(--ubundi-primary-dark);
-    color: var(--ubundi-on-primary);
+    color: var(--brand-on-dark);
     box-shadow: 0 22px 48px rgba(27, 31, 68, 0.16);
   }
 
@@ -605,7 +646,7 @@
   overflow: hidden;
   border-radius: 16px;
   background: var(--ubundi-primary-dark);
-  color: var(--ubundi-on-primary);
+  color: var(--brand-on-dark);
 }
 
 .ubundi-dictation-console::after {
@@ -689,7 +730,7 @@
 .ubundi-dictation-secondary {
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: transparent;
-  color: var(--ubundi-on-primary);
+  color: var(--brand-on-dark);
 }
 
 .ubundi-dictation-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
@@ -919,4 +960,324 @@
 @media (prefers-reduced-motion: reduce) {
   .ubundi-dictation-state-recording > span,
   .ubundi-dictation-console-recording .ubundi-dictation-wave span { animation: none; }
+}
+
+/* Brand theme control */
+.brand-logo-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.first-motive-mark {
+  flex: none;
+  border-radius: 9px;
+}
+
+.first-motive-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ubundi-ink);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.brand-theme-control {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ubundi-border);
+}
+
+.brand-theme-label {
+  color: var(--ubundi-ink-muted);
+  font-family: "Anonymous Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brand-theme-toggle {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 3px;
+  min-height: 34px;
+  padding: 3px;
+  border: 1px solid var(--ubundi-border);
+  border-radius: 999px;
+  background: var(--ubundi-surface-muted);
+  color: var(--ubundi-ink-muted);
+  font-family: "Anonymous Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+
+.brand-theme-toggle > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.brand-theme-toggle > span svg { width: 11px; height: 11px; }
+.brand-theme-toggle > span.is-active {
+  background: var(--ubundi-primary);
+  color: var(--ubundi-on-primary);
+}
+
+.brand-theme-toggle-collapsed {
+  display: inline-flex;
+  grid-template-columns: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  color: var(--ubundi-ink-muted);
+}
+
+.brand-theme-toggle-collapsed:hover { color: var(--ubundi-primary); }
+.brand-theme-toggle-collapsed svg { width: 17px; height: 17px; }
+.brand-primary-icon { color: var(--ubundi-primary); }
+.brand-version { color: var(--ubundi-grey); }
+.brand-collapsed-secondary:hover { background: var(--ubundi-surface-muted); }
+.brand-collapsed-record { background: var(--ubundi-salmon) !important; color: var(--ubundi-ink) !important; }
+.brand-collapsed-record:hover { filter: brightness(0.94); }
+.brand-collapsed-import { background: #F2F5FC !important; color: var(--ubundi-primary) !important; }
+.brand-collapsed-import:hover { background: #E6EBF8 !important; }
+
+.brand-permission-alert {
+  border-color: var(--ubundi-amber);
+  background: #FFF8EC;
+  color: var(--ubundi-ink);
+}
+
+.brand-permission-icon { color: #B77716; }
+.brand-permission-description { color: var(--ubundi-ink-muted); }
+
+.brand-permission-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.brand-permission-action-primary {
+  background: var(--ubundi-primary);
+  color: var(--ubundi-on-primary);
+}
+
+.brand-permission-action-primary:hover { background: var(--ubundi-primary-dark); }
+.brand-permission-action-secondary { background: var(--ubundi-blue); color: var(--ubundi-ink); }
+.brand-permission-action-secondary:hover { filter: brightness(0.94); }
+.brand-permission-action-recheck { background: var(--ubundi-amber); color: var(--ubundi-ink); }
+.brand-permission-action-recheck:hover { filter: brightness(0.94); }
+
+.brand-theme-changing,
+.brand-theme-changing * {
+  transition-property: background-color, border-color, color, fill, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+/* First Motive component treatment. The existing component names stay stable;
+ * only their brand presentation changes. */
+html[data-brand-theme="first-motive"] body {
+  background: var(--ubundi-surface-muted);
+  color: var(--ubundi-ink);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-sidebar {
+  box-shadow: none;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-sidebar-header {
+  background: linear-gradient(180deg, #4B434E 0%, #433B47 100%);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-search:focus-within {
+  box-shadow: 0 0 0 3px rgba(127, 169, 184, 0.18);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-search-clear:hover,
+html[data-brand-theme="first-motive"] .ubundi-nav-link:hover,
+html[data-brand-theme="first-motive"] .ubundi-meeting-item:hover,
+html[data-brand-theme="first-motive"] .ubundi-secondary-action:hover,
+html[data-brand-theme="first-motive"] .ubundi-collapse-button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-nav-link-active,
+html[data-brand-theme="first-motive"] .ubundi-nav-link-active:hover {
+  background: var(--ubundi-primary);
+  color: var(--ubundi-on-primary);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-meeting-item-active {
+  background: rgba(156, 184, 158, 0.12);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-meeting-item-match {
+  background: rgba(127, 169, 184, 0.12);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-meeting-icon,
+html[data-brand-theme="first-motive"] .ubundi-status-pill,
+html[data-brand-theme="first-motive"] .ubundi-import-action,
+html[data-brand-theme="first-motive"] .ubundi-dictation-copy,
+html[data-brand-theme="first-motive"] .ubundi-dictation-support-icon,
+html[data-brand-theme="first-motive"] .ubundi-dictation-action-icon {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-import-action {
+  border-color: rgba(127, 169, 184, 0.45);
+  color: var(--ubundi-blue);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-import-action:hover {
+  background: rgba(127, 169, 184, 0.13);
+}
+
+html[data-brand-theme="first-motive"] .brand-collapsed-import {
+  background: rgba(127, 169, 184, 0.13) !important;
+  color: var(--ubundi-blue) !important;
+}
+
+html[data-brand-theme="first-motive"] .brand-collapsed-import:hover,
+html[data-brand-theme="first-motive"] .brand-collapsed-secondary:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-collapse-button,
+html[data-brand-theme="first-motive"] .ubundi-recording-dock {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-hero-band,
+html[data-brand-theme="first-motive"] .ubundi-dictation-console {
+  border: 1px solid rgba(232, 226, 215, 0.1);
+  background:
+    radial-gradient(circle at 84% 18%, rgba(127, 169, 184, 0.14), transparent 34%),
+    #433B47;
+  box-shadow: none;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-hero-action,
+html[data-brand-theme="first-motive"] .ubundi-dictation-primary {
+  border-color: var(--ubundi-primary);
+  background: var(--ubundi-primary);
+  color: var(--ubundi-on-primary);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-hero-action:hover,
+html[data-brand-theme="first-motive"] .ubundi-dictation-primary:hover:not(:disabled) {
+  border-color: #ACC5AE;
+  background: #ACC5AE;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-hero-kicker,
+html[data-brand-theme="first-motive"] .ubundi-hero-steps strong,
+html[data-brand-theme="first-motive"] .ubundi-dictation-kicker,
+html[data-brand-theme="first-motive"] .ubundi-eyebrow,
+html[data-brand-theme="first-motive"] .ubundi-nav-link,
+html[data-brand-theme="first-motive"] .ubundi-section-label,
+html[data-brand-theme="first-motive"] .ubundi-record-action,
+html[data-brand-theme="first-motive"] .ubundi-import-action,
+html[data-brand-theme="first-motive"] .ubundi-secondary-action {
+  font-family: "Anonymous Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html[data-brand-theme="first-motive"] .ubundi-hero-kicker,
+html[data-brand-theme="first-motive"] .ubundi-hero-steps strong {
+  color: var(--ubundi-lilac, #9B8FB8);
+}
+
+html[data-brand-theme="first-motive"] .ubundi-dictation-notice {
+  border-color: rgba(216, 155, 159, 0.48);
+  background: rgba(216, 155, 159, 0.1);
+}
+
+html[data-brand-theme="first-motive"] .brand-permission-alert {
+  border-color: rgba(216, 155, 159, 0.55);
+  background: rgba(216, 155, 159, 0.08);
+}
+
+html[data-brand-theme="first-motive"] .brand-permission-icon { color: var(--ubundi-salmon); }
+html[data-brand-theme="first-motive"] .brand-permission-action-primary {
+  background: var(--ubundi-primary);
+  color: var(--ubundi-on-primary);
+}
+
+html[data-brand-theme="first-motive"] .brand-permission-action-primary:hover { background: #ACC5AE; }
+html[data-brand-theme="first-motive"] .brand-permission-action-secondary {
+  background: var(--ubundi-blue);
+  color: #1F2C33;
+}
+
+html[data-brand-theme="first-motive"] .brand-permission-action-recheck {
+  background: var(--ubundi-salmon);
+  color: #3D2628;
+}
+
+/* Compatibility layer for older app surfaces that still use direct Tailwind
+ * neutral classes. It is scoped so the Ubundi theme does not change. */
+html[data-brand-theme="first-motive"] :is(.bg-white, .bg-gray-50, .bg-gray-100) {
+  background-color: #4B434E !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.bg-gray-200, .bg-gray-300) {
+  background-color: #504954 !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.text-gray-900, .text-gray-800, .text-gray-700) {
+  color: #E8E2D7 !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.text-gray-600, .text-gray-500, .text-gray-400, .text-gray-300) {
+  color: rgba(232, 226, 215, 0.72) !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.border-gray-100, .border-gray-200, .border-gray-300, .border-white) {
+  border-color: rgba(232, 226, 215, 0.14) !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.bg-blue-50, .bg-blue-100) {
+  background-color: rgba(127, 169, 184, 0.13) !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.text-blue-500, .text-blue-600, .text-blue-700) {
+  color: #9ABBC6 !important;
+}
+
+html[data-brand-theme="first-motive"] :is(.bg-blue-600, .bg-blue-700, .bg-gray-900, .bg-gray-800) {
+  background-color: #9CB89E !important;
+  color: #2A3A2C !important;
+}
+
+html[data-brand-theme="first-motive"] .text-white { color: #E8E2D7 !important; }
+
+html[data-brand-theme="first-motive"] :is(.bg-blue-600, .bg-blue-700, .bg-gray-900, .bg-gray-800).text-white {
+  color: #2A3A2C !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-theme-changing,
+  .brand-theme-changing *,
+  .brand-theme-toggle > span { transition: none !important; }
 }

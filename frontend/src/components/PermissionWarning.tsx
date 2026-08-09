@@ -55,9 +55,9 @@ export function PermissionWarning({
     <div className="max-w-md mb-4 space-y-3">
       {/* Combined Permission Warning - Show when either permission is missing */}
       {(!hasMicrophone || !hasSystemAudio) && (
-        <Alert variant="destructive" className="border-[#F3C57A] bg-[#FFF8EC] text-[#171B48]">
-          <AlertTriangle className="h-5 w-5 text-[#B77716]" />
-          <AlertTitle className="text-[#171B48] font-semibold">
+        <Alert variant="destructive" className="brand-permission-alert">
+          <AlertTriangle className="brand-permission-icon h-5 w-5" />
+          <AlertTitle className="font-semibold">
             <div className="flex items-center gap-2">
               {!hasMicrophone && <Mic className="h-4 w-4" />}
               {!hasSystemAudio && <Speaker className="h-4 w-4" />}
@@ -69,7 +69,7 @@ export function PermissionWarning({
             {isMacOS && !hasMicrophone && (
                 <button
                 onClick={openMicrophoneSettings}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#2F3498] hover:bg-[#1B1F44] rounded-md transition-colors"
+                className="brand-permission-action brand-permission-action-primary"
               >
                 <Mic className="h-4 w-4" />
                 Open Microphone Settings
@@ -78,7 +78,7 @@ export function PermissionWarning({
             {isMacOS && !hasSystemAudio && (
               <button
                 onClick={openScreenRecordingSettings}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#171B48] bg-[#7188BE] hover:bg-[#6178AE] rounded-md transition-colors"
+                className="brand-permission-action brand-permission-action-secondary"
               >
                 <Speaker className="h-4 w-4" />
                 Open Screen Recording Settings
@@ -87,13 +87,13 @@ export function PermissionWarning({
             <button
               onClick={onRecheck}
               disabled={isRechecking}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#171B48] bg-[#F3C57A] hover:bg-[#E6B86D] rounded-md transition-colors disabled:opacity-50"
+              className="brand-permission-action brand-permission-action-recheck disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isRechecking ? 'animate-spin' : ''}`} />
               Recheck
             </button>
           </div>
-          <AlertDescription className="text-[#5F6368] mt-2">
+          <AlertDescription className="brand-permission-description mt-2">
             {/* Microphone Warning */}
             {!hasMicrophone && (
               <>
