@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Keyboard, Mic, RefreshCw, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { invoke } from '@tauri-apps/api/core';
@@ -9,15 +9,14 @@ import type { DictationPreferences } from '@/types/dictation';
 import type { AudioDevice } from '@/components/DeviceSelection';
 import { useConfig } from '@/contexts/ConfigContext';
 
-const SHORTCUTS = [
-  { value: 'option+space', label: '⌥ Space' },
-  { value: 'control+space', label: '⌃ Space' },
-  { value: 'option+d', label: '⌥ D' },
+const PRESET_SHORTCUTS = [
+  { value: 'fn', label: 'Fn' },
   { value: 'command+shift+d', label: '⌘ ⇧ D' },
+  { value: 'control+shift+space', label: '⌃ ⇧ Space' },
 ];
 
 const DEFAULT_PREFERENCES: DictationPreferences = {
-  shortcut: 'option+space',
+  shortcut: 'fn',
   microphone: null,
 };
 
@@ -28,6 +27,7 @@ export function DictationSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [customShortcut, setCustomShortcut] = useState(DEFAULT_PREFERENCES.shortcut);
 
   const loadMicrophones = async () => {
     setRefreshing(true);
@@ -43,7 +43,10 @@ export function DictationSettings() {
 
   useEffect(() => {
     Promise.all([dictationService.getPreferences(), loadMicrophones()])
-      .then(([saved]) => setPreferences(saved))
+      .then(([saved]) => {
+        setPreferences(saved);
+        setCustomShortcut(saved.shortcut);
+      })
       .catch(error => toast.error('Could not load dictation settings', { description: String(error) }))
       .finally(() => setLoading(false));
   }, []);
@@ -55,6 +58,7 @@ export function DictationSettings() {
     try {
       const saved = await dictationService.setPreferences(next);
       setPreferences(saved);
+      setCustomShortcut(saved.shortcut);
       toast.success('Dictation settings saved');
     } catch (error) {
       setPreferences(previous);
@@ -68,6 +72,20 @@ export function DictationSettings() {
     return <div className="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Loading dictation settings…</div>;
   }
 
+  const selectedPreset = PRESET_SHORTCUTS.some(shortcut => shortcut.value === preferences.shortcut)
+    ? preferences.shortcut
+    : 'custom';
+
+  const saveCustomShortcut = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const shortcut = customShortcut.trim().toLowerCase();
+    if (!shortcut) {
+      toast.error('Enter a shortcut');
+      return;
+    }
+    save({ ...preferences, shortcut });
+  };
+
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -78,16 +96,36 @@ export function DictationSettings() {
             <p className="mt-1 text-sm text-gray-600">Hold the shortcut to speak. Release it to transcribe and insert the text.</p>
           </div>
         </div>
-        <label className="block text-sm font-medium text-gray-700" htmlFor="dictation-shortcut">Shortcut</label>
+        <label className="block text-sm font-medium text-gray-700" htmlFor="dictation-shortcut">Preset</label>
         <select
           id="dictation-shortcut"
-          value={preferences.shortcut}
+          value={selectedPreset}
           disabled={saving}
-          onChange={event => save({ ...preferences, shortcut: event.target.value })}
+          onChange={event => {
+            if (event.target.value !== 'custom') save({ ...preferences, shortcut: event.target.value });
+          }}
           className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
         >
-          {SHORTCUTS.map(shortcut => <option key={shortcut.value} value={shortcut.value}>{shortcut.label}</option>)}
+          {PRESET_SHORTCUTS.map(shortcut => <option key={shortcut.value} value={shortcut.value}>{shortcut.label}</option>)}
+          <option value="custom">Custom shortcut</option>
         </select>
+        <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={saveCustomShortcut}>
+          <label className="sr-only" htmlFor="dictation-custom-shortcut">Custom shortcut</label>
+          <input
+            id="dictation-custom-shortcut"
+            value={customShortcut}
+            disabled={saving}
+            onChange={event => setCustomShortcut(event.target.value)}
+            placeholder="fn or command+shift+d"
+            spellCheck={false}
+            autoCapitalize="none"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2.5 font-mono text-sm lowercase focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+          />
+          <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60">
+            {saving ? 'Saving…' : 'Save shortcut'}
+          </button>
+        </form>
+        <p className="mt-2 text-sm text-gray-600">Use Fn, Command, or Control in a custom shortcut. Shortcuts that can type into another app are blocked.</p>
       </section>
 
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

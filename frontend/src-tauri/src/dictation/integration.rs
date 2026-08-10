@@ -27,7 +27,7 @@ static DICTATION_PHASE: AtomicU8 = AtomicU8::new(OWNER_IDLE);
 static DICTATION_SESSION_ID: AtomicU64 = AtomicU64::new(0);
 static DICTATION_PREFERENCES: OnceLock<RwLock<DictationPreferences>> = OnceLock::new();
 
-const DEFAULT_DICTATION_SHORTCUT: &str = "option+space";
+const DEFAULT_DICTATION_SHORTCUT: &str = "fn";
 const DICTATION_PREFERENCES_STORE: &str = "dictation_preferences.json";
 const DICTATION_PREFERENCES_KEY: &str = "preferences";
 
@@ -764,12 +764,20 @@ pub async fn set_dictation_preferences(
     let current = current_dictation_preferences();
 
     #[cfg(target_os = "macos")]
-    let _: handy_keys::Hotkey = preferences.shortcut.parse().map_err(|error| {
+    let hotkey: handy_keys::Hotkey = preferences.shortcut.parse().map_err(|error| {
         format!(
             "Invalid dictation shortcut '{}': {error}",
             preferences.shortcut
         )
     })?;
+
+    #[cfg(target_os = "macos")]
+    if !hotkey_avoids_text_input(hotkey) {
+        return Err(
+            "Choose a shortcut that includes Fn, Command, or Control so it does not type into the active app"
+                .to_string(),
+        );
+    }
 
     #[cfg(target_os = "macos")]
     let replacement_hotkey = if current.shortcut != preferences.shortcut
@@ -819,8 +827,14 @@ fn load_dictation_preferences(app: &AppHandle<Wry>) -> Result<DictationPreferenc
         .store(DICTATION_PREFERENCES_STORE)
         .map_err(|error| format!("Could not open dictation settings: {error}"))?;
     match store.get(DICTATION_PREFERENCES_KEY) {
-        Some(value) => match serde_json::from_value(value.clone()) {
-            Ok(preferences) => Ok(preferences),
+        Some(value) => match serde_json::from_value::<DictationPreferences>(value.clone()) {
+            Ok(preferences) => {
+                let migrated = migrate_unsafe_shortcut(preferences.clone());
+                if migrated != preferences {
+                    save_dictation_preferences(app, &migrated)?;
+                }
+                Ok(migrated)
+            }
             Err(error) => {
                 log::warn!("Could not read dictation settings; using defaults: {error}");
                 Ok(DictationPreferences::default())
@@ -828,6 +842,28 @@ fn load_dictation_preferences(app: &AppHandle<Wry>) -> Result<DictationPreferenc
         },
         None => Ok(DictationPreferences::default()),
     }
+}
+
+fn migrate_unsafe_shortcut(mut preferences: DictationPreferences) -> DictationPreferences {
+    #[cfg(target_os = "macos")]
+    if let Ok(hotkey) = preferences.shortcut.parse::<handy_keys::Hotkey>() {
+        if !hotkey_avoids_text_input(hotkey) {
+            log::warn!(
+                "Replacing dictation shortcut '{}' with Fn because it can type into the active app",
+                preferences.shortcut
+            );
+            preferences.shortcut = DEFAULT_DICTATION_SHORTCUT.to_string();
+        }
+    }
+
+    preferences
+}
+
+#[cfg(target_os = "macos")]
+fn hotkey_avoids_text_input(hotkey: handy_keys::Hotkey) -> bool {
+    hotkey.modifiers.intersects(
+        handy_keys::Modifiers::FN | handy_keys::Modifiers::CMD | handy_keys::Modifiers::CTRL,
+    )
 }
 
 fn save_dictation_preferences(
@@ -853,6 +889,7 @@ fn shortcut_label(binding: &str) -> String {
             "option" | "alt" => "⌥".to_string(),
             "control" | "ctrl" => "⌃".to_string(),
             "shift" => "⇧".to_string(),
+            "fn" | "function" => "Fn".to_string(),
             "space" => "Space".to_string(),
             other => {
                 let mut characters = other.chars();
@@ -943,7 +980,7 @@ mod tests {
 
         assert_eq!(payload["state"], "recording");
         assert_eq!(payload["sessionId"], 42);
-        assert_eq!(payload["shortcut"], "⌥ Space");
+        assert_eq!(payload["shortcut"], "Fn");
         assert_eq!(payload["microphone"], "System default");
         assert_eq!(payload["model"], "Selected transcription model");
         assert!(payload["accessibilityGranted"].is_boolean());
@@ -954,20 +991,42 @@ mod tests {
 
     #[test]
     fn formats_shortcut_labels_for_the_interface() {
-        assert_eq!(shortcut_label("option+space"), "⌥ Space");
+        assert_eq!(shortcut_label("fn"), "Fn");
         assert_eq!(shortcut_label("command+shift+d"), "⌘ ⇧ D");
     }
 
     #[cfg(target_os = "macos")]
     #[test]
     fn accepts_every_shortcut_offered_by_settings() {
-        for binding in [
-            "option+space",
-            "control+space",
-            "option+d",
-            "command+shift+d",
-        ] {
+        for binding in ["fn", "command+shift+d", "control+shift+space"] {
             assert!(binding.parse::<handy_keys::Hotkey>().is_ok(), "{binding}");
         }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn rejects_shortcuts_that_can_type_into_the_active_app() {
+        let fn_key = "fn".parse::<handy_keys::Hotkey>().expect("parse Fn");
+        let command_key = "command+shift+d"
+            .parse::<handy_keys::Hotkey>()
+            .expect("parse Command shortcut");
+        let option_key = "option+d"
+            .parse::<handy_keys::Hotkey>()
+            .expect("parse Option shortcut");
+
+        assert!(hotkey_avoids_text_input(fn_key));
+        assert!(hotkey_avoids_text_input(command_key));
+        assert!(!hotkey_avoids_text_input(option_key));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn migrates_unsafe_legacy_shortcuts_to_fn() {
+        let migrated = migrate_unsafe_shortcut(DictationPreferences {
+            shortcut: "option+d".to_string(),
+            microphone: None,
+        });
+
+        assert_eq!(migrated.shortcut, "fn");
     }
 }
