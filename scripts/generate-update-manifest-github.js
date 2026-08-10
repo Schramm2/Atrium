@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
- * Generate Tauri Update Manifest from Local Files for GitHub Releases
+ * Generate a Tauri Update Manifest for Local Testing
  *
  * This script generates a Tauri-compatible update manifest JSON file
  * by reading local bundle files and creating GitHub Release URLs.
+ *
+ * The tag-driven GitHub Actions workflow is the supported production release
+ * path. Do not use this script to create or replace a published manifest.
  *
  * Usage:
  *   node scripts/generate-update-manifest-github.js <version> [bundle-dir] [output-file] [notes]
@@ -56,7 +59,7 @@ const versionDir = `v${versionClean}`;
 const pubDate = new Date().toISOString();
 
 console.log(`Generating manifest for version ${versionClean}...`);
-console.log(`GitHub Repository: Schramm2/ubundi-meet`);
+console.log(`GitHub Repository: Schramm2/notive`);
 console.log(`Bundle Directory: ${bundleDir}`);
 console.log('');
 
@@ -108,7 +111,7 @@ bundleFiles.forEach(filename => {
 
   if (platform && !platforms[platform]) {
     // Generate GitHub Release URL
-    const githubUrl = `https://github.com/Schramm2/ubundi-meet/releases/download/${versionDir}/${filename}`;
+    const githubUrl = `https://github.com/Schramm2/notive/releases/download/${versionDir}/${filename}`;
 
     // Check if signature file exists (look for .sig file with same name)
     const sigFile = path.join(bundleDir, `${filename}.sig`);
@@ -153,16 +156,5 @@ fs.writeFileSync(outputPath, JSON.stringify(manifest, null, 2));
 
 console.log('');
 console.log(`✓ Manifest generated: ${outputPath}`);
-console.log(`\nNext steps:`);
-console.log(`1. Create GitHub Release with tag: v${versionClean}`);
-console.log(`   URL: https://github.com/Schramm2/ubundi-meet/releases/new?tag=v${versionClean}`);
-console.log(`\n2. Upload this file to the release:`);
-console.log(`   - File: ${outputFile}`);
-console.log(`   - Name: latest.json (must be exact)`);
-console.log(`\n3. Upload update bundles to the release:`);
-Object.keys(platforms).forEach(platform => {
-  const filename = platforms[platform].url.split('/').pop();
-  console.log(`   - ${filename}`);
-});
-console.log(`\n4. Verify the manifest is accessible:`);
-console.log(`   curl https://github.com/Schramm2/ubundi-meet/releases/latest/download/latest.json`);
+console.log(`\nUse this manifest only with scripts/test-update-locally.js.`);
+console.log(`For a published release, follow docs/RELEASING.md.`);

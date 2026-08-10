@@ -1,5 +1,7 @@
 # Local macOS Updates
 
+This page covers local development installs. For company releases and in-app updates, use [Releasing Notive](RELEASING.md).
+
 ## Current status
 
 The checked-in updater is not currently usable: `scripts/update-local-macos.sh` calls `frontend/build-gpu.sh`, but that helper is not in this repository. Do not rely on the script to install a local build until its build command is restored. This page preserves the intended install and data-path details for that workflow.
@@ -11,7 +13,7 @@ Use this workflow when you are developing Notive on an Apple Silicon Mac. When r
 Close Notive before updating. The updater refuses to replace a running process so an active recording is not interrupted.
 
 ```bash
-cd /path/to/ubundi-meet
+cd /path/to/notive
 ./scripts/update-local-macos.sh
 ```
 

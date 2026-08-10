@@ -4,7 +4,7 @@ version = "0.5.0"
 description = "Notive - a privacy-first AI meeting assistant"
 authors = ["Matthew Schramm"]
 license = "MIT"
-repository = "https://github.com/Schramm2/ubundi-meet"
+repository = "https://github.com/Schramm2/notive"
 edition = "2021"
 rust-version = "1.77"
 

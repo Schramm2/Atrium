@@ -107,7 +107,7 @@
         "updater": {
             "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU0REY3Qzc1MDRFQjUyQkEKUldTNlV1c0VkWHpmVkF5dG5EQWsvYTVYK0FvODNjdXdnbnRISlNuaTlkMXE4azNFeHZqeVNlTjUK",
             "endpoints": [
-                "https://github.com/Schramm2/ubundi-meet/releases/latest/download/latest.json"
+                "https://github.com/Schramm2/notive/releases/latest/download/latest.json"
             ]
         }
     }
