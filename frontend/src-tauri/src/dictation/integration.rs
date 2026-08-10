@@ -423,7 +423,7 @@ impl MicrophoneCapture for CpalMicrophoneCapture {
             .stream
             .take()
             .ok_or_else(|| DictationAdapterError::new("the dictation microphone is not active"))?;
-        drop(stream);
+        release_microphone_stream(stream);
         let samples = std::mem::take(
             &mut *self
                 .samples
@@ -438,13 +438,23 @@ impl MicrophoneCapture for CpalMicrophoneCapture {
     }
 
     fn cancel(&mut self, _session_id: SessionId) -> Result<(), DictationAdapterError> {
-        self.stream.take();
+        if let Some(stream) = self.stream.take() {
+            release_microphone_stream(stream);
+        }
         self.samples
             .lock()
             .map_err(|_| DictationAdapterError::new("microphone samples are unavailable"))?
             .clear();
         Ok(())
     }
+}
+
+/// Stop callbacks before the stream is dropped so macOS releases microphone access promptly.
+fn release_microphone_stream(stream: cpal::Stream) {
+    if let Err(error) = stream.pause() {
+        log::warn!("Failed to pause dictation microphone stream before release: {error}");
+    }
+    drop(stream);
 }
 
 fn append_interleaved<T: Copy>(
