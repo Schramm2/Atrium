@@ -68,6 +68,11 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
+      - name: Build llama-helper sidecar
+        run: |
+          cargo build --release -p llama-helper --features metal
+          mkdir -p frontend/src-tauri/binaries
+          cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
       - name: Build macOS application
         working-directory: frontend
         run: pnpm tauri build --target aarch64-apple-darwin
