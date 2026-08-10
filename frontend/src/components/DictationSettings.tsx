@@ -1,7 +1,7 @@
 'use client';
 
 import { type FormEvent, useEffect, useState } from 'react';
-import { Keyboard, Mic, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Keyboard, Mic, Plus, RefreshCw, ShieldCheck, Tags, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { invoke } from '@tauri-apps/api/core';
 import { dictationService } from '@/services/dictationService';
@@ -18,6 +18,7 @@ const PRESET_SHORTCUTS = [
 const DEFAULT_PREFERENCES: DictationPreferences = {
   shortcut: 'fn',
   microphone: null,
+  vocabulary: [],
 };
 
 export function DictationSettings() {
@@ -28,6 +29,7 @@ export function DictationSettings() {
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [customShortcut, setCustomShortcut] = useState(DEFAULT_PREFERENCES.shortcut);
+  const [vocabularyTerm, setVocabularyTerm] = useState('');
 
   const loadMicrophones = async () => {
     setRefreshing(true);
@@ -44,8 +46,9 @@ export function DictationSettings() {
   useEffect(() => {
     Promise.all([dictationService.getPreferences(), loadMicrophones()])
       .then(([saved]) => {
-        setPreferences(saved);
-        setCustomShortcut(saved.shortcut);
+        const preferences = { ...DEFAULT_PREFERENCES, ...saved, vocabulary: saved.vocabulary ?? [] };
+        setPreferences(preferences);
+        setCustomShortcut(preferences.shortcut);
       })
       .catch(error => toast.error('Could not load dictation settings', { description: String(error) }))
       .finally(() => setLoading(false));
@@ -84,6 +87,21 @@ export function DictationSettings() {
       return;
     }
     save({ ...preferences, shortcut });
+  };
+
+  const addVocabularyTerm = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = vocabularyTerm.trim().replace(/\s+/g, ' ');
+    if (!term) {
+      toast.error('Enter a word or phrase');
+      return;
+    }
+    if (preferences.vocabulary.some(saved => saved.toLowerCase() === term.toLowerCase())) {
+      toast.error('This custom term is already saved');
+      return;
+    }
+    setVocabularyTerm('');
+    save({ ...preferences, vocabulary: [...preferences.vocabulary, term] });
   };
 
   return (
@@ -152,6 +170,53 @@ export function DictationSettings() {
           <option value="default">System default</option>
           {microphones.map(device => <option key={device.name} value={device.name}>{device.name}</option>)}
         </select>
+      </section>
+
+      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="dictation-vocabulary-title">
+        <div className="mb-5 flex items-start gap-3">
+          <Tags className="mt-0.5 h-5 w-5 text-blue-600" aria-hidden="true" />
+          <div>
+            <h2 id="dictation-vocabulary-title" className="text-lg font-semibold text-gray-900">Custom vocabulary</h2>
+            <p className="mt-1 text-sm text-gray-600">Add names and terms exactly as Notive should write them, such as Ubundi. They stay on this device.</p>
+          </div>
+        </div>
+        <form className="flex flex-col gap-2 sm:flex-row" onSubmit={addVocabularyTerm}>
+          <label className="sr-only" htmlFor="dictation-vocabulary-term">Word or phrase</label>
+          <input
+            id="dictation-vocabulary-term"
+            value={vocabularyTerm}
+            disabled={saving}
+            onChange={event => setVocabularyTerm(event.target.value)}
+            placeholder="Ubundi"
+            maxLength={120}
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+          />
+          <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60">
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add term
+          </button>
+        </form>
+        {preferences.vocabulary.length > 0 ? (
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Custom vocabulary terms">
+            {preferences.vocabulary.map(term => (
+              <li key={term} className="inline-flex items-center gap-1 rounded-md bg-blue-50 py-1 pl-2.5 pr-1 text-sm text-blue-950">
+                <span>{term}</span>
+                <button
+                  type="button"
+                  onClick={() => save({ ...preferences, vocabulary: preferences.vocabulary.filter(saved => saved !== term) })}
+                  disabled={saving}
+                  className="rounded p-1 text-blue-700 hover:bg-blue-100 disabled:opacity-60"
+                  aria-label={`Remove ${term}`}
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-gray-500">No custom terms yet.</p>
+        )}
+        <p className="mt-4 text-sm text-gray-600">Notive gives these terms to Whisper before dictation and corrects close spellings from all local speech models.</p>
       </section>
 
       <section className="rounded-xl border border-blue-100 bg-blue-50 p-5">
