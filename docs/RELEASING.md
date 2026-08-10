@@ -18,7 +18,7 @@ The version must be identical in these files:
 
 ## One-time GitHub setup
 
-Create a GitHub Actions environment named `release`. Require a maintainer approval for this environment. The release job needs these repository or environment secrets:
+Create a GitHub Actions environment named `release` for deployment tracking. The release job runs automatically and needs these repository or environment secrets:
 
 | Secret | Scope | Purpose |
 | --- | --- | --- |
@@ -55,9 +55,8 @@ The repository must allow GitHub Actions read and write workflow permissions. Th
    git push origin vX.Y.Z
    ```
 
-6. Approve the `release` environment when GitHub asks.
-7. Wait for the **Release** workflow to finish. It creates a draft release, builds the ad-hoc signed Apple Silicon macOS application, creates the updater archive and signature, verifies the bundle and updater manifest, then publishes the release.
-8. Download the DMG from the published release and install it on a test Mac. In Notive, select **Check for Updates** from the About page. Confirm that the prior release detects, downloads, installs, and restarts into this version.
+6. Wait for the **Release** workflow to finish. It creates a draft release, builds the ad-hoc signed Apple Silicon macOS application, creates the updater archive and signature, verifies the bundle and updater manifest, then publishes the release.
+7. Download the DMG from the published release and install it on a test Mac. In Notive, select **Check for Updates** from the About page. Confirm that the prior release detects, downloads, installs, and restarts into this version.
 
 Never move, replace, or delete a published version tag. Release a later patch version instead.
 
