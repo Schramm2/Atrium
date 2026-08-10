@@ -18,28 +18,20 @@ The version must be identical in these files:
 
 ## One-time GitHub setup
 
-Create a GitHub Actions environment named `release`. Require a maintainer approval for this environment. The release job needs these secrets:
+Create a GitHub Actions environment named `release`. Require a maintainer approval for this environment. The release job needs these repository or environment secrets:
 
 | Secret | Scope | Purpose |
 | --- | --- | --- |
 | `TAURI_SIGNING_PRIVATE_KEY` | Repository or `release` environment | Signs Tauri updater bundles. It must match the public updater key in `tauri.conf.json`. |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Repository or `release` environment | Unlocks the updater signing key. |
-| `APPLE_CERTIFICATE` | `release` environment | Base64-encoded Developer ID Application `.p12` certificate. |
-| `APPLE_CERTIFICATE_PASSWORD` | `release` environment | Password for the exported certificate. |
-| `KEYCHAIN_PASSWORD` | `release` environment | Temporary keychain password for the Actions runner. |
-| `APPLE_ID` | `release` environment | Apple ID email for notarization. |
-| `APPLE_PASSWORD` | `release` environment | Apple app-specific password for notarization. |
-| `APPLE_TEAM_ID` | `release` environment | Apple Developer Team ID. |
 
-Use a **Developer ID Application** certificate. A free Apple developer account cannot notarize a distributed application.
+Notive uses the configured ad-hoc macOS signing identity (`-`). No Apple certificate or notarization credentials are needed.
 
-Export the certificate and its private key from Keychain Access as a `.p12` file. Convert it before adding `APPLE_CERTIFICATE`:
+## macOS trust warning
 
-```bash
-openssl base64 -A -in /path/to/developer-id-application.p12 -out certificate-base64.txt
-```
+The release workflow verifies the ad-hoc signature and the Tauri updater signature. It does not notarize the application. macOS Gatekeeper can show a warning when users install the DMG or open Notive for the first time. This is expected for this internal distribution model. Users must approve the application through macOS Privacy & Security when required.
 
-Copy the content of `certificate-base64.txt` into the GitHub environment secret. Do not commit the certificate or its base64 text.
+The Tauri updater still verifies downloaded updates with `TAURI_SIGNING_PRIVATE_KEY`; do not remove or replace that key without updating the public key in `tauri.conf.json`.
 
 The repository must allow GitHub Actions read and write workflow permissions. The release workflow uses the supplied `GITHUB_TOKEN` to create a release and upload its assets.
 
@@ -64,7 +56,7 @@ The repository must allow GitHub Actions read and write workflow permissions. Th
    ```
 
 6. Approve the `release` environment when GitHub asks.
-7. Wait for the **Release** workflow to finish. It creates a draft release, builds the Apple Silicon macOS application, signs and notarizes it, creates the updater archive and signature, verifies the bundle and updater manifest, then publishes the release.
+7. Wait for the **Release** workflow to finish. It creates a draft release, builds the ad-hoc signed Apple Silicon macOS application, creates the updater archive and signature, verifies the bundle and updater manifest, then publishes the release.
 8. Download the DMG from the published release and install it on a test Mac. In Notive, select **Check for Updates** from the About page. Confirm that the prior release detects, downloads, installs, and restarts into this version.
 
 Never move, replace, or delete a published version tag. Release a later patch version instead.
@@ -73,7 +65,7 @@ Never move, replace, or delete a published version tag. Release a later patch ve
 
 Each published release includes:
 
-- A signed and notarized DMG for first-time installation.
+- An ad-hoc signed DMG for first-time installation. macOS can show a Gatekeeper warning.
 - A signed `.app.tar.gz` archive and `.sig` file for the Tauri updater.
 - `latest.json`, the signed-update manifest that Notive checks at startup and once per day while open.
 

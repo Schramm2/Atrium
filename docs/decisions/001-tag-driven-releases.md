@@ -18,9 +18,9 @@ The application already uses the Tauri updater plugin. It needs a signed updater
 
 Use a stable semantic version in all application manifests. A release is an annotated `vX.Y.Z` tag on a commit that is reachable from `main`.
 
-The release workflow creates a draft GitHub Release from that tag. It signs and notarizes the Apple Silicon macOS bundle, uploads the DMG and Tauri updater files, validates the bundle and updater manifest, then publishes the release. The application checks the `latest.json` asset from the latest published GitHub Release.
+The release workflow creates a draft GitHub Release from that tag. It ad-hoc signs the Apple Silicon macOS bundle, uploads the DMG and Tauri updater files, validates the bundle and updater manifest, then publishes the release. The application checks the `latest.json` asset from the latest published GitHub Release.
 
-The release job runs in the protected `release` GitHub Actions environment. Apple and Tauri signing keys are environment secrets and are not stored in this repository.
+The release job runs in the protected `release` GitHub Actions environment. The Tauri updater signing key is a GitHub secret and is not stored in this repository. The application does not use Apple code-signing or notarization credentials.
 
 ## Alternatives considered
 
@@ -36,9 +36,14 @@ A dynamic service can provide staged rollouts and rollback rules. It adds operat
 
 Publishing before bundle validation could make a defective artifact the latest application update. Draft releases keep the release private until verification completes.
 
+### Apple Developer signing and notarization
+
+Apple Developer signing would avoid the initial Gatekeeper warning. It requires credentials and an ongoing Apple Developer membership that the internal distribution model does not use. The application uses ad-hoc signing for macOS and a separate Tauri signature for updater integrity.
+
 ## Consequences
 
 - A release requires a matching version change and a new immutable tag.
-- The first production release requires Apple Developer and Tauri signing secrets in GitHub.
+- Users can see a macOS Gatekeeper warning because releases are not notarized.
+- The first production release requires the Tauri updater signing secrets in GitHub.
 - The current release channel supports Apple Silicon macOS only.
 - A faulty published version is corrected with a later patch release, not by moving a tag or editing its updater manifest.
