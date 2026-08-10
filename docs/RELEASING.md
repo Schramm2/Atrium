@@ -18,20 +18,28 @@ The version must be identical in these files:
 
 ## One-time GitHub setup
 
-Create a GitHub Actions environment named `release`. Require a maintainer approval for this environment. Add these environment secrets:
+Create a GitHub Actions environment named `release`. Require a maintainer approval for this environment. The release job needs these secrets:
 
-| Secret | Purpose |
-| --- | --- |
-| `TAURI_SIGNING_PRIVATE_KEY` | Signs Tauri updater bundles. It must match the public updater key in `tauri.conf.json`. |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Unlocks the updater signing key. |
-| `APPLE_CERTIFICATE` | Base64-encoded Developer ID Application `.p12` certificate. |
-| `APPLE_CERTIFICATE_PASSWORD` | Password for the exported certificate. |
-| `KEYCHAIN_PASSWORD` | Temporary keychain password for the Actions runner. |
-| `APPLE_ID` | Apple ID email for notarization. |
-| `APPLE_PASSWORD` | Apple app-specific password for notarization. |
-| `APPLE_TEAM_ID` | Apple Developer Team ID. |
+| Secret | Scope | Purpose |
+| --- | --- | --- |
+| `TAURI_SIGNING_PRIVATE_KEY` | Repository or `release` environment | Signs Tauri updater bundles. It must match the public updater key in `tauri.conf.json`. |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Repository or `release` environment | Unlocks the updater signing key. |
+| `APPLE_CERTIFICATE` | `release` environment | Base64-encoded Developer ID Application `.p12` certificate. |
+| `APPLE_CERTIFICATE_PASSWORD` | `release` environment | Password for the exported certificate. |
+| `KEYCHAIN_PASSWORD` | `release` environment | Temporary keychain password for the Actions runner. |
+| `APPLE_ID` | `release` environment | Apple ID email for notarization. |
+| `APPLE_PASSWORD` | `release` environment | Apple app-specific password for notarization. |
+| `APPLE_TEAM_ID` | `release` environment | Apple Developer Team ID. |
 
 Use a **Developer ID Application** certificate. A free Apple developer account cannot notarize a distributed application.
+
+Export the certificate and its private key from Keychain Access as a `.p12` file. Convert it before adding `APPLE_CERTIFICATE`:
+
+```bash
+openssl base64 -A -in /path/to/developer-id-application.p12 -out certificate-base64.txt
+```
+
+Copy the content of `certificate-base64.txt` into the GitHub environment secret. Do not commit the certificate or its base64 text.
 
 The repository must allow GitHub Actions read and write workflow permissions. The release workflow uses the supplied `GITHUB_TOKEN` to create a release and upload its assets.
 
