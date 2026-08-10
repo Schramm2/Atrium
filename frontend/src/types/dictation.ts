@@ -26,6 +26,7 @@ export interface DictationResult {
 export interface DictationPreferences {
   shortcut: string;
   microphone: string | null;
+  vocabulary: string[];
 }
 
 export type DictationStatePayload =

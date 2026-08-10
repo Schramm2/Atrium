@@ -35,6 +35,8 @@ const DICTATION_PREFERENCES_KEY: &str = "preferences";
 pub struct DictationPreferences {
     pub shortcut: String,
     pub microphone: Option<String>,
+    #[serde(default)]
+    pub vocabulary: Vec<String>,
 }
 
 impl Default for DictationPreferences {
@@ -42,6 +44,7 @@ impl Default for DictationPreferences {
         Self {
             shortcut: DEFAULT_DICTATION_SHORTCUT.to_string(),
             microphone: None,
+            vocabulary: Vec::new(),
         }
     }
 }
@@ -511,6 +514,8 @@ impl Transcriber for LocalTranscriber {
         }
 
         let app = self.app.clone();
+        let vocabulary = current_dictation_preferences().vocabulary;
+        let vocabulary_prompt = vocabulary_prompt(&vocabulary);
         tauri::async_runtime::block_on(async move {
             crate::audio::transcription::validate_transcription_model_ready(&app)
                 .await
@@ -522,14 +527,15 @@ impl Transcriber for LocalTranscriber {
             match engine {
                 TranscriptionEngine::Whisper(engine) => {
                     let (text, confidence, _) = engine
-                        .transcribe_audio_with_confidence(
+                        .transcribe_audio_with_confidence_with_prompt(
                             audio.samples,
                             crate::get_language_preference_internal(),
+                            vocabulary_prompt.as_deref(),
                         )
                         .await
                         .map_err(|error| DictationAdapterError::new(error.to_string()))?;
                     Ok(Transcript {
-                        text: text.trim().to_string(),
+                        text: apply_custom_vocabulary(&text, &vocabulary),
                         confidence: Some(confidence),
                     })
                 }
@@ -539,7 +545,7 @@ impl Transcriber for LocalTranscriber {
                         .await
                         .map_err(|error| DictationAdapterError::new(error.to_string()))?;
                     Ok(Transcript {
-                        text: text.trim().to_string(),
+                        text: apply_custom_vocabulary(&text, &vocabulary),
                         confidence: None,
                     })
                 }
@@ -549,7 +555,7 @@ impl Transcriber for LocalTranscriber {
                         .await
                         .map_err(|error| DictationAdapterError::new(error.to_string()))?;
                     Ok(Transcript {
-                        text: result.text.trim().to_string(),
+                        text: apply_custom_vocabulary(&result.text, &vocabulary),
                         confidence: result.confidence,
                     })
                 }
@@ -759,6 +765,7 @@ pub async fn set_dictation_preferences(
         microphone: preferences
             .microphone
             .filter(|value| !value.trim().is_empty()),
+        vocabulary: normalize_vocabulary(preferences.vocabulary)?,
     };
     #[cfg(target_os = "macos")]
     let current = current_dictation_preferences();
@@ -845,6 +852,8 @@ fn load_dictation_preferences(app: &AppHandle<Wry>) -> Result<DictationPreferenc
 }
 
 fn migrate_unsafe_shortcut(mut preferences: DictationPreferences) -> DictationPreferences {
+    preferences.vocabulary = normalize_vocabulary_for_load(preferences.vocabulary);
+
     #[cfg(target_os = "macos")]
     if let Ok(hotkey) = preferences.shortcut.parse::<handy_keys::Hotkey>() {
         if !hotkey_avoids_text_input(hotkey) {
@@ -857,6 +866,150 @@ fn migrate_unsafe_shortcut(mut preferences: DictationPreferences) -> DictationPr
     }
 
     preferences
+}
+
+const MAX_VOCABULARY_ENTRIES: usize = 100;
+const MAX_VOCABULARY_TERM_LENGTH: usize = 120;
+const MAX_VOCABULARY_PROMPT_LENGTH: usize = 3_000;
+
+fn normalize_vocabulary(vocabulary: Vec<String>) -> Result<Vec<String>, String> {
+    if vocabulary.len() > MAX_VOCABULARY_ENTRIES {
+        return Err(format!(
+            "Add no more than {MAX_VOCABULARY_ENTRIES} custom vocabulary terms"
+        ));
+    }
+
+    let vocabulary = normalize_vocabulary_for_load(vocabulary);
+    if let Some(term) = vocabulary
+        .iter()
+        .find(|term| term.chars().count() > MAX_VOCABULARY_TERM_LENGTH)
+    {
+        return Err(format!(
+            "Custom vocabulary terms must be {MAX_VOCABULARY_TERM_LENGTH} characters or fewer: {term}"
+        ));
+    }
+
+    Ok(vocabulary)
+}
+
+fn normalize_vocabulary_for_load(vocabulary: Vec<String>) -> Vec<String> {
+    let mut normalized = Vec::new();
+    for term in vocabulary {
+        let term = term.split_whitespace().collect::<Vec<_>>().join(" ");
+        if term.is_empty()
+            || term.contains('\0')
+            || normalized
+                .iter()
+                .any(|saved: &String| saved.eq_ignore_ascii_case(&term))
+        {
+            continue;
+        }
+        normalized.push(term);
+        if normalized.len() == MAX_VOCABULARY_ENTRIES {
+            break;
+        }
+    }
+    normalized
+}
+
+fn vocabulary_prompt(vocabulary: &[String]) -> Option<String> {
+    if vocabulary.is_empty() {
+        return None;
+    }
+
+    let mut prompt = "This dictation may contain these exact names and terms: ".to_string();
+    for term in vocabulary {
+        let separator = if prompt.ends_with(": ") { "" } else { ", " };
+        if prompt.len() + separator.len() + term.len() + 1 > MAX_VOCABULARY_PROMPT_LENGTH {
+            break;
+        }
+        prompt.push_str(separator);
+        prompt.push_str(term);
+    }
+    prompt.push('.');
+    Some(prompt)
+}
+
+fn apply_custom_vocabulary(text: &str, vocabulary: &[String]) -> String {
+    let text = text.trim();
+    if text.is_empty() || vocabulary.is_empty() {
+        return text.to_string();
+    }
+
+    let mut corrected = text.to_string();
+    for term in vocabulary {
+        if term.split_whitespace().count() != 1 {
+            continue;
+        }
+
+        let target = normalized_word(term);
+        if target.len() < 3 {
+            continue;
+        }
+
+        let mut replacements = Vec::new();
+        let mut start = None;
+        for (index, character) in corrected.char_indices() {
+            if character.is_alphanumeric() {
+                start.get_or_insert(index);
+            } else if let Some(word_start) = start.take() {
+                replacements.push((word_start, index));
+            }
+        }
+        if let Some(word_start) = start {
+            replacements.push((word_start, corrected.len()));
+        }
+
+        for (start, end) in replacements.into_iter().rev() {
+            let candidate = normalized_word(&corrected[start..end]);
+            if candidate == target || is_close_vocabulary_match(&candidate, &target) {
+                corrected.replace_range(start..end, term);
+            }
+        }
+    }
+    corrected
+}
+
+fn normalized_word(value: &str) -> String {
+    value
+        .chars()
+        .filter(|character| character.is_alphanumeric())
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+fn is_close_vocabulary_match(candidate: &str, target: &str) -> bool {
+    if candidate.len() < 3 || target.len() < 3 {
+        return false;
+    }
+
+    let maximum_distance = match target.len() {
+        0..=4 => 1,
+        5..=8 => 2,
+        _ => 3,
+    };
+    levenshtein_distance(candidate, target) <= maximum_distance
+}
+
+fn levenshtein_distance(left: &str, right: &str) -> usize {
+    let left: Vec<char> = left.chars().collect();
+    let right: Vec<char> = right.chars().collect();
+    let mut previous: Vec<usize> = (0..=right.len()).collect();
+
+    for (left_index, left_character) in left.iter().enumerate() {
+        let mut current = vec![left_index + 1];
+        for (right_index, right_character) in right.iter().enumerate() {
+            let replace_cost = usize::from(left_character != right_character);
+            current.push(
+                (previous[right_index + 1] + 1)
+                    .min(current[right_index] + 1)
+                    .min(previous[right_index] + replace_cost),
+            );
+        }
+        previous = current;
+    }
+
+    previous[right.len()]
 }
 
 #[cfg(target_os = "macos")]
@@ -995,6 +1148,37 @@ mod tests {
         assert_eq!(shortcut_label("command+shift+d"), "⌘ ⇧ D");
     }
 
+    #[test]
+    fn custom_vocabulary_is_normalized_and_used_in_the_prompt() {
+        let vocabulary = normalize_vocabulary(vec![
+            "  Ubundi  ".to_string(),
+            "ubundi".to_string(),
+            "First   Motive".to_string(),
+        ])
+        .expect("valid vocabulary");
+
+        assert_eq!(vocabulary, vec!["Ubundi", "First Motive"]);
+        assert_eq!(
+            vocabulary_prompt(&vocabulary),
+            Some(
+                "This dictation may contain these exact names and terms: Ubundi, First Motive."
+                    .to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn custom_vocabulary_corrects_close_spellings() {
+        assert_eq!(
+            apply_custom_vocabulary("Ubuntu is our company name.", &["Ubundi".to_string()]),
+            "Ubundi is our company name."
+        );
+        assert_eq!(
+            apply_custom_vocabulary("ubundi is our company name.", &["Ubundi".to_string()]),
+            "Ubundi is our company name."
+        );
+    }
+
     #[cfg(target_os = "macos")]
     #[test]
     fn accepts_every_shortcut_offered_by_settings() {
@@ -1025,6 +1209,7 @@ mod tests {
         let migrated = migrate_unsafe_shortcut(DictationPreferences {
             shortcut: "option+d".to_string(),
             microphone: None,
+            vocabulary: Vec::new(),
         });
 
         assert_eq!(migrated.shortcut, "fn");
