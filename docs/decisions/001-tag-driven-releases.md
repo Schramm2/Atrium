@@ -20,7 +20,7 @@ Use a stable semantic version in all application manifests. A release is an anno
 
 The release workflow creates a draft GitHub Release from that tag. It ad-hoc signs the Apple Silicon macOS bundle, uploads the DMG and Tauri updater files, validates the bundle and updater manifest, then publishes the release. The application checks the `latest.json` asset from the latest published GitHub Release.
 
-The release job runs in the protected `release` GitHub Actions environment. The Tauri updater signing key is a GitHub secret and is not stored in this repository. The application does not use Apple code-signing or notarization credentials.
+The release job uses the `release` GitHub Actions environment for deployment tracking and runs without an approval gate. The Tauri updater signing key is a GitHub secret and is not stored in this repository. The application does not use Apple code-signing or notarization credentials.
 
 ## Alternatives considered
 
