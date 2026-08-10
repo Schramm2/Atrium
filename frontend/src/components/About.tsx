@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 
 export function About() {
-    const [currentVersion, setCurrentVersion] = useState<string>('0.5.0');
+    const [currentVersion, setCurrentVersion] = useState<string>('');
     const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
     const [isChecking, setIsChecking] = useState(false);
     const [showUpdateDialog, setShowUpdateDialog] = useState(false);
@@ -55,7 +55,7 @@ export function About() {
                 </div>
                 {/* <h1 className="text-xl font-bold text-gray-900">Notive</h1> */}
                 <p className="brand-about-muted text-sm mt-2">
-                    Notive · v{currentVersion}
+                    Notive{currentVersion ? ` · v${currentVersion}` : ''}
                 </p>
                 <p className="brand-about-muted text-sm mt-2">
                     Real-time notes and summaries that keep your context close to the work.

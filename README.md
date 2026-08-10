@@ -21,6 +21,7 @@ A privacy-first desktop assistant that captures and transcribes meetings on your
 - [Installation](#installation)
 - [System Architecture](#system-architecture)
 - [For Developers](#for-developers)
+- [Releasing Notive](docs/RELEASING.md)
 - [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md)
 - [License](#license)
 
@@ -57,7 +58,7 @@ Notive is a privacy-first desktop assistant with two main areas: meetings and Lo
 
 ### 🍎 macOS
 
-1. Download the latest `.dmg` from [Releases](https://github.com/Schramm2/ubundi-meet/releases)
+1. Download the latest `.dmg` from [Releases](https://github.com/Schramm2/notive/releases)
 2. Open the downloaded `.dmg` file
 3. Drag **Notive** to your Applications folder
 4. Open **Notive** from Applications folder
@@ -75,13 +76,13 @@ Ask Notive retrieves and ranks transcript evidence in the local SQLite database.
 You'll need Rust and Node.js (pnpm) installed to build from source. See the [Building from Source guide](docs/BUILDING.md) and the [GPU Acceleration guide](docs/GPU_ACCELERATION.md).
 
 ```bash
-git clone https://github.com/Schramm2/ubundi-meet
-cd ubundi-meet/frontend
+git clone https://github.com/Schramm2/notive
+cd notive/frontend
 pnpm install
 pnpm run tauri:dev
 ```
 
-The repository contains a local macOS updater script, but it currently calls a removed build helper and is not a working update path. See [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md) for its current status and local-data details.
+Released applications check GitHub Releases for signed updates. See [Releasing Notive](docs/RELEASING.md) for the release process. The local updater script is for development only; see [Local macOS Updates](docs/LOCAL_MACOS_UPDATES.md).
 
 ## License
 

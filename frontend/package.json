@@ -15,6 +15,7 @@
         "tauri:dev:coreml": "tauri dev -- --features coreml",
         "tauri:build:metal": "tauri build -- --features metal",
         "tauri:build:coreml": "tauri build -- --features coreml",
+        "version:check": "node ../scripts/check-release-version.mjs",
         "lint": "next lint",
         "test:ask": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/ask/*.test.mjs"
     },
