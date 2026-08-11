@@ -10,8 +10,8 @@ final class UpdaterService {
         case checking
         case upToDate
         case available(String)
-        case installing(String)
-        case failed(String)
+        case installing(version: String, message: String)
+        case failed(message: String, availableVersion: String?)
     }
 
     private(set) var phase: Phase = .idle
@@ -25,11 +25,18 @@ final class UpdaterService {
     }
 
     private let updater: GitHubReleaseUpdater
-    private var performedAutomaticCheck = false
+    let currentVersion: String
+    private let installationBlocker: @MainActor () -> String?
     private static let automaticChecksKey = "notive.updates.automatic"
 
-    init(updater: GitHubReleaseUpdater = .live()) {
+    init(
+        updater: GitHubReleaseUpdater = .live(),
+        currentVersion: String = AppVersion.current,
+        installationBlocker: @escaping @MainActor () -> String? = { nil }
+    ) {
         self.updater = updater
+        self.currentVersion = currentVersion
+        self.installationBlocker = installationBlocker
         let defaults = UserDefaults.standard
         automaticallyChecksForUpdates = defaults.object(forKey: Self.automaticChecksKey) == nil
             ? true
@@ -39,39 +46,60 @@ final class UpdaterService {
     var canPerformPrimaryAction: Bool {
         switch phase {
         case .checking, .installing: false
-        case .idle, .upToDate, .available, .failed: true
+        case .available: installationBlockReason == nil
+        case .failed(_, let version): version == nil || installationBlockReason == nil
+        case .idle, .upToDate: true
         }
     }
 
     var primaryActionTitle: String {
-        if case .available(let version) = phase {
-            "Install Update v\(version)…"
-        } else {
+        switch phase {
+        case .checking:
+            "Checking for Updates…"
+        case .available(let version):
+            "Update to v\(version)…"
+        case .installing:
+            "Installing Update…"
+        case .failed(_, let version?):
+            "Update to v\(version)…"
+        case .idle, .upToDate, .failed:
             "Check for Updates…"
         }
+    }
+
+    var updateNoticeVersion: String? {
+        switch phase {
+        case .available(let version), .installing(let version, _): version
+        case .failed(_, let version): version
+        case .idle, .checking, .upToDate: nil
+        }
+    }
+
+    var installationBlockReason: String? {
+        installationBlocker()
     }
 
     var statusText: String {
         switch phase {
         case .idle: "Updates use the authenticated GitHub CLI."
         case .checking: "Checking GitHub Releases…"
-        case .upToDate: "Notive \(AppVersion.current) is current."
+        case .upToDate: "Notive \(currentVersion) is current."
         case .available(let version): "Notive \(version) is available."
-        case .installing(let message): message
-        case .failed(let message): message
+        case .installing(_, let message): message
+        case .failed(let message, _): message
         }
     }
 
     func checkAutomaticallyIfEnabled() async {
-        guard automaticallyChecksForUpdates, !performedAutomaticCheck else { return }
-        performedAutomaticCheck = true
+        guard automaticallyChecksForUpdates, updateNoticeVersion == nil else { return }
         await checkForUpdates()
     }
 
     func performPrimaryAction() async {
-        if case .available = phase {
-            await installAvailableUpdate()
-        } else {
+        switch phase {
+        case .available(let version), .failed(_, .some(let version)):
+            await installAvailableUpdate(version: version)
+        case .idle, .checking, .upToDate, .installing, .failed:
             await checkForUpdates()
         }
     }
@@ -80,7 +108,7 @@ final class UpdaterService {
         guard canPerformPrimaryAction else { return }
         phase = .checking
         let updater = updater
-        let currentVersion = AppVersion.current
+        let currentVersion = currentVersion
         let status = await Task.detached(priority: .utility) {
             updater.check(currentVersion: currentVersion)
         }.value
@@ -90,22 +118,28 @@ final class UpdaterService {
         case .updateAvailable(let version, _):
             phase = .available(version)
         case .unknown:
-            phase = .failed("Could not check releases. Install GitHub CLI and sign in with access to Schramm2/notive.")
+            phase = .failed(
+                message: "Could not check releases. Install GitHub CLI and sign in with access to Schramm2/notive.",
+                availableVersion: nil
+            )
         }
     }
 
-    private func installAvailableUpdate() async {
-        guard case .available(let version) = phase else { return }
-        phase = .installing("Downloading Notive \(version)…")
+    private func installAvailableUpdate(version: String) async {
+        guard installationBlockReason == nil else { return }
+        phase = .installing(version: version, message: "Downloading Notive \(version)…")
         let updater = updater
         do {
             try await Task.detached(priority: .userInitiated) {
                 try updater.install(version: version)
             }.value
-            phase = .installing("Relaunching Notive \(version)…")
+            phase = .installing(version: version, message: "Relaunching Notive \(version)…")
             relaunch()
         } catch {
-            phase = .failed(Self.message(for: error))
+            phase = .failed(
+                message: Self.message(for: error),
+                availableVersion: version
+            )
         }
     }
 

@@ -231,6 +231,11 @@ private struct GeneralSettingsView: View {
                             .controlSize(.small)
                     }
                 }
+                if let installationBlockReason = updater.installationBlockReason,
+                   updater.updateNoticeVersion != nil {
+                    Text(installationBlockReason)
+                        .foregroundStyle(.secondary)
+                }
                 Text(updater.statusText)
                     .foregroundStyle(statusColor)
             }

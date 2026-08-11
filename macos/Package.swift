@@ -46,5 +46,10 @@ let package = Package(
             dependencies: ["NotiveCore"],
             path: "Tests/NotiveCoreTests"
         ),
+        .testTarget(
+            name: "NotiveTests",
+            dependencies: ["Notive"],
+            path: "Tests/NotiveTests"
+        ),
     ]
 )

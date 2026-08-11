@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @Bindable var store: AppStore
+    @Bindable var updater: UpdaterService
     @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.firstMotive.rawValue
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("notive.onboarding.complete") private var onboardingComplete = false
@@ -19,7 +20,17 @@ struct ContentView: View {
             SidebarView(store: store, theme: theme)
                 .navigationSplitViewColumnWidth(min: 240, ideal: 268, max: 320)
         } detail: {
-            detail
+            VStack(spacing: 0) {
+                if updater.updateNoticeVersion != nil {
+                    UpdateBanner(updater: updater)
+                }
+                if let message = store.errorMessage {
+                    ErrorBanner(message: message) {
+                        store.clearError()
+                    }
+                }
+                detail
+            }
         }
         .environment(\.brandTheme, theme)
         .tint(BrandPalette.palette(for: theme, colorScheme: colorScheme).accent)
@@ -52,13 +63,6 @@ struct ContentView: View {
             set: { if !$0 { onboardingComplete = true } }
         )) {
             OnboardingView(isComplete: $onboardingComplete)
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if let message = store.errorMessage {
-                ErrorBanner(message: message) {
-                    store.clearError()
-                }
-            }
         }
     }
 
