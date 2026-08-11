@@ -42,6 +42,8 @@ public final class AppStore {
     @ObservationIgnored private let audioImporter = AudioImportService()
     @ObservationIgnored private let voiceCluster = VoiceClusterService()
     @ObservationIgnored private let intelligence = LocalIntelligenceService()
+    @ObservationIgnored private let askAnswerer: any AskAnswering
+    @ObservationIgnored private let askConfiguration: () -> AIConfiguration
     @ObservationIgnored private let notifications = NotificationService()
     @ObservationIgnored private let playback = AudioPlaybackService()
     @ObservationIgnored private var meterTimer: Timer?
@@ -49,7 +51,8 @@ public final class AppStore {
     @ObservationIgnored private var importCancellationRequested = false
     @ObservationIgnored private let recordingsFolder: () -> URL
     @ObservationIgnored private var activeAskOperationID: UUID?
-    @ObservationIgnored private var confirmedExternalAskProviders: Set<AIProvider> = []
+    @ObservationIgnored private var pendingExternalAsk: PendingExternalAsk?
+    @ObservationIgnored private var confirmedExternalAskDestinations: Set<ExternalAskDestination> = []
     @ObservationIgnored private var summaryTask: Task<Void, Never>?
     @ObservationIgnored private var activeSummaryOperationID: UUID?
     @ObservationIgnored private var retranscriptionTask: Task<Void, Never>?
@@ -66,11 +69,15 @@ public final class AppStore {
     public init(
         databaseURL: URL,
         transcription: any SpeechTranscribing = SpeechTranscriptionService(),
-        recordingsFolder: @escaping () -> URL = { RecordingPreferenceStore.folder() }
+        recordingsFolder: @escaping () -> URL = { RecordingPreferenceStore.folder() },
+        askAnswerer: any AskAnswering = LocalIntelligenceService(),
+        askConfiguration: @escaping () -> AIConfiguration = { AIConfiguration.load() }
     ) throws {
         self.databaseURL = databaseURL
         self.transcription = transcription
         self.recordingsFolder = recordingsFolder
+        self.askAnswerer = askAnswerer
+        self.askConfiguration = askConfiguration
         database = try SQLiteDatabase(url: databaseURL)
         try? RecordingPreferenceStore.migrateLegacyPreferences(
             from: databaseURL.deletingLastPathComponent()
@@ -200,6 +207,7 @@ public final class AppStore {
 
     public func retrieveAskEvidence(question: String, scope: AskScope) {
         activeAskOperationID = nil
+        pendingExternalAsk = nil
         askEvidence = []
         let cleaned = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleaned.isEmpty else {
@@ -217,26 +225,57 @@ public final class AppStore {
 
     public func answerQuestion(
         question: String,
-        scope: AskScope,
-        externalEvidenceConfirmed: Bool = false
+        scope: AskScope
     ) async {
         retrieveAskEvidence(question: question, scope: scope)
         guard !askEvidence.isEmpty else { return }
-        let configuration = AIConfiguration.load()
-        if configuration.needsExternalEvidenceConfirmation(
-            confirmedProviders: confirmedExternalAskProviders
-        ), !externalEvidenceConfirmed {
+        let configuration = askConfiguration()
+        let destination = ExternalAskDestination(configuration: configuration)
+        if configuration.isExternal,
+           !confirmedExternalAskDestinations.contains(destination) {
+            pendingExternalAsk = PendingExternalAsk(
+                question: question,
+                evidence: askEvidence,
+                configuration: configuration
+            )
             askPhase = .confirming(configuration.provider.title)
             return
         }
-        if configuration.isExternal, externalEvidenceConfirmed {
-            confirmedExternalAskProviders.insert(configuration.provider)
-        }
+        await generateAskAnswer(
+            question: question,
+            evidence: askEvidence,
+            configuration: configuration
+        )
+    }
+
+    public func confirmExternalAsk() async {
+        guard let pendingExternalAsk else { return }
+        self.pendingExternalAsk = nil
+        confirmedExternalAskDestinations.insert(
+            ExternalAskDestination(configuration: pendingExternalAsk.configuration)
+        )
+        askEvidence = pendingExternalAsk.evidence
+        await generateAskAnswer(
+            question: pendingExternalAsk.question,
+            evidence: pendingExternalAsk.evidence,
+            configuration: pendingExternalAsk.configuration
+        )
+    }
+
+    private func generateAskAnswer(
+        question: String,
+        evidence: [AskEvidence],
+        configuration: AIConfiguration
+    ) async {
         let operationID = UUID()
         activeAskOperationID = operationID
         askPhase = .generating
         do {
-            let answer = try await intelligence.answer(question: question, evidence: askEvidence)
+            let answer = try await askAnswerer.answer(
+                question: question,
+                evidence: evidence,
+                configuration: configuration
+            )
             guard activeAskOperationID == operationID, !Task.isCancelled else { return }
             askAnswer = answer
             askPhase = askAnswer?.claims.isEmpty == false ? .answered : .insufficient
@@ -257,6 +296,7 @@ public final class AppStore {
 
     public func cancelAsk() {
         activeAskOperationID = nil
+        pendingExternalAsk = nil
         askPhase = .idle
         askAnswer = nil
         askEvidence = []
@@ -975,5 +1015,21 @@ public final class AppStore {
                 defaultEnabled: true
             )
         }
+    }
+}
+
+private struct PendingExternalAsk: Sendable {
+    let question: String
+    let evidence: [AskEvidence]
+    let configuration: AIConfiguration
+}
+
+private struct ExternalAskDestination: Hashable {
+    let provider: AIProvider
+    let endpoint: String
+
+    init(configuration: AIConfiguration) {
+        provider = configuration.provider
+        endpoint = configuration.endpoint.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 }

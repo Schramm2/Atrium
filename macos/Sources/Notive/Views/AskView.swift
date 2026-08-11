@@ -20,7 +20,7 @@ struct AskView: View {
                         detail: "Find answers grounded in cited meeting transcript evidence."
                     ) {
                         BrandStatusLabel(
-                            title: "Evidence stays local",
+                            title: "Local retrieval",
                             systemImage: "checkmark.shield.fill",
                             kind: .local
                         )
@@ -129,7 +129,7 @@ struct AskView: View {
                     HStack {
                         Button("Cancel") { cancelQuestion() }
                         Button("Send Evidence and Answer") {
-                            submitQuestion(externalEvidenceConfirmed: true)
+                            confirmQuestion()
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -160,7 +160,7 @@ struct AskView: View {
         }
     }
 
-    private func submitQuestion(externalEvidenceConfirmed: Bool = false) {
+    private func submitQuestion() {
         askTask?.cancel()
         let taskID = UUID()
         let submittedQuestion = question
@@ -169,9 +169,20 @@ struct AskView: View {
         askTask = Task {
             await store.answerQuestion(
                 question: submittedQuestion,
-                scope: submittedScope,
-                externalEvidenceConfirmed: externalEvidenceConfirmed
+                scope: submittedScope
             )
+            guard askTaskID == taskID else { return }
+            askTask = nil
+            askTaskID = nil
+        }
+    }
+
+    private func confirmQuestion() {
+        askTask?.cancel()
+        let taskID = UUID()
+        askTaskID = taskID
+        askTask = Task {
+            await store.confirmExternalAsk()
             guard askTaskID == taskID else { return }
             askTask = nil
             askTaskID = nil
@@ -208,8 +219,8 @@ struct AskView: View {
         )
     }
 
-    private var evidenceList: some View {
-        List(store.askEvidence) { evidence in
+    private func evidenceList(_ evidence: [AskEvidence]) -> some View {
+        List(evidence) { evidence in
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(evidence.id)
@@ -246,9 +257,17 @@ struct AskView: View {
                             VStack(alignment: .leading, spacing: 7) {
                                 Text(claim.text)
                                     .textSelection(.enabled)
-                                Text(claim.citationIDs.joined(separator: " · "))
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 8) {
+                                    ForEach(answer.citations(for: claim)) { citation in
+                                        Button {
+                                            store.openCitation(citation)
+                                        } label: {
+                                            Text("\(citation.meetingTitle) · \(citation.timestamp)")
+                                        }
+                                        .buttonStyle(.link)
+                                        .font(.caption)
+                                    }
+                                }
                             }
                         }
                         Text("\(answer.provider) · \(answer.model)")
@@ -264,15 +283,19 @@ struct AskView: View {
                 Text("Sources")
                     .font(.headline)
                 Spacer()
-                Text("\(store.askEvidence.count) cited segment\(store.askEvidence.count == 1 ? "" : "s")")
+                Text("\(citedEvidence.count) cited segment\(citedEvidence.count == 1 ? "" : "s")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
-            evidenceList
+            evidenceList(citedEvidence)
                 .frame(minHeight: 220)
             }
         }
+    }
+
+    private var citedEvidence: [AskEvidence] {
+        store.askAnswer?.citations ?? []
     }
 }
