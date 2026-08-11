@@ -6,6 +6,4 @@ Local Dictation includes work adapted from [Handy](https://github.com/cjpais/Han
 
 Notive does not use Handy names, logos, icons, or other brand assets.
 
-The native macOS application includes Sparkle. Its copyright holders include Andy Matuschak, Elgato Systems GmbH, Kornel Lesiński, Mayur Pawashe, C.W. Betts, Petroules Corporation, and Big Nerd Ranch. Sparkle and its included components use the licenses in `Sparkle-LICENSE.txt`, which is distributed in the application resources.
-
 The native application uses Apple on-device Speech recognition and does not distribute a speech or speaker model. Per-recording acoustic feature clustering does not retain a voice profile.

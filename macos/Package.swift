@@ -11,12 +11,7 @@ let package = Package(
         .executable(name: "Notive", targets: ["Notive"]),
         .library(name: "NotiveCore", targets: ["NotiveCore"]),
     ],
-    dependencies: [
-        .package(
-            url: "https://github.com/sparkle-project/Sparkle",
-            exact: "2.9.2"
-        ),
-    ],
+    dependencies: [],
     targets: [
         .systemLibrary(
             name: "CSQLite",
@@ -39,18 +34,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "Notive",
-            dependencies: [
-                "NotiveCore",
-                .product(name: "Sparkle", package: "Sparkle"),
-            ],
+            dependencies: ["NotiveCore"],
             path: "Sources/Notive",
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("SwiftUI"),
-                .unsafeFlags([
-                    "-Xlinker", "-rpath",
-                    "-Xlinker", "@executable_path/../Frameworks",
-                ]),
             ]
         ),
         .testTarget(

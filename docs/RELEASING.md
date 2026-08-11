@@ -2,69 +2,73 @@
 
 ## Release model
 
-Notive uses stable semantic versions in `macos/version.json`. The release tag must be the same version with a `v` prefix, such as `v0.5.0`.
+Notive uses private GitHub Releases. A maintainer cuts a release locally with `scripts/release.sh`; there is no release workflow. CI builds and tests pushes to `main`.
 
-The native release is Apple Silicon only. It uses the repository's internal ad-hoc macOS signing model and Sparkle Ed25519 signatures for update integrity. It is not Developer ID signed or notarized, so macOS shows a Gatekeeper warning on first installation. Users approve the trusted internal artifact with **System Settings → Privacy & Security → Open Anyway**.
+The version lives in `macos/version.json`. The release script keeps it equal to the `vX.Y.Z` tag, the application bundle version, and the version shown in the UI.
 
-Each ad-hoc build has a new code identity. After an install or update, users can need to approve Notive's privacy access again in **Notive → Settings → Permissions** and restart the app. This is an accepted constraint of the internal release model; the project does not require an Apple Developer account or certificate.
+The release is Apple Silicon only. It uses ad-hoc macOS signing and is not notarized. macOS can show a Gatekeeper warning on first installation. A rebuilt or updated application can also require users to approve privacy access again in **Notive → Settings → Permissions**.
 
-## One-time GitHub setup
+## Requirements
 
-Create a GitHub Actions environment named `release`. Add this repository or environment secret:
+The maintainer Mac needs:
 
-| Secret | Purpose |
-| --- | --- |
-| `SPARKLE_PRIVATE_KEY` | Base64 private seed used to sign the update ZIP, appcast, and release notes. It must match `SUPublicEDKey` in `script/build_and_run.sh`. |
+- Xcode with Swift 6.1 or later.
+- GitHub CLI authenticated with release access to `Schramm2/notive`.
+- A clean `main` worktree with all intended changes pushed.
 
-Export the approved Notive key from the macOS Keychain to a secure temporary file:
+Installed Macs also need GitHub CLI authenticated with read access to the repository. Notive uses that session to check and download private releases.
+
+## Verify before release
+
+Run:
 
 ```bash
-macos/.build/artifacts/sparkle/Sparkle/bin/generate_keys \
-  --account com.ubundi.meet \
-  -x /secure/temporary/path/notive-sparkle-private-key
+cd macos
+swift test -Xswiftc -warnings-as-errors
+cd ..
+./script/build_and_run.sh --package
 ```
 
-Copy the file contents into `SPARKLE_PRIVATE_KEY`, then remove the temporary file. Never commit or log the private key.
+Confirm CI is green for the commit that you plan to release. The release script validates and packages the application but does not run the test suite.
 
-The repository must allow GitHub Actions read and write workflow permissions. The workflow uses the supplied `GITHUB_TOKEN` to create and publish the release.
+## Dry run
 
-## Release a version
+Build and verify the intended version without changing Git or GitHub:
 
-1. Update `macos/version.json` and `CHANGELOG.md`.
-2. Run the release checks:
+```bash
+./scripts/release.sh X.Y.Z --dry-run
+```
 
-   ```bash
-   node scripts/check-release-version.mjs
-   cd macos
-   swift test -Xswiftc -warnings-as-errors
-   cd ..
-   ./script/build_and_run.sh --package
-   ```
+## Cut the release
 
-3. Commit the release preparation and push it to `main`.
-4. Confirm that the release commit is on `main` and the intended worktree is clean.
-5. Create and push an annotated tag:
+From a clean `main` worktree, run:
 
-   ```bash
-   git tag -a vX.Y.Z -m "Release vX.Y.Z"
-   git push origin vX.Y.Z
-   ```
+```bash
+./scripts/release.sh X.Y.Z
+```
 
-6. Wait for the **Release** workflow. It builds the native Swift application, embeds Sparkle, creates the ZIP and DMG, generates a signed `appcast.xml`, validates all artifacts, creates a draft GitHub Release, and publishes it only after validation passes.
-7. Install the DMG on a test Mac. Complete the **Open Anyway** flow, approve the required Notive permissions, and restart Notive. From the prior native version, select **Check for Updates…** and confirm download, Sparkle signature validation, replacement, relaunch, and permission reapproval where macOS requires it.
+The script:
 
-Never move or replace a published tag. Publish a later patch version for a correction.
+1. Validates the stable semantic version, branch, clean worktree, GitHub authentication, and release collision.
+2. Updates `macos/version.json`, commits `chore: release vX.Y.Z`, and pushes `main`.
+3. Builds and verifies `Notive.app`, `Notive-X.Y.Z-arm64.dmg`, and `Notive.dmg`.
+4. Creates the private GitHub Release and `vX.Y.Z` tag with both DMGs.
 
-## Published artifacts
+After release, check CI on the version commit. Install the DMG on a test Mac. From the prior version, run **Notive → Check for Updates…** and confirm the download, replacement, relaunch, and displayed version.
 
-Each release includes:
+Never move or replace a published tag. Correct a faulty release with a later patch version.
 
-- `Notive-<version>-arm64.dmg` for first installation.
-- `Notive-<version>.zip` as the Sparkle update archive.
-- `appcast.xml` with signed update metadata and a signed-feed block.
+## Application update flow
 
-Sparkle checks the HTTPS appcast once per day by default. Users can turn automatic checks off in Settings and can run a manual check from Settings or the application menu.
+Notive runs an automatic release check at launch when the preference is enabled. Users can also check from Settings or the application menu.
 
-## Failure handling
+The updater uses `gh release view` to compare the latest tag with the bundle version. When a user installs an update, it uses `gh release download`, mounts the versioned DMG, stages and verifies the application, replaces `/Applications/Notive.app`, and relaunches. A failed install restores the prior application.
 
-If validation fails, the workflow does not publish a release. Fix the cause in a new commit, increase the patch version, and use a new tag. Do not edit a published appcast or archive because either change invalidates its signature.
+If a check fails, confirm:
+
+```bash
+gh auth status
+gh release view --repo Schramm2/notive
+```
+
+The updater does not use a separate Sparkle signature. Access depends on GitHub authentication, HTTPS, the private release boundary, and verification of the packaged app's ad-hoc code signature.
