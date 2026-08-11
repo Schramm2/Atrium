@@ -24,7 +24,7 @@ assignees: ''
 - macOS version:
 - Notive version:
 - Mac model and chip:
-- Recording or transcription model, if relevant:
+- Microphone or audio device, if relevant:
 
 ## Screenshots/Videos
 [If applicable, add screenshots or videos to help explain your problem]

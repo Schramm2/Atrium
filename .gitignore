@@ -2,6 +2,12 @@
 
 /experiments
 
+# Retired implementation caches can remain in existing worktrees.
+/frontend/
+/backend/
+/llama-helper/
+/target/
+
 # dependencies
 /node_modules
 **/models
@@ -77,9 +83,6 @@ node_modules/
 *.sw?
 experiments/
 .cursor/
-target/
-
-frontend/src-tauri/binaries/
 # matt-ai project-local skills
 /.agents/skills/swift-concurrency-pro
 /.agents/skills/swiftui-pro

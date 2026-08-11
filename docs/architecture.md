@@ -44,6 +44,6 @@ Ollama on a loopback address stays local. OpenAI, Anthropic, Groq, OpenRouter, r
 
 Swift Package Manager builds the native application. The release process embeds Sparkle 2.9.2, creates an Apple Silicon DMG and ZIP, and signs the appcast and update archive with a Notive Ed25519 key. The internal distribution model uses an ad-hoc macOS signature and is not notarized. macOS can show a Gatekeeper warning on first installation.
 
-## Migration baseline
+## Repository boundary
 
-The former Tauri application remains in `frontend/` as a buildable migration baseline. It is not the native release target. The archived Python implementation remains in `backend/`.
+The repository contains only the supported native macOS application and its build, test, and release tools. The former Tauri, Rust, and Python implementations were retired after the native cutover. Git history keeps them for reference.

@@ -24,7 +24,7 @@ Notive is an internal desktop workspace used during and after meetings. It suppo
 
 ## Capabilities and Constraints
 
-- The release candidate is the native Swift 6.1 and SwiftUI application in `macos/`.
+- The product is the native Swift 6.1 and SwiftUI application in `macos/`.
 - Preserve bundle identifier `com.ubundi.meet` and the existing database and recording contracts.
 - Use Apple frameworks before adding production dependencies. Sparkle is the only production Swift package dependency.
 - Preserve all current workflows, states, permissions, accessibility labels, keyboard operation, and system light/dark appearance behavior.
@@ -42,7 +42,7 @@ Ubundi must feel precise, open, human, curious, and quietly confident. First Mot
 
 ## Evidence on Hand
 
-- Native product behavior and compatibility are documented in `docs/architecture.md` and `docs/SWIFT_MIGRATION.md`.
+- Native product behavior and compatibility are documented in `docs/architecture.md` and the accepted records in `docs/decisions/`.
 - Canonical Ubundi and First Motive design contracts, logos, marks, wordmarks, icon assets, and reference screenshots are available in the company media library.
 - The repository contains an existing local meeting database with representative meetings and transcripts for interface verification.
 - No fabricated testimonials, benchmarks, external customer claims, or cloud-processing claims are allowed.

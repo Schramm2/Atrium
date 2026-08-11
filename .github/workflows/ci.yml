@@ -1,0 +1,36 @@
+name: Native macOS CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: native-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Swift package
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests with warnings as errors
+        working-directory: macos
+        run: swift test -Xswiftc -warnings-as-errors
+
+  package:
+    name: Verify application bundle
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build native package
+        run: ./script/build_and_run.sh --package
+      - name: Verify package
+        run: |
+          VERSION="$(plutil -extract version raw macos/version.json)"
+          codesign --verify --deep --strict dist/Notive.app
+          hdiutil verify "dist/Notive-$VERSION-arm64.dmg"
+          test -s "dist/Notive-$VERSION.zip"

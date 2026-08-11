@@ -6,7 +6,12 @@ This project uses stable semantic versions in the form `X.Y.Z`.
 
 ## Unreleased
 
-### Added
+### Changed
 
-- Tag-driven GitHub Releases with signed Tauri updater artifacts.
-- A documented macOS release process with code signing and notarization checks.
+- Notive now has one supported implementation: the native Swift and SwiftUI macOS application.
+- Native bundle assets now live with the macOS source.
+
+### Removed
+
+- The retired Tauri, Next.js, Rust, Python, and model-sidecar implementations.
+- Legacy cross-platform build workflows and migration-only checks.

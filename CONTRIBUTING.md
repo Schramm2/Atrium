@@ -1,140 +1,38 @@
-# Contributing to Notive
+# Contribute to Notive
 
-Thank you for your interest in contributing to Notive! This document provides guidelines and instructions for contributing to this project.
+Notive is an internal macOS product for Ubundi and First Motive.
 
-## Development Workflow
+## Workflow
 
-### Branch Strategy
+1. Start from the current `main` branch.
+2. Create a focused `feat/<name>` or `fix/<name>` branch.
+3. Make the smallest change that solves the task.
+4. Run the native test suite.
+5. Open a pull request to `main` and state the verification result.
 
-- `main` - Stable releases
-- `feat/*` - Feature enhancements
-- `fix/*` - Bug fixes
-- `enhance/*` - Feature enhancements
+Do not change the bundle identifier, local database path, stored meeting format, release signing, or external-data confirmation boundary without an accepted architecture decision.
 
-Use `feat/<short-name>` for documentation-only work.
+## Verify
 
-### Getting Started
-
-1. Fork the repository
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/Schramm2/ubundi-meet.git
-   ```
-3. Create a new branch from `main`:
-   ```bash
-   git switch main
-   git switch -c feat/your-feature-name
-   ```
-
-### Development Process
-
-1. Always start your work from the latest `main`
-2. Create a new branch for each feature/fix
-3. Make your changes
-4. Write or update tests as needed
-5. Ensure all tests pass
-6. Update documentation if necessary
-
-### Issue Creation
-
-Before starting work on a new feature or bug fix:
-
-1. Check if an issue already exists
-2. If not, create a new issue with:
-   - Clear title
-   - Detailed description
-   - Steps to reproduce (for bugs)
-   - Expected behavior
-   - Screenshots (if applicable)
-   - Labels (bug, enhancement, etc.)
-
-### Pull Request Process
-
-1. Create a PR from your feature branch to `main`
-2. Link the PR to the related issue using the issue number (e.g., "Fixes #123")
-3. Fill out the PR template completely
-4. Ensure CI checks pass
-5. Address any review comments
-
-### PR Template
-
-```markdown
-## Description
-[Describe your changes here]
-
-## Related Issue
-[Link to the issue this PR addresses]
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation update
-- [ ] Performance improvement
-- [ ] Code refactoring
-- [ ] Other (please describe)
-
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Manual testing performed
-- [ ] All tests pass
-
-## Documentation
-- [ ] Documentation updated
-- [ ] No documentation needed
-
-## Checklist
-- [ ] Code follows project style
-- [ ] Self-reviewed the code
-- [ ] Added comments for complex code
-- [ ] Updated README if needed
+```bash
+cd macos
+swift test -Xswiftc -warnings-as-errors
 ```
 
-## Code Style
+For bundle, resource, permission, or startup changes, also run:
 
-- Follow the existing code style
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Keep functions small and focused
-- Write clear commit messages
-
-## Commit Message Format
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
+```bash
+./script/build_and_run.sh --verify
 ```
 
-Types:
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation changes
-- style: Code style changes
-- refactor: Code refactoring
-- test: Adding/updating tests
-- chore: Maintenance tasks
+For packaging or release changes, run the checks in [docs/RELEASING.md](docs/RELEASING.md).
 
-## Testing
+## Style
 
-- Write unit tests for new features
-- Update existing tests when modifying code
-- Ensure all tests pass before submitting PR
-- Include integration tests for complex features
+- Follow the surrounding Swift and SwiftUI code.
+- Prefer Apple system frameworks. Sparkle is the approved exception.
+- Keep recording, transcription, storage, retrieval, citations, and default answer generation on the Mac.
+- Add tests for changed behavior.
+- Update documentation when a command, boundary, or user workflow changes.
 
-## Documentation
-
-- Update documentation for new features
-- Keep README up to date
-- Document API changes
-- Add comments for complex code
-
-## Getting Help
-
-- Create an issue for questions
-- Contact maintainers
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the project's MIT License. Keep the required notices in [LICENSE.md](LICENSE.md) and [NOTICE.md](NOTICE.md).
+Keep [LICENSE.md](LICENSE.md) and [NOTICE.md](NOTICE.md) with distributed source and substantial copies.

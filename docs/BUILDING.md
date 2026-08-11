@@ -1,6 +1,6 @@
-# Building Notive from Source
+# Build Notive
 
-The native Swift application in `macos/` is the release candidate. The Tauri application in `frontend/` remains available as the migration baseline until the native cutover is accepted. The Python code in `backend/` is archived.
+Notive is a native macOS application. Swift Package Manager builds the application in `macos/`.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ The native Swift application in `macos/` is the release candidate. The Tauri app
 - Xcode with the macOS SDK and Swift 6.1 or later
 - SQLite supplied by macOS
 
-Swift Package Manager resolves Sparkle 2.9.2 from its official GitHub release. No JavaScript, Rust, model-runtime, or Python dependency is required for the native application.
+Swift Package Manager resolves Sparkle 2.9.2 from its official GitHub release. No JavaScript, Rust, model-runtime, or Python toolchain is required.
 
 ## Run in development
 
@@ -36,21 +36,11 @@ This creates:
 
 The version is read from `macos/version.json`.
 
-## Tests
+## Test
 
 ```bash
-node scripts/check-swift-migration-inventory.mjs --check
 cd macos
 swift test -Xswiftc -warnings-as-errors
 ```
 
-The inventory check extracts the active Tauri command registry and requires an explicit native disposition for all 189 registered commands.
-
-The migration baseline remains available while `frontend/` is retained:
-
-```bash
-cd frontend
-pnpm install --frozen-lockfile
-pnpm run test:ask
-pnpm run build
-```
+Run `./script/build_and_run.sh --verify` when a change affects bundle resources, signing, permissions, or startup.
