@@ -1,5 +1,4 @@
 import AppKit
-import AVFoundation
 import ApplicationServices
 import CoreGraphics
 import NotiveCore
@@ -61,8 +60,8 @@ private struct PermissionSettingsView: View {
             Section("Audio and transcription") {
                 PermissionRow(title: "Microphone", status: microphone) {
                     Task {
-                        if AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {
-                            _ = await AVCaptureDevice.requestAccess(for: .audio)
+                        if MicrophoneAuthorization.currentStatus == .notDetermined {
+                            _ = await MicrophoneAuthorization.request()
                         } else {
                             openPrivacyPane("Privacy_Microphone")
                         }
@@ -113,7 +112,7 @@ private struct PermissionSettingsView: View {
     }
 
     private func refresh() async {
-        microphone = Self.label(AVCaptureDevice.authorizationStatus(for: .audio))
+        microphone = Self.label(MicrophoneAuthorization.currentStatus)
         speech = Self.label(SFSpeechRecognizer.authorizationStatus())
         screenRecording = CGPreflightScreenCaptureAccess() ? "Allowed" : "Not allowed"
         accessibility = AXIsProcessTrusted() ? "Allowed" : "Not allowed"
@@ -135,12 +134,11 @@ private struct PermissionSettingsView: View {
         NSWorkspace.shared.open(url)
     }
 
-    private static func label(_ status: AVAuthorizationStatus) -> String {
+    private static func label(_ status: MicrophoneAuthorizationStatus) -> String {
         switch status {
         case .authorized: "Allowed"
-        case .denied, .restricted: "Not allowed"
+        case .denied: "Not allowed"
         case .notDetermined: "Not requested"
-        @unknown default: "Unknown"
         }
     }
 

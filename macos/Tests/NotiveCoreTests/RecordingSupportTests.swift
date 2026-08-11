@@ -1,9 +1,32 @@
 @testable import NotiveCore
+import AVFAudio
 import Foundation
+import Speech
 import Testing
 
 @Suite("Recording support")
 struct RecordingSupportTests {
+    @Test("Audio application permission drives microphone authorization")
+    func microphonePermissionMapping() {
+        #expect(MicrophoneAuthorization.status(for: .granted) == .authorized)
+        #expect(MicrophoneAuthorization.status(for: .denied) == .denied)
+        #expect(MicrophoneAuthorization.status(for: .undetermined) == .notDetermined)
+    }
+
+    @Test("A stalled microphone permission request returns control")
+    func stalledMicrophonePermissionRequest() async {
+        let granted = await MicrophoneAuthorization.request(timeout: .milliseconds(10)) { _ in }
+
+        #expect(!granted)
+    }
+
+    @Test("A stalled speech permission request returns control")
+    func stalledSpeechPermissionRequest() async {
+        let status = await SpeechAuthorization.request(timeout: .milliseconds(10)) { _ in }
+
+        #expect(status == .denied)
+    }
+
     @Test("Speech timing becomes ordered database transcript timing")
     @MainActor
     func transcriptTiming() {

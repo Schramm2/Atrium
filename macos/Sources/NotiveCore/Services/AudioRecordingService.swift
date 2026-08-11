@@ -9,7 +9,7 @@ public enum AudioRecordingError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .permissionDenied:
-            "Microphone access is required to record a meeting."
+            "Microphone access is required to record meetings or use Dictation."
         case .couldNotStart:
             "Notive could not start the microphone recording."
         case .noActiveRecording:

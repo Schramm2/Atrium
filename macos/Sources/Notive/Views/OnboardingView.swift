@@ -1,5 +1,4 @@
 import AppKit
-import AVFoundation
 import NotiveCore
 import Speech
 import SwiftUI
@@ -120,7 +119,7 @@ struct OnboardingView: View {
     private var permissionControls: some View {
         VStack(spacing: 10) {
             PermissionButton(title: "Microphone", systemImage: "mic") {
-                _ = await AVCaptureDevice.requestAccess(for: .audio)
+                _ = await MicrophoneAuthorization.request()
             }
             PermissionButton(title: "Speech Recognition", systemImage: "text.bubble") {
                 _ = await SpeechAuthorization.request()
