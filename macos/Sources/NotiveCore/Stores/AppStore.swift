@@ -94,6 +94,9 @@ public final class AppStore {
     public func reloadMeetings() {
         perform {
             meetings = try database.fetchMeetings(matching: searchText)
+            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                searchResults = []
+            }
         }
     }
 

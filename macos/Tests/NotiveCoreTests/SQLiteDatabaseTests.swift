@@ -4,6 +4,31 @@ import Testing
 
 @Suite("SQLite data compatibility")
 struct SQLiteDatabaseTests {
+    @Test("Clearing search removes transcript results")
+    @MainActor
+    func clearingSearchResults() throws {
+        let fixture = try DatabaseFixture()
+        let store = try AppStore(databaseURL: fixture.databaseURL)
+        let meeting = try store.database.createMeeting(title: "Search cleanup")
+        try store.database.insertTranscripts([
+            TranscriptSegment(
+                id: "search-cleanup-1",
+                meetingID: meeting.id,
+                text: "The unique launch phrase is marigold.",
+                timestamp: "09:00:00"
+            ),
+        ])
+
+        store.searchText = "marigold"
+        store.search()
+        #expect(store.searchResults.count == 1)
+
+        store.searchText = ""
+        store.reloadMeetings()
+
+        #expect(store.searchResults.isEmpty)
+    }
+
     @Test("Meetings, transcripts, notes, summaries, and aliases round trip")
     func roundTrip() throws {
         let fixture = try DatabaseFixture()

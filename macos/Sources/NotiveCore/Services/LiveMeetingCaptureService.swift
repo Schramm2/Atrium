@@ -116,14 +116,7 @@ public final class LiveMeetingCaptureService: NSObject {
     private var hasInstalledTap = false
 
     public func requestPermission() async -> Bool {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized:
-            return true
-        case .notDetermined:
-            return await AVCaptureDevice.requestAccess(for: .audio)
-        default:
-            return false
-        }
+        await MicrophoneAuthorization.request()
     }
 
     public func start(
