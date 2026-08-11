@@ -12,23 +12,31 @@ final class GlobalDictationShortcut {
     private var eventTap: CFMachPort?
     private var eventTapSource: CFRunLoopSource?
     private var optionSpaceActive = false
+    private var optionSpaceStartTask: Task<Void, Never>?
+    private var toggleTask: Task<Void, Never>?
 
     private init() {}
 
     func install(store: AppStore) {
         self.store = store
-        guard globalMonitor == nil, localMonitor == nil else { return }
-
         installOptionSpaceTap()
 
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            Task { @MainActor in self?.handle(event) }
-        }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            MainActor.assumeIsolated {
-                self?.handle(event)
+        if globalMonitor == nil {
+            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard event.keyCode == 2,
+                      event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+                        .contains([.command, .shift]),
+                      !event.isARepeat else { return }
+                Task { @MainActor in self?.handle(event) }
             }
-            return event
+        }
+        if localMonitor == nil {
+            localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                MainActor.assumeIsolated {
+                    self?.handle(event)
+                }
+                return event
+            }
         }
     }
 
@@ -45,6 +53,14 @@ final class GlobalDictationShortcut {
             let owner = Unmanaged<GlobalDictationShortcut>
                 .fromOpaque(userInfo)
                 .takeUnretainedValue()
+            if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                MainActor.assumeIsolated {
+                    if let eventTap = owner.eventTap {
+                        CGEvent.tapEnable(tap: eventTap, enable: true)
+                    }
+                }
+                return Unmanaged.passUnretained(event)
+            }
             let handled = MainActor.assumeIsolated {
                 owner.handleOptionSpace(type: type, event: event)
             }
@@ -73,15 +89,22 @@ final class GlobalDictationShortcut {
             guard selectedShortcut == "Option + Space" else { return false }
             guard !optionSpaceActive, let store else { return true }
             optionSpaceActive = true
-            Task { await store.startDictation() }
+            optionSpaceStartTask?.cancel()
+            optionSpaceStartTask = Task { await store.startDictation() }
             return true
         }
         if type == .keyUp, optionSpaceActive {
             optionSpaceActive = false
             guard let store else { return true }
+            let startTask = optionSpaceStartTask
+            optionSpaceStartTask = nil
+            startTask?.cancel()
             Task {
-                await store.stopDictation()
-                pasteIfPermitted(store.dictationText)
+                await startTask?.value
+                if store.isDictating {
+                    await store.stopDictation()
+                    pasteIfPermitted(store.dictationText)
+                }
             }
             return true
         }
@@ -95,7 +118,9 @@ final class GlobalDictationShortcut {
                 .contains([.command, .shift]),
               !event.isARepeat,
               let store else { return }
-        Task {
+        let previousTask = toggleTask
+        toggleTask = Task {
+            await previousTask?.value
             if store.isDictating {
                 await store.stopDictation()
                 pasteIfPermitted(store.dictationText)

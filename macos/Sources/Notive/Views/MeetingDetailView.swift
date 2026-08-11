@@ -17,53 +17,58 @@ struct MeetingDetailView: View {
         Group {
             if let workspace = store.workspace,
                workspace.meeting.id == meetingID {
-                VStack(spacing: 0) {
-                    header(workspace)
-                    if store.playbackMeetingID == meetingID {
-                        PlaybackBar(store: store, meeting: workspace.meeting)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 12)
+                BrandScreen {
+                    VStack(spacing: 16) {
+                        header(workspace)
+                        if store.playbackMeetingID == meetingID {
+                            BrandPanel(padding: 12) {
+                                PlaybackBar(store: store, meeting: workspace.meeting)
+                            }
+                        }
+                        BrandPanel(padding: 0) {
+                            TabView(selection: $selectedTab) {
+                                TranscriptView(
+                                    store: store,
+                                    meeting: workspace.meeting,
+                                    segments: store.activeRecordingMeetingID == meetingID && !store.liveTranscriptSegments.isEmpty
+                                        ? store.liveTranscriptSegments
+                                        : workspace.transcripts
+                                )
+                                    .tabItem { Label("Transcript", systemImage: "text.quote") }
+                                    .tag(DetailTab.transcript)
+                                SummaryEditor(
+                                    markdown: $summaryDraft,
+                                    language: $summaryLanguage,
+                                    customInstruction: $customSummaryInstruction,
+                                    isGenerating: store.isGeneratingSummary,
+                                    onSave: { store.saveSummary(markdown: summaryDraft) },
+                                    onLanguageChange: { language in
+                                        store.saveSummaryLanguage(language, for: workspace.meeting)
+                                    },
+                                    onGenerate: {
+                                        store.beginSummaryGeneration(customPrompt: customSummaryInstruction)
+                                    },
+                                    onCancel: { store.cancelSummary() }
+                                )
+                                .tabItem { Label("Summary", systemImage: "sparkles") }
+                                .tag(DetailTab.summary)
+                                NotesEditor(
+                                    markdown: $noteDraft,
+                                    onSave: { store.saveNote(markdown: noteDraft) }
+                                )
+                                .tabItem { Label("Notes", systemImage: "note.text") }
+                                .tag(DetailTab.notes)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 14)
+                        }
+                        .frame(maxHeight: .infinity)
                     }
-                    Divider()
-                    TabView(selection: $selectedTab) {
-                        TranscriptView(
-                            store: store,
-                            meeting: workspace.meeting,
-                            segments: store.activeRecordingMeetingID == meetingID && !store.liveTranscriptSegments.isEmpty
-                                ? store.liveTranscriptSegments
-                                : workspace.transcripts
-                        )
-                            .tabItem { Label("Transcript", systemImage: "text.quote") }
-                            .tag(DetailTab.transcript)
-                        SummaryEditor(
-                            markdown: $summaryDraft,
-                            language: $summaryLanguage,
-                            customInstruction: $customSummaryInstruction,
-                            isGenerating: store.isGeneratingSummary,
-                            onSave: { store.saveSummary(markdown: summaryDraft) },
-                            onLanguageChange: { language in
-                                store.saveSummaryLanguage(language, for: workspace.meeting)
-                            },
-                            onGenerate: {
-                                store.beginSummaryGeneration(customPrompt: customSummaryInstruction)
-                            },
-                            onCancel: { store.cancelSummary() }
-                        )
-                        .tabItem { Label("Summary", systemImage: "sparkles") }
-                        .tag(DetailTab.summary)
-                        NotesEditor(
-                            markdown: $noteDraft,
-                            onSave: { store.saveNote(markdown: noteDraft) }
-                        )
-                        .tabItem { Label("Notes", systemImage: "note.text") }
-                        .tag(DetailTab.notes)
-                    }
-                    .padding(.horizontal, 20)
+                    .padding(24)
+                    .frame(maxWidth: 1_360, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .top)
                 }
                 .onAppear { setDrafts(from: workspace) }
-                .onChange(of: workspace.meeting.updatedAt) { _, _ in
-                    setDrafts(from: workspace)
-                }
                 .onChange(of: workspace.summary?.markdown) { _, value in
                     summaryDraft = value ?? ""
                 }
@@ -89,42 +94,64 @@ struct MeetingDetailView: View {
     }
 
     private func header(_ workspace: MeetingWorkspace) -> some View {
-        HStack(spacing: 12) {
-            TextField("Meeting title", text: $title)
-                .font(.title2.weight(.semibold))
-                .textFieldStyle(.plain)
-                .onSubmit { store.renameMeeting(id: meetingID, title: title) }
-            Spacer()
-            Button("Save") {
-                store.renameMeeting(id: meetingID, title: title)
-            }
-            .keyboardShortcut("s")
-            Button(
-                store.playbackMeetingID == meetingID && store.isPlaying ? "Pause" : "Play",
-                systemImage: store.playbackMeetingID == meetingID && store.isPlaying ? "pause.fill" : "play.fill"
-            ) {
-                store.togglePlayback(for: workspace.meeting)
-            }
-            .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
-            if store.isRetranscribing {
-                Button("Cancel Retranscription", systemImage: "xmark", role: .cancel) {
-                    store.cancelRetranscription()
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                TextField("Meeting title", text: $title)
+                    .font(.system(size: 27, weight: .semibold))
+                    .textFieldStyle(.plain)
+                    .lineLimit(1)
+                    .onSubmit { store.renameMeeting(id: meetingID, title: title) }
+                Spacer(minLength: 18)
+                Button("Save") {
+                    store.renameMeeting(id: meetingID, title: title)
                 }
-            } else {
-                Button("Retranscribe", systemImage: "arrow.triangle.2.circlepath") {
-                    store.beginRetranscription()
+                .keyboardShortcut("s")
+                Button(
+                    store.playbackMeetingID == meetingID && store.isPlaying ? "Pause" : "Play",
+                    systemImage: store.playbackMeetingID == meetingID && store.isPlaying ? "pause.fill" : "play.fill"
+                ) {
+                    store.togglePlayback(for: workspace.meeting)
                 }
+                .buttonStyle(.borderedProminent)
                 .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
+                Menu {
+                    if store.isRetranscribing {
+                        Button("Cancel Retranscription", systemImage: "xmark", role: .cancel) {
+                            store.cancelRetranscription()
+                        }
+                    } else {
+                        Button("Retranscribe", systemImage: "arrow.triangle.2.circlepath") {
+                            store.beginRetranscription()
+                        }
+                        .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
+                    }
+                    Button("Open Recording", systemImage: "folder") {
+                        openRecordingFolder(workspace.meeting.folderPath)
+                    }
+                    .disabled(workspace.meeting.folderPath == nil)
+                    Divider()
+                    Button("Delete Meeting", systemImage: "trash", role: .destructive) {
+                        showsDeleteConfirmation = true
+                    }
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
             }
-            Button("Open Recording", systemImage: "folder") {
-                openRecordingFolder(workspace.meeting.folderPath)
+            HStack(spacing: 12) {
+                Text(workspace.meeting.createdAt, format: .dateTime.weekday(.wide).month(.wide).day().year().hour().minute())
+                if !workspace.transcripts.isEmpty {
+                    Text("\(workspace.transcripts.count) transcript segment\(workspace.transcripts.count == 1 ? "" : "s")")
+                }
+                Spacer()
+                BrandStatusLabel(
+                    title: store.activeRecordingMeetingID == meetingID ? "Recording" : "Saved locally",
+                    systemImage: store.activeRecordingMeetingID == meetingID ? "record.circle" : "internaldrive",
+                    kind: store.activeRecordingMeetingID == meetingID ? .processing : .local
+                )
             }
-            .disabled(workspace.meeting.folderPath == nil)
-            Button("Delete", systemImage: "trash", role: .destructive) {
-                showsDeleteConfirmation = true
-            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
         }
-        .padding(20)
     }
 
     private func setDrafts(from workspace: MeetingWorkspace) {

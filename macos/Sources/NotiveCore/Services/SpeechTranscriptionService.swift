@@ -38,6 +38,8 @@ public enum SpeechTranscriptionError: LocalizedError {
 public final class SpeechTranscriptionService: SpeechTranscribing {
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionCompletion: RecognitionCompletion?
+    private var isTranscribing = false
+    private var cancellationRequested = false
 
     public init() {}
 
@@ -49,7 +51,19 @@ public final class SpeechTranscriptionService: SpeechTranscribing {
         audioURL: URL,
         localeIdentifier: String = Locale.current.identifier
     ) async throws -> [SpeechRecognitionSegment] {
+        guard !isTranscribing else {
+            throw SpeechTranscriptionError.failed("Another transcription is already in progress.")
+        }
+        isTranscribing = true
+        cancellationRequested = false
+        defer {
+            isTranscribing = false
+            cancellationRequested = false
+            recognitionTask = nil
+            recognitionCompletion = nil
+        }
         let authorization = await authorizationStatus()
+        guard !cancellationRequested, !Task.isCancelled else { throw CancellationError() }
         guard authorization == .authorized else {
             throw SpeechTranscriptionError.permissionDenied
         }
@@ -66,10 +80,6 @@ public final class SpeechTranscriptionService: SpeechTranscribing {
         request.requiresOnDeviceRecognition = true
         request.addsPunctuation = true
 
-        defer {
-            recognitionTask = nil
-            recognitionCompletion = nil
-        }
         return try await withCheckedThrowingContinuation { continuation in
             let completion = RecognitionCompletion(continuation: continuation)
             recognitionCompletion = completion
@@ -81,6 +91,8 @@ public final class SpeechTranscriptionService: SpeechTranscribing {
     }
 
     public func cancel() {
+        guard isTranscribing else { return }
+        cancellationRequested = true
         recognitionCompletion?.fail(CancellationError())
         recognitionTask?.cancel()
         recognitionTask = nil

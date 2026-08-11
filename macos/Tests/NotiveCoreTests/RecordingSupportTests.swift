@@ -145,6 +145,26 @@ struct RecordingSupportTests {
         #expect(FileManager.default.fileExists(atPath: folder.appendingPathComponent("import.aiff").path))
     }
 
+    @Test("Cancelled audio copies do not leave partial imports")
+    func cancelledAudioCopy() async throws {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("notive-copy-cancel-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let source = folder.appendingPathComponent("source.aiff")
+        let destination = folder.appendingPathComponent("destination.aiff")
+        try Data([0x01, 0x02, 0x03]).write(to: source)
+        let service = AudioImportService()
+
+        let task = Task { try await service.copy(from: source, to: destination) }
+        task.cancel()
+
+        await #expect(throws: CancellationError.self) {
+            try await task.value
+        }
+        #expect(!FileManager.default.fileExists(atPath: destination.path))
+    }
+
     @Test("Cancelling an import removes its partial meeting and copied file")
     @MainActor
     func importCancellationCleanup() async throws {
