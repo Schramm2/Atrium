@@ -6,13 +6,18 @@ import UserNotifications
 @main
 struct NotiveApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
     @State private var store: AppStore?
     @State private var startupError: String?
     @State private var updater = UpdaterService()
 
     init() {
         do {
-            _store = State(initialValue: try AppStore())
+            let store = try AppStore()
+            _store = State(initialValue: store)
+            _updater = State(initialValue: UpdaterService(
+                installationBlocker: { Self.updateInstallationBlockReason(for: store) }
+            ))
         } catch {
             _startupError = State(initialValue: error.localizedDescription)
         }
@@ -22,9 +27,13 @@ struct NotiveApp: App {
         WindowGroup("Notive", id: "workspace") {
             Group {
                 if let store {
-                    ContentView(store: store)
+                    ContentView(store: store, updater: updater)
                         .task { store.start() }
                         .task { await updater.checkAutomaticallyIfEnabled() }
+                        .onChange(of: scenePhase) { _, phase in
+                            guard phase == .active else { return }
+                            Task { await updater.checkAutomaticallyIfEnabled() }
+                        }
                 } else {
                     ContentUnavailableView(
                         "Notive could not open",
@@ -64,6 +73,22 @@ struct NotiveApp: App {
             MenuBarView(store: store)
         }
         .menuBarExtraStyle(.menu)
+    }
+
+    private static func updateInstallationBlockReason(for store: AppStore) -> String? {
+        switch store.recordingState {
+        case .recording, .paused, .transcribing:
+            return "Finish the active recording or transcription before updating."
+        case .idle, .failed:
+            break
+        }
+        if store.isDictating || store.isPreparingDictation || store.isProcessingDictation {
+            return "Finish dictation before updating."
+        }
+        if store.isImportingAudio || store.isRetranscribing || store.isGeneratingSummary {
+            return "Finish the active meeting task before updating."
+        }
+        return nil
     }
 }
 
