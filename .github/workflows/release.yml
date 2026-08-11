@@ -26,6 +26,9 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/check-release-version.mjs
 
+      - name: Validate Tauri-to-Swift command inventory
+        run: node scripts/check-swift-migration-inventory.mjs --check
+
       - name: Require a commit from main
         run: |
           git fetch origin main
@@ -42,67 +45,58 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
-          run_install: false
+      - name: Build native Swift release
+        run: ./script/build_and_run.sh --package
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin
-
-      - uses: swatinem/rust-cache@v2
-        with:
-          workspaces: '. -> target'
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Build llama-helper sidecar
-        run: |
-          cargo build --release -p llama-helper --features metal
-          mkdir -p frontend/src-tauri/binaries
-          cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
-
-      - name: Build ad-hoc signed release
-        uses: tauri-apps/tauri-action@v1
+      - name: Generate signed Sparkle appcast
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          projectPath: frontend
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Notive v__VERSION__'
-          releaseDraft: true
-          prerelease: false
-          generateReleaseNotes: true
-          args: --target aarch64-apple-darwin
-          uploadUpdaterJson: true
-          uploadUpdaterSignatures: true
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          test -n "$SPARKLE_PRIVATE_KEY"
+          VERSION="$(plutil -extract version raw macos/version.json)"
+          ARCHIVES_DIR="$RUNNER_TEMP/notive-sparkle-archives"
+          mkdir -p "$ARCHIVES_DIR"
+          cp "dist/Notive-$VERSION.zip" "$ARCHIVES_DIR/"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            macos/.build/artifacts/sparkle/Sparkle/bin/generate_appcast \
+              --ed-key-file - \
+              --download-url-prefix \
+              "https://github.com/Schramm2/notive/releases/download/$GITHUB_REF_NAME/" \
+              -o dist/appcast.xml \
+              "$ARCHIVES_DIR"
 
       - name: Verify release artifacts
         env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          VERSION="$(plutil -extract version raw macos/version.json)"
+          ARCHIVE="dist/Notive-$VERSION.zip"
+          DMG="dist/Notive-$VERSION-arm64.dmg"
+          APPCAST="dist/appcast.xml"
+          codesign --verify --deep --strict dist/Notive.app
+          test -d dist/Notive.app/Contents/Frameworks/Sparkle.framework
+          test -s dist/Notive.app/Contents/Resources/LICENSE.md
+          test -s dist/Notive.app/Contents/Resources/NOTICE.md
+          test -s dist/Notive.app/Contents/Resources/Sparkle-LICENSE.txt
+          test -s "$ARCHIVE"
+          hdiutil verify "$DMG"
+          node scripts/check-sparkle-appcast.mjs "$APPCAST" "$VERSION"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            macos/.build/artifacts/sparkle/Sparkle/bin/sign_update \
+              --verify --ed-key-file - "$APPCAST"
+
+      - name: Create draft release
+        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BUNDLE_ROOT="frontend/src-tauri/target/aarch64-apple-darwin/release/bundle"
-          APP_PATH="$(find "$BUNDLE_ROOT/macos" -maxdepth 1 -name '*.app' -print -quit)"
-          test -n "$APP_PATH"
-          test -n "$(find "$BUNDLE_ROOT/dmg" -maxdepth 1 -name '*.dmg' -print -quit)"
-          test -n "$(find "$BUNDLE_ROOT/macos" -maxdepth 1 -name '*.app.tar.gz' -print -quit)"
-          test -n "$(find "$BUNDLE_ROOT/macos" -maxdepth 1 -name '*.app.tar.gz.sig' -print -quit)"
-          codesign --verify --deep --strict "$APP_PATH"
-          MANIFEST_DIR="$RUNNER_TEMP/notive-release-manifest"
-          mkdir -p "$MANIFEST_DIR"
-          gh release download "$GITHUB_REF_NAME" --pattern latest.json --dir "$MANIFEST_DIR"
-          node scripts/check-updater-manifest.mjs "$MANIFEST_DIR/latest.json"
+          VERSION="$(plutil -extract version raw macos/version.json)"
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/Notive-$VERSION.zip" \
+            "dist/Notive-$VERSION-arm64.dmg" \
+            dist/appcast.xml \
+            --draft \
+            --generate-notes \
+            --title "Notive v$VERSION"
 
       - name: Publish verified release
         env:

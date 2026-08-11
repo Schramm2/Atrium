@@ -1,0 +1,7 @@
+interface:
+  display_name: "To Spec"
+  short_description: "Turn a request into an implementation spec"
+  default_prompt: "Use $to-spec to turn this request into a focused implementation specification."
+
+policy:
+  allow_implicit_invocation: false

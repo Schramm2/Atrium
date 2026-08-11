@@ -7,11 +7,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-FRONTEND_DIR="$ROOT_DIR/frontend"
 INSTALL_APP="/Applications/Notive.app"
 STAGED_APP="/Applications/.Notive.app.installing.$$"
 BACKUP_APP="/Applications/.Notive.app.backup.$$"
-BUILD_APP="$ROOT_DIR/target/release/bundle/macos/Notive.app"
+BUILD_APP="$ROOT_DIR/dist/Notive.app"
 SUPPORT_DIR="${HOME}/Library/Application Support/com.ubundi.meet"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -27,18 +26,18 @@ require_command() {
 
 [[ "$(uname -s)" == "Darwin" ]] || fail "This updater is for macOS."
 
-for command_name in cargo codesign date ditto git pnpm stat; do
+for command_name in codesign date ditto git plutil stat swift; do
   require_command "$command_name"
 done
 
-if /usr/bin/pgrep -x notive >/dev/null 2>&1 || /usr/bin/pgrep -x ubundi-meet >/dev/null 2>&1; then
+if /usr/bin/pgrep -x Notive >/dev/null 2>&1; then
   fail "Notive is running. Quit it before updating so an active recording is not interrupted."
 fi
 
 COMMIT="$(git -C "$ROOT_DIR" rev-parse HEAD)"
 SHORT_COMMIT="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
 BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
-VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$FRONTEND_DIR/src-tauri/tauri.conf.json" | head -n 1)"
+VERSION="$(plutil -extract version raw "$ROOT_DIR/macos/version.json")"
 WORKTREE_STATUS="$(git -C "$ROOT_DIR" status --short)"
 
 echo "Notive local updater"
@@ -52,21 +51,11 @@ if [[ -n "$WORKTREE_STATUS" ]]; then
   printf '%s\n' "$WORKTREE_STATUS"
 fi
 
-if [[ ! -d "$FRONTEND_DIR/node_modules" ]]; then
-  echo
-  echo "Installing frontend dependencies..."
-  (cd "$FRONTEND_DIR" && pnpm install --frozen-lockfile)
-fi
-
 BUILD_STARTED="$(date +%s)"
-BUILD_EXIT=0
 
 echo
 echo "Building the current checkout..."
-set +e
-(cd "$FRONTEND_DIR" && ./build-gpu.sh)
-BUILD_EXIT=$?
-set -e
+"$ROOT_DIR/script/build_and_run.sh" --package
 
 [[ -d "$BUILD_APP" ]] || fail "The build did not produce $BUILD_APP."
 
@@ -76,12 +65,6 @@ BUILD_BINARY="$(find "$BUILD_APP/Contents/MacOS" -maxdepth 1 -type f \
 
 BUILD_MTIME="$(stat -f %m "$BUILD_BINARY")"
 (( BUILD_MTIME >= BUILD_STARTED )) || fail "The app artifact is older than this build attempt."
-
-if (( BUILD_EXIT != 0 )); then
-  echo
-  echo "Warning: the packaging command returned $BUILD_EXIT after creating a fresh app."
-  echo "Continuing with the local install. This usually means updater signing keys are not configured."
-fi
 
 echo
 echo "Installing $BUILD_APP"

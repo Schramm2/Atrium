@@ -1353,7 +1353,7 @@ html[data-brand-theme="first-motive"] .brand-permission-action-recheck {
 
 /* Compatibility layer for older app surfaces that still use direct Tailwind
  * neutral classes. It is scoped so the Ubundi theme does not change. */
-html[data-brand-theme="first-motive"] :is(.bg-white, .bg-gray-50, .bg-gray-100) {
+html[data-brand-theme="first-motive"] :is(.bg-white, .bg-white\/90, .bg-gray-50, .bg-gray-100) {
   background-color: #4B434E !important;
 }
 
@@ -1361,7 +1361,12 @@ html[data-brand-theme="first-motive"] :is(.bg-gray-200, .bg-gray-300) {
   background-color: #504954 !important;
 }
 
-html[data-brand-theme="first-motive"] :is(.text-gray-900, .text-gray-800, .text-gray-700) {
+html[data-brand-theme="first-motive"] :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700) {
+  color: #E8E2D7 !important;
+}
+
+html[data-brand-theme="first-motive"] [role="tab"][data-state="active"] {
+  background-color: rgba(127, 169, 184, 0.13) !important;
   color: #E8E2D7 !important;
 }
 

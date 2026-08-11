@@ -1,0 +1,7 @@
+interface:
+  display_name: "To Issues"
+  short_description: "Turn work into clear Markdown tickets"
+  default_prompt: "Use $to-issues to turn this work into clear, actionable Markdown tickets."
+
+policy:
+  allow_implicit_invocation: false
