@@ -85,6 +85,11 @@ public struct AskAnswer: Equatable, Sendable {
         self.provider = provider
         self.model = model
     }
+
+    public func citations(for claim: AskClaim) -> [AskEvidence] {
+        let citationIDs = Set(claim.citationIDs)
+        return citations.filter { citationIDs.contains($0.id) }
+    }
 }
 
 public enum AskPhase: Equatable, Sendable {

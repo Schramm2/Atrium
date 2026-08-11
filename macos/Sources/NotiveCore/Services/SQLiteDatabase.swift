@@ -397,34 +397,57 @@ public final class SQLiteDatabase: @unchecked Sendable {
         scope: AskScope,
         limit: Int = 12
     ) throws -> [AskEvidence] {
-        let terms = Self.searchTerms(from: question)
-        guard !terms.isEmpty else { return [] }
+        guard limit > 0 else { return [] }
+        let cleanedQuestion = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard cleanedQuestion.count <= 1_000 else {
+            throw DatabaseError.invalidData("Ask questions must use 1,000 characters or fewer.")
+        }
+        guard scope.meetingIDs.count <= 100 else {
+            throw DatabaseError.invalidData("Ask can search 100 selected meetings or fewer.")
+        }
+        let resultLimit = min(limit, 12)
+        let terms = Self.searchTerms(from: cleanedQuestion)
+        guard !terms.isEmpty || !scope.meetingIDs.isEmpty else { return [] }
+
+        let meetingScope = try resolvedMeetingScope(for: terms, scope: scope)
+        let effectiveMeetingIDs = meetingScope.meetingIDs
+        let retrievalTerms = terms.filter { !meetingScope.matchedTitleTerms.contains($0) }
+        if retrievalTerms.isEmpty, !effectiveMeetingIDs.isEmpty {
+            return try representativeEvidence(
+                meetingIDs: effectiveMeetingIDs,
+                scope: scope,
+                limit: resultLimit
+            )
+        }
+        guard !retrievalTerms.isEmpty else { return [] }
 
         var filters: [String] = []
-        var values: [Value] = [.text(terms.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" }.joined(separator: " OR "))]
+        var values: [Value] = [.text(retrievalTerms.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" }.joined(separator: " OR "))]
 
-        if !scope.meetingIDs.isEmpty {
-            filters.append("m.id IN (\(Array(repeating: "?", count: scope.meetingIDs.count).joined(separator: ", ")))")
-            values.append(contentsOf: scope.meetingIDs.sorted().map(Value.text))
+        if !effectiveMeetingIDs.isEmpty {
+            filters.append("m.id IN (\(Array(repeating: "?", count: effectiveMeetingIDs.count).joined(separator: ", ")))")
+            values.append(contentsOf: effectiveMeetingIDs.map(Value.text))
         }
         if let dateFrom = scope.dateFrom {
-            filters.append("m.created_at >= ?")
+            filters.append("datetime(m.created_at) >= datetime(?)")
             values.append(.text(DateCoding.encode(dateFrom)))
         }
         if let dateTo = scope.dateTo {
-            filters.append("m.created_at <= ?")
+            filters.append("datetime(m.created_at) <= datetime(?)")
             values.append(.text(DateCoding.encode(dateTo)))
         }
-        values.append(.integer(Int64(limit)))
+        values.append(.integer(Int64(max(resultLimit, 48))))
 
         let filterSQL = filters.isEmpty ? "" : " AND \(filters.joined(separator: " AND "))"
         let sql = """
             SELECT t.id, t.meeting_id, m.title, t.transcript, t.timestamp,
-                   t.audio_start_time, t.speaker, m.created_at,
+                   t.audio_start_time, COALESCE(a.alias, t.speaker), m.created_at,
                    bm25(transcripts_fts) AS rank
             FROM transcripts_fts
             JOIN transcripts t ON t.rowid = transcripts_fts.rowid
             JOIN meetings m ON m.id = t.meeting_id
+            LEFT JOIN speaker_aliases a
+              ON a.meeting_id = t.meeting_id AND a.original_speaker_label = t.speaker
             WHERE transcripts_fts MATCH ?\(filterSQL)
             ORDER BY rank, m.created_at DESC
             LIMIT ?
@@ -444,11 +467,21 @@ public final class SQLiteDatabase: @unchecked Sendable {
             )
         }
 
-        return try rows.enumerated().map { index, row in
+        let perMeetingLimit = effectiveMeetingIDs.count == 1 ? resultLimit : min(resultLimit, 3)
+        var meetingCounts: [String: Int] = [:]
+        let selected = rows.filter { row in
+            let count = meetingCounts[row.meetingID, default: 0]
+            guard count < perMeetingLimit else { return false }
+            meetingCounts[row.meetingID] = count + 1
+            return true
+        }.prefix(resultLimit)
+
+        return try selected.enumerated().map { index, row in
             let context = try neighboringContext(
                 meetingID: row.meetingID,
                 transcriptID: row.transcriptID,
-                fallback: row.snippet
+                fallback: row.snippet,
+                speaker: row.speaker
             )
             return AskEvidence(
                 id: "S\(index + 1)",
@@ -466,25 +499,227 @@ public final class SQLiteDatabase: @unchecked Sendable {
         }
     }
 
+    private func resolvedMeetingScope(
+        for terms: [String],
+        scope: AskScope
+    ) throws -> ResolvedAskMeetingScope {
+        if !scope.meetingIDs.isEmpty {
+            return ResolvedAskMeetingScope(
+                meetingIDs: scope.meetingIDs.sorted(),
+                matchedTitleTerms: []
+            )
+        }
+
+        let titleTerms = terms.filter { $0.count >= 4 }
+        guard !titleTerms.isEmpty else { return .empty }
+
+        var filters: [String] = []
+        var values: [Value] = []
+        if let dateFrom = scope.dateFrom {
+            filters.append("datetime(created_at) >= datetime(?)")
+            values.append(.text(DateCoding.encode(dateFrom)))
+        }
+        if let dateTo = scope.dateTo {
+            filters.append("datetime(created_at) <= datetime(?)")
+            values.append(.text(DateCoding.encode(dateTo)))
+        }
+        let filterSQL = filters.isEmpty ? "" : " WHERE \(filters.joined(separator: " AND "))"
+        let meetings = try query(
+            "SELECT id, title FROM meetings\(filterSQL)",
+            values: values
+        ) { statement in
+            (id: self.text(statement, 0), title: self.text(statement, 1).lowercased())
+        }
+        let scored = meetings.map { meeting in
+            (
+                id: meeting.id,
+                title: meeting.title,
+                score: titleTerms.count { meeting.title.contains($0) }
+            )
+        }
+        let bestScore = scored.map(\.score).max() ?? 0
+        guard bestScore > 0 else { return .empty }
+        let bestMatches = scored.filter { $0.score == bestScore }
+        let matchedTitleTerms = titleTerms.filter { term in
+            bestMatches.contains { $0.title.contains(term) }
+        }
+        var hasTitleOnlyTerm = false
+        for term in matchedTitleTerms where try !transcriptsContain(term: term) {
+            hasTitleOnlyTerm = true
+            break
+        }
+        guard hasTitleOnlyTerm else { return .empty }
+        return ResolvedAskMeetingScope(
+            meetingIDs: bestMatches.map(\.id).sorted(),
+            matchedTitleTerms: Set(matchedTitleTerms)
+        )
+    }
+
+    private func representativeEvidence(
+        meetingIDs: [String],
+        scope: AskScope,
+        limit: Int
+    ) throws -> [AskEvidence] {
+        var filters = [
+            "m.id IN (\(Array(repeating: "?", count: meetingIDs.count).joined(separator: ", ")))"
+        ]
+        var values = meetingIDs.map(Value.text)
+        if let dateFrom = scope.dateFrom {
+            filters.append("datetime(m.created_at) >= datetime(?)")
+            values.append(.text(DateCoding.encode(dateFrom)))
+        }
+        if let dateTo = scope.dateTo {
+            filters.append("datetime(m.created_at) <= datetime(?)")
+            values.append(.text(DateCoding.encode(dateTo)))
+        }
+        values.append(.integer(2_000))
+
+        let rows = try query(
+            """
+            SELECT t.id, t.meeting_id, m.title, t.transcript, t.timestamp,
+                   t.audio_start_time, COALESCE(a.alias, t.speaker), m.created_at
+            FROM transcripts t
+            JOIN meetings m ON m.id = t.meeting_id
+            LEFT JOIN speaker_aliases a
+              ON a.meeting_id = t.meeting_id AND a.original_speaker_label = t.speaker
+            WHERE \(filters.joined(separator: " AND "))
+            ORDER BY m.created_at DESC, COALESCE(t.audio_start_time, t.rowid), t.rowid
+            LIMIT ?
+            """,
+            values: values
+        ) { statement in
+            (
+                transcriptID: self.text(statement, 0),
+                meetingID: self.text(statement, 1),
+                meetingTitle: self.text(statement, 2),
+                snippet: self.text(statement, 3),
+                timestamp: self.text(statement, 4),
+                audioStartTime: self.optionalDouble(statement, 5),
+                speaker: self.optionalText(statement, 6),
+                createdAt: DateCoding.decode(self.optionalText(statement, 7))
+            )
+        }
+
+        let meetingOrder = rows.map(\.meetingID).uniqued()
+        let perMeetingLimit = meetingOrder.count == 1 ? limit : min(limit, 3)
+        var selected = Array(rows.prefix(0))
+        for meetingID in meetingOrder {
+            let allMeetingRows = rows.filter { $0.meetingID == meetingID }
+            let substantiveRows = allMeetingRows.filter {
+                $0.snippet.trimmingCharacters(in: .whitespacesAndNewlines).count >= 40
+            }
+            let meetingRows = substantiveRows.count >= min(3, allMeetingRows.count)
+                ? substantiveRows
+                : allMeetingRows
+            let count = min(perMeetingLimit, meetingRows.count)
+            guard count > 0 else { continue }
+            if count == 1 {
+                selected.append(meetingRows[0])
+            } else {
+                for index in 0..<count {
+                    let position = Int(
+                        (Double(index) * Double(meetingRows.count - 1) / Double(count - 1)).rounded()
+                    )
+                    selected.append(meetingRows[position])
+                }
+            }
+        }
+
+        return try selected.prefix(limit).enumerated().map { index, row in
+            AskEvidence(
+                id: "S\(index + 1)",
+                meetingID: row.meetingID,
+                meetingTitle: row.meetingTitle,
+                transcriptID: row.transcriptID,
+                snippet: row.snippet,
+                context: try neighboringContext(
+                    meetingID: row.meetingID,
+                    transcriptID: row.transcriptID,
+                    fallback: row.snippet,
+                    speaker: row.speaker
+                ),
+                speaker: row.speaker,
+                timestamp: row.timestamp,
+                audioStartTime: row.audioStartTime,
+                meetingCreatedAt: row.createdAt,
+                score: 0
+            )
+        }
+    }
+
+    private func transcriptsContain(term: String) throws -> Bool {
+        let quoted = "\"\(term.replacingOccurrences(of: "\"", with: "\"\""))\""
+        return try query(
+            "SELECT EXISTS(SELECT 1 FROM transcripts_fts WHERE transcripts_fts MATCH ? LIMIT 1)",
+            values: [.text(quoted)]
+        ) { statement in
+            sqlite3_column_int(statement, 0) != 0
+        }.first ?? false
+    }
+
     private func neighboringContext(
         meetingID: String,
         transcriptID: String,
-        fallback: String
+        fallback: String,
+        speaker: String?
     ) throws -> String {
-        let segments = try query(
-            """
-            WITH target AS (
-                SELECT rowid FROM transcripts WHERE id = ? AND meeting_id = ?
+        let previous = try neighboringTranscript(
+            meetingID: meetingID,
+            transcriptID: transcriptID,
+            before: true
+        )
+        let next = try neighboringTranscript(
+            meetingID: meetingID,
+            transcriptID: transcriptID,
+            before: false
+        )
+        var parts: [String] = []
+        if let previous {
+            parts.append(
+                "\(previous.speaker ?? "Speaker"): \(Self.boundedTranscript(previous.text, limit: 350))"
             )
-            SELECT transcript FROM transcripts, target
-            WHERE meeting_id = ? AND rowid BETWEEN target.rowid - 1 AND target.rowid + 1
-            ORDER BY rowid
-            """,
-            values: [.text(transcriptID), .text(meetingID), .text(meetingID)]
-        ) { statement in
-            self.text(statement, 0)
         }
-        return segments.isEmpty ? fallback : segments.joined(separator: " ")
+        parts.append(
+            "MATCH — \(speaker ?? "Speaker"): \(Self.boundedTranscript(fallback, limit: 700))"
+        )
+        if let next {
+            parts.append(
+                "\(next.speaker ?? "Speaker"): \(Self.boundedTranscript(next.text, limit: 350))"
+            )
+        }
+        return parts.joined(separator: "\n")
+    }
+
+    private func neighboringTranscript(
+        meetingID: String,
+        transcriptID: String,
+        before: Bool
+    ) throws -> (text: String, speaker: String?)? {
+        let comparison = before ? "<" : ">"
+        let order = before ? "DESC" : "ASC"
+        return try query(
+            """
+            SELECT t.transcript, COALESCE(a.alias, t.speaker)
+            FROM transcripts t
+            LEFT JOIN speaker_aliases a
+              ON a.meeting_id = t.meeting_id AND a.original_speaker_label = t.speaker
+            WHERE t.meeting_id = ?
+              AND t.rowid \(comparison) (
+                  SELECT rowid FROM transcripts WHERE id = ? AND meeting_id = ?
+              )
+            ORDER BY t.rowid \(order)
+            LIMIT 1
+            """,
+            values: [.text(meetingID), .text(transcriptID), .text(meetingID)]
+        ) { statement in
+            (text: self.text(statement, 0), speaker: self.optionalText(statement, 1))
+        }.first
+    }
+
+    private static func boundedTranscript(_ value: String, limit: Int) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count > limit else { return trimmed }
+        return String(trimmed.prefix(limit)) + "…"
     }
 
     private func initializeSchema() throws {
@@ -721,9 +956,12 @@ public final class SQLiteDatabase: @unchecked Sendable {
 
     private static func searchTerms(from question: String) -> [String] {
         let ignored: Set<String> = [
-            "about", "after", "before", "could", "did", "does", "from", "have",
-            "into", "made", "that", "the", "their", "there", "they", "this",
-            "was", "were", "what", "when", "where", "which", "who", "with",
+            "about", "after", "and", "are", "before", "could", "cover", "covered",
+            "describe", "did", "discuss", "discussed", "does", "explain", "from",
+            "have", "into", "made", "meeting", "mention", "mentioned", "our",
+            "please", "said", "say", "summarize", "talk", "talked", "tell", "that",
+            "the", "their", "there", "they", "this", "was", "were", "what", "when",
+            "where", "which", "who", "why", "with",
         ]
         return question
             .lowercased()
@@ -754,6 +992,13 @@ public final class SQLiteDatabase: @unchecked Sendable {
         case integer(Int64)
         case null
     }
+}
+
+private struct ResolvedAskMeetingScope {
+    let meetingIDs: [String]
+    let matchedTitleTerms: Set<String>
+
+    static let empty = ResolvedAskMeetingScope(meetingIDs: [], matchedTitleTerms: [])
 }
 
 private extension Sequence where Element: Hashable {
