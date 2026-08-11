@@ -27,6 +27,7 @@ public final class AppStore {
     public private(set) var isImportingAudio = false
     public private(set) var highlightedTranscriptID: String?
     public private(set) var isDictating = false
+    public private(set) var isPreparingDictation = false
     public private(set) var isProcessingDictation = false
     public private(set) var dictationText = ""
     public var errorMessage: String?
@@ -38,6 +39,7 @@ public final class AppStore {
     @ObservationIgnored private let transcription: any SpeechTranscribing
     @ObservationIgnored private let systemAudioCapture = SystemAudioCaptureService()
     @ObservationIgnored private let audioMixer = AudioMixingService()
+    @ObservationIgnored private let audioImporter = AudioImportService()
     @ObservationIgnored private let voiceCluster = VoiceClusterService()
     @ObservationIgnored private let intelligence = LocalIntelligenceService()
     @ObservationIgnored private let notifications = NotificationService()
@@ -52,6 +54,9 @@ public final class AppStore {
     @ObservationIgnored private var activeSummaryOperationID: UUID?
     @ObservationIgnored private var retranscriptionTask: Task<Void, Never>?
     @ObservationIgnored private var activeRetranscriptionOperationID: UUID?
+    @ObservationIgnored private var activeDictationOperationID: UUID?
+    @ObservationIgnored private var isStartingRecording = false
+    @ObservationIgnored private var isCapturingSystemAudio = false
 
     public convenience init() throws {
         let url = try SQLiteDatabase.defaultDatabaseURL()
@@ -194,9 +199,10 @@ public final class AppStore {
     }
 
     public func retrieveAskEvidence(question: String, scope: AskScope) {
+        activeAskOperationID = nil
+        askEvidence = []
         let cleaned = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleaned.isEmpty else {
-            askEvidence = []
             askAnswer = nil
             askPhase = .idle
             return
@@ -373,7 +379,13 @@ public final class AppStore {
     }
 
     public func beginRetranscription() {
-        guard !isRetranscribing else { return }
+        guard recordingState == .idle,
+              !isDictating,
+              !isPreparingDictation,
+              !isProcessingDictation,
+              !isImportingAudio,
+              !isRetranscribing,
+              retranscriptionTask == nil else { return }
         retranscriptionTask = Task { await retranscribeCurrentMeeting() }
     }
 
@@ -389,6 +401,8 @@ public final class AppStore {
         guard let workspace,
               let audioURL = MeetingAudioFiles.primary(in: workspace.meeting.folderPath) else {
             errorMessage = "Notive could not find an audio file for this meeting."
+            retranscriptionTask = nil
+            isRetranscribing = false
             return
         }
         let operationID = UUID()
@@ -426,13 +440,21 @@ public final class AppStore {
     }
 
     public func startDictation() async {
-        guard !isDictating, !isProcessingDictation, recordingState == .idle else { return }
+        guard !isDictating,
+              !isPreparingDictation,
+              !isProcessingDictation,
+              !isStartingRecording,
+              !isRetranscribing,
+              recordingState == .idle else { return }
+        isPreparingDictation = true
+        defer { isPreparingDictation = false }
         guard await dictationRecorder.requestPermission() else {
             let error = AudioRecordingError.permissionDenied
             errorMessage = error.localizedDescription
             notifyError(error)
             return
         }
+        guard !Task.isCancelled else { return }
         do {
             let folder = FileManager.default.temporaryDirectory
                 .appendingPathComponent("Notive-Dictation", isDirectory: true)
@@ -446,6 +468,7 @@ public final class AppStore {
             dictationText = ""
             isDictating = true
         } catch {
+            guard !(error is CancellationError) else { return }
             errorMessage = error.localizedDescription
             notifyError(error)
         }
@@ -453,8 +476,16 @@ public final class AppStore {
 
     public func stopDictation() async {
         guard isDictating else { return }
+        let operationID = UUID()
+        activeDictationOperationID = operationID
         isDictating = false
         isProcessingDictation = true
+        defer {
+            if activeDictationOperationID == operationID {
+                activeDictationOperationID = nil
+                isProcessingDictation = false
+            }
+        }
         do {
             let url = try dictationRecorder.stop()
             defer { try? FileManager.default.removeItem(at: url) }
@@ -462,17 +493,22 @@ public final class AppStore {
                 audioURL: url,
                 localeIdentifier: Self.transcriptionLocaleIdentifier
             )
+            guard activeDictationOperationID == operationID, !Task.isCancelled else { return }
             dictationText = segments.map(\.text).joined(separator: " ")
         } catch {
+            guard activeDictationOperationID == operationID else { return }
+            if Task.isCancelled || error is CancellationError { return }
             errorMessage = error.localizedDescription
             notifyError(error)
         }
-        isProcessingDictation = false
     }
 
     public func cancelDictation() {
         dictationRecorder.cancel()
+        transcription.cancel()
+        activeDictationOperationID = nil
         isDictating = false
+        isPreparingDictation = false
         isProcessingDictation = false
     }
 
@@ -481,7 +517,14 @@ public final class AppStore {
     }
 
     public func startRecording(title: String = "New meeting") async {
-        guard case .idle = recordingState else { return }
+        guard case .idle = recordingState,
+              !isStartingRecording,
+              !isDictating,
+              !isPreparingDictation,
+              !isProcessingDictation,
+              !isRetranscribing else { return }
+        isStartingRecording = true
+        defer { isStartingRecording = false }
         guard await recorder.requestPermission() else {
             let error = AudioRecordingError.permissionDenied
             recordingState = .failed(error.localizedDescription)
@@ -489,11 +532,15 @@ public final class AppStore {
             notifyError(error)
             return
         }
+        guard !Task.isCancelled else { return }
         _ = await transcription.requestPermission()
+        guard !Task.isCancelled else { return }
 
         var createdMeeting: Meeting?
+        var createdFolder: URL?
         do {
             let folder = try makeMeetingFolder(title: title)
+            createdFolder = folder
             let meeting = try database.createMeeting(title: title, folderPath: folder.path)
             createdMeeting = meeting
             try MeetingSummaryPreferenceStore.applyDefault(to: meeting)
@@ -515,10 +562,13 @@ public final class AppStore {
                     try await systemAudioCapture.start(
                         at: folder.appendingPathComponent("system-audio.m4a")
                     )
+                    isCapturingSystemAudio = true
                 } catch {
+                    isCapturingSystemAudio = false
                     errorMessage = "Microphone recording started without system audio. \(error.localizedDescription)"
                 }
             }
+            try Task.checkCancellation()
             activeRecordingMeetingID = meeting.id
             recordingState = .recording
             selection = .meeting(meeting.id)
@@ -534,12 +584,23 @@ public final class AppStore {
                 )
             }
         } catch {
+            recorder.cancel()
+            await systemAudioCapture.cancel()
+            isCapturingSystemAudio = false
             if let createdMeeting {
                 try? database.deleteMeeting(id: createdMeeting.id)
             }
-            recordingState = .failed(error.localizedDescription)
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            if let createdFolder {
+                try? FileManager.default.removeItem(at: createdFolder)
+            }
+            if error is CancellationError {
+                recordingState = .idle
+                errorMessage = nil
+            } else {
+                recordingState = .failed(error.localizedDescription)
+                errorMessage = error.localizedDescription
+                notifyError(error)
+            }
         }
     }
 
@@ -574,12 +635,24 @@ public final class AppStore {
     }
 
     public func stopRecording() async {
-        guard let meetingID = activeRecordingMeetingID else { return }
+        guard recordingState == .recording || recordingState == .paused,
+              let meetingID = activeRecordingMeetingID else { return }
+        recordingState = .transcribing
+        stopMetering()
         do {
             let microphoneURL = try recorder.stop()
-            let systemAudioURL = try? await systemAudioCapture.stop()
-            stopMetering()
-            recordingState = .transcribing
+            let systemAudioURL: URL?
+            if isCapturingSystemAudio {
+                do {
+                    systemAudioURL = try await systemAudioCapture.stop()
+                } catch {
+                    systemAudioURL = nil
+                    errorMessage = "The microphone recording stopped, but system audio could not be saved. \(error.localizedDescription)"
+                }
+                isCapturingSystemAudio = false
+            } else {
+                systemAudioURL = nil
+            }
             Task {
                 await notifications.send(
                     title: "Recording stopped",
@@ -640,17 +713,22 @@ public final class AppStore {
                 )
             }
         } catch {
-            stopMetering()
+            recorder.cancel()
+            await systemAudioCapture.cancel()
+            isCapturingSystemAudio = false
+            activeRecordingMeetingID = nil
+            liveTranscriptSegments = []
             recordingState = .failed(error.localizedDescription)
             errorMessage = error.localizedDescription
             notifyError(error)
         }
     }
 
-    public func cancelRecording() {
+    public func cancelRecording() async {
         recorder.cancel()
         liveTranscriptSegments = []
-        Task { await systemAudioCapture.cancel() }
+        await systemAudioCapture.cancel()
+        isCapturingSystemAudio = false
         stopMetering()
         if let meetingID = activeRecordingMeetingID {
             try? database.deleteMeeting(id: meetingID)
@@ -668,9 +746,15 @@ public final class AppStore {
     }
 
     public func importAudio(from sourceURL: URL) async {
-        guard case .idle = recordingState else { return }
+        guard case .idle = recordingState,
+              !isStartingRecording,
+              !isDictating,
+              !isPreparingDictation,
+              !isProcessingDictation,
+              !isRetranscribing else { return }
         isLoading = true
         isImportingAudio = true
+        recordingState = .transcribing
         importCancellationRequested = false
         var createdMeeting: Meeting?
         var createdFolder: URL?
@@ -684,12 +768,12 @@ public final class AppStore {
             let folder = try makeMeetingFolder(title: title)
             createdFolder = folder
             let destination = folder.appendingPathComponent(sourceURL.lastPathComponent)
-            try FileManager.default.copyItem(at: sourceURL, to: destination)
+            try await audioImporter.copy(from: sourceURL, to: destination)
+            if importCancellationRequested { throw CancellationError() }
             let meeting = try database.createMeeting(title: title, folderPath: folder.path)
             createdMeeting = meeting
             try MeetingSummaryPreferenceStore.applyDefault(to: meeting)
             selection = .meeting(meeting.id)
-            recordingState = .transcribing
             reloadMeetings()
 
             let recognized = try await transcription.transcribe(
@@ -745,7 +829,6 @@ public final class AppStore {
         defer { isLoading = false }
         do {
             try work()
-            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
             if case .retrieving = askPhase {

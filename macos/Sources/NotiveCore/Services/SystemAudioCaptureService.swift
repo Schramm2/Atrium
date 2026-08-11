@@ -7,6 +7,7 @@ public enum SystemAudioCaptureError: LocalizedError {
     case noDisplay
     case couldNotWrite
     case noActiveCapture
+    case alreadyCapturing
 
     public var errorDescription: String? {
         switch self {
@@ -16,20 +17,24 @@ public enum SystemAudioCaptureError: LocalizedError {
             "Notive could not create the system audio recording."
         case .noActiveCapture:
             "There is no active system audio capture to stop."
+        case .alreadyCapturing:
+            "System audio capture is already active."
         }
     }
 }
 
-public final class SystemAudioCaptureService: NSObject, SCStreamOutput, @unchecked Sendable {
+@MainActor
+public final class SystemAudioCaptureService {
     private let sampleQueue = DispatchQueue(label: "com.ubundi.meet.system-audio")
     private var stream: SCStream?
-    private var writer: AVAssetWriter?
-    private var input: AVAssetWriterInput?
+    private var sampleWriter: SystemAudioSampleWriter?
     private var outputURL: URL?
-    private var startedSession = false
-    private var acceptsSamples = true
+    private var isStarting = false
 
     public func start(at url: URL) async throws {
+        guard stream == nil, !isStarting else { throw SystemAudioCaptureError.alreadyCapturing }
+        isStarting = true
+        defer { isStarting = false }
         let content = try await SCShareableContent.excludingDesktopWindows(
             false,
             onScreenWindowsOnly: true
@@ -53,8 +58,13 @@ public final class SystemAudioCaptureService: NSObject, SCStreamOutput, @uncheck
         ]
         let input = AVAssetWriterInput(mediaType: .audio, outputSettings: settings)
         input.expectsMediaDataInRealTime = true
-        guard writer.canAdd(input) else { throw SystemAudioCaptureError.couldNotWrite }
+        guard writer.canAdd(input) else {
+            writer.cancelWriting()
+            try? FileManager.default.removeItem(at: url)
+            throw SystemAudioCaptureError.couldNotWrite
+        }
         writer.add(input)
+        let sampleWriter = SystemAudioSampleWriter(writer: writer, input: input)
 
         let filter = SCContentFilter(
             display: display,
@@ -72,74 +82,126 @@ public final class SystemAudioCaptureService: NSObject, SCStreamOutput, @uncheck
         configuration.channelCount = 2
 
         let stream = SCStream(filter: filter, configuration: configuration, delegate: nil)
-        try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: sampleQueue)
-        self.writer = writer
-        self.input = input
-        outputURL = url
-        startedSession = false
-        acceptsSamples = true
-        self.stream = stream
-        try await stream.startCapture()
+        do {
+            try stream.addStreamOutput(sampleWriter, type: .audio, sampleHandlerQueue: sampleQueue)
+            self.sampleWriter = sampleWriter
+            outputURL = url
+            self.stream = stream
+            try await stream.startCapture()
+        } catch {
+            self.stream = nil
+            self.sampleWriter = nil
+            outputURL = nil
+            sampleWriter.cancel()
+            try? FileManager.default.removeItem(at: url)
+            throw error
+        }
     }
 
     public func pause() {
-        sampleQueue.async { self.acceptsSamples = false }
+        sampleWriter?.setAcceptsSamples(false)
     }
 
     public func resume() {
-        sampleQueue.async { self.acceptsSamples = true }
+        sampleWriter?.setAcceptsSamples(true)
     }
 
     public func stop() async throws -> URL {
-        guard let stream, let writer, let input, let outputURL else {
+        guard let stream, let sampleWriter, let outputURL else {
             throw SystemAudioCaptureError.noActiveCapture
         }
         try await stream.stopCapture()
         self.stream = nil
-        sampleQueue.sync { input.markAsFinished() }
-        await writer.finishWriting()
-        self.writer = nil
-        self.input = nil
+        let completed = await sampleWriter.finish()
+        self.sampleWriter = nil
         self.outputURL = nil
-        startedSession = false
-        acceptsSamples = true
-        guard writer.status == .completed else {
-            throw SystemAudioCaptureError.couldNotWrite
-        }
+        guard completed else { throw SystemAudioCaptureError.couldNotWrite }
         return outputURL
     }
 
     public func cancel() async {
-        try? await stream?.stopCapture()
+        let activeStream = stream
+        let activeWriter = sampleWriter
+        let activeOutputURL = outputURL
         stream = nil
-        writer?.cancelWriting()
-        if let outputURL { try? FileManager.default.removeItem(at: outputURL) }
-        writer = nil
-        input = nil
+        sampleWriter = nil
         outputURL = nil
-        startedSession = false
-        acceptsSamples = true
+        try? await activeStream?.stopCapture()
+        activeWriter?.cancel()
+        if let activeOutputURL { try? FileManager.default.removeItem(at: activeOutputURL) }
+    }
+}
+
+private final class SystemAudioSampleWriter: NSObject, SCStreamOutput, @unchecked Sendable {
+    private struct State {
+        var acceptsSamples = true
+        var startedSession = false
+        var isFinished = false
     }
 
-    public func stream(
+    private let writer: AVAssetWriter
+    private let input: AVAssetWriterInput
+    private let lock = NSLock()
+    private var state = State()
+
+    init(writer: AVAssetWriter, input: AVAssetWriterInput) {
+        self.writer = writer
+        self.input = input
+    }
+
+    func setAcceptsSamples(_ acceptsSamples: Bool) {
+        lock.withLock {
+            guard !state.isFinished else { return }
+            state.acceptsSamples = acceptsSamples
+        }
+    }
+
+    func finish() async -> Bool {
+        let didStart = lock.withLock {
+            guard !state.isFinished else { return false }
+            state.isFinished = true
+            guard state.startedSession else { return false }
+            input.markAsFinished()
+            return true
+        }
+        guard didStart else {
+            writer.cancelWriting()
+            return false
+        }
+        await writer.finishWriting()
+        return writer.status == .completed
+    }
+
+    func cancel() {
+        lock.withLock {
+            guard !state.isFinished else { return }
+            state.isFinished = true
+            writer.cancelWriting()
+        }
+    }
+
+    func stream(
         _ stream: SCStream,
         didOutputSampleBuffer sampleBuffer: CMSampleBuffer,
         of type: SCStreamOutputType
     ) {
         guard type == .audio,
-              acceptsSamples,
               sampleBuffer.isValid,
-              CMSampleBufferDataIsReady(sampleBuffer),
-              let writer,
-              let input else { return }
+              CMSampleBufferDataIsReady(sampleBuffer) else { return }
 
-        if !startedSession {
-            guard writer.startWriting() else { return }
-            writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
-            startedSession = true
-        }
-        if input.isReadyForMoreMediaData {
-            input.append(sampleBuffer)
+        lock.withLock {
+            guard state.acceptsSamples, !state.isFinished else { return }
+            if !state.startedSession {
+                guard writer.startWriting() else {
+                    state.isFinished = true
+                    return
+                }
+                writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
+                state.startedSession = true
+            }
+            if input.isReadyForMoreMediaData {
+                input.append(sampleBuffer)
+            }
         }
     }
 }

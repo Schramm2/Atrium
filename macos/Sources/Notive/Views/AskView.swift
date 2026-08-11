@@ -9,129 +9,179 @@ struct AskView: View {
     @State private var dateFrom = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var dateTo = Date.now
     @State private var askTask: Task<Void, Never>?
+    @State private var askTaskID: UUID?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Ask Notive")
-                    .font(.largeTitle.weight(.semibold))
-                Text("Answers use only cited meeting transcript evidence.")
-                    .foregroundStyle(.secondary)
-            }
+        BrandScreen {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    NotivePageHeader(
+                        "Ask Notive",
+                        detail: "Find answers grounded in cited meeting transcript evidence."
+                    ) {
+                        BrandStatusLabel(
+                            title: "Evidence stays local",
+                            systemImage: "checkmark.shield.fill",
+                            kind: .local
+                        )
+                    }
 
-            HStack(alignment: .bottom, spacing: 12) {
+                    composer
+                    result
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+                .padding(32)
+                .frame(maxWidth: 1_280, alignment: .topLeading)
+                .frame(maxWidth: .infinity, alignment: .top)
+            }
+        }
+        .navigationTitle("Ask Notive")
+        .onDisappear { cancelQuestion() }
+    }
+
+    private var composer: some View {
+        BrandPanel {
+            VStack(alignment: .leading, spacing: 14) {
                 TextField(
                     "What decisions did we make about the launch?",
                     text: $question,
                     axis: .vertical
                 )
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(.plain)
+                .font(.title3)
                 .lineLimit(2...5)
+                .padding(.vertical, 4)
 
-                Menu {
-                    Button("All meetings") { selectedMeetingIDs = [] }
-                    Divider()
-                    ForEach(store.meetings) { meeting in
-                        Toggle(
-                            meeting.title,
-                            isOn: Binding(
-                                get: { selectedMeetingIDs.contains(meeting.id) },
-                                set: { selected in
-                                    if selected {
-                                        selectedMeetingIDs.insert(meeting.id)
-                                    } else {
-                                        selectedMeetingIDs.remove(meeting.id)
+                Divider()
+
+                HStack(spacing: 12) {
+                    Menu {
+                        Button("All meetings") { selectedMeetingIDs = [] }
+                        Divider()
+                        ForEach(store.meetings) { meeting in
+                            Toggle(
+                                meeting.title,
+                                isOn: Binding(
+                                    get: { selectedMeetingIDs.contains(meeting.id) },
+                                    set: { selected in
+                                        if selected {
+                                            selectedMeetingIDs.insert(meeting.id)
+                                        } else {
+                                            selectedMeetingIDs.remove(meeting.id)
+                                        }
                                     }
-                                }
+                                )
                             )
-                        )
+                        }
+                    } label: {
+                        Label(scopeLabel, systemImage: "line.3.horizontal.decrease.circle")
                     }
-                } label: {
-                    Label(scopeLabel, systemImage: "line.3.horizontal.decrease.circle")
-                }
 
-                Button("Ask") {
-                    submitQuestion()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(
-                    question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        || store.askPhase == .retrieving
-                        || store.askPhase == .generating
-                )
-            }
-
-            HStack(spacing: 12) {
-                Toggle("Limit by date", isOn: $limitsDate)
-                    .toggleStyle(.checkbox)
-                if limitsDate {
-                    DatePicker("From", selection: $dateFrom, displayedComponents: .date)
-                    DatePicker("To", selection: $dateTo, in: dateFrom..., displayedComponents: .date)
+                    Toggle("Limit by date", isOn: $limitsDate)
+                        .toggleStyle(.checkbox)
+                    if limitsDate {
+                        DatePicker("From", selection: $dateFrom, displayedComponents: .date)
+                            .labelsHidden()
+                        Text("to").foregroundStyle(.secondary)
+                        DatePicker("To", selection: $dateTo, in: dateFrom..., displayedComponents: .date)
+                            .labelsHidden()
+                    }
+                    Spacer()
+                    Button("Ask Notive", systemImage: "arrow.up") { submitQuestion() }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(
+                            question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                || store.askPhase == .retrieving
+                                || store.askPhase == .generating
+                        )
                 }
             }
+        }
+    }
 
-            Divider()
-
-            switch store.askPhase {
-            case .idle:
+    @ViewBuilder
+    private var result: some View {
+        switch store.askPhase {
+        case .idle:
+            BrandPanel {
                 ContentUnavailableView(
-                    "Ask about your meetings",
-                    systemImage: "bubble.left.and.text.bubble.right"
+                    "Ask across your meeting history",
+                    systemImage: "bubble.left.and.text.bubble.right",
+                    description: Text("Notive retrieves local transcript evidence and cites each answer claim.")
                 )
-            case .retrieving:
-                workingView(label: "Searching local transcripts")
-            case let .confirming(provider):
+                .frame(maxWidth: .infinity, minHeight: 260)
+            }
+        case .retrieving:
+            BrandPanel { workingView(label: "Searching local transcripts") }
+        case let .confirming(provider):
+            BrandPanel {
                 VStack(alignment: .leading, spacing: 14) {
-                    Label("Send selected evidence to \(provider)?", systemImage: "network.badge.shield.half.filled")
-                        .font(.headline)
+                    BrandStatusLabel(
+                        title: "External provider",
+                        systemImage: "network.badge.shield.half.filled",
+                        kind: .warning
+                    )
+                    Text("Send selected evidence to \(provider)?")
+                        .font(.title2.weight(.semibold))
                     Text("The question and retrieved transcript evidence will leave this Mac. You will not be asked again for this provider until Notive quits.")
                         .foregroundStyle(.secondary)
                     HStack {
                         Button("Cancel") { cancelQuestion() }
-                        Button("Send and answer") {
+                        Button("Send Evidence and Answer") {
                             submitQuestion(externalEvidenceConfirmed: true)
                         }
                         .buttonStyle(.borderedProminent)
                     }
                 }
-            case .insufficient:
+            }
+        case .insufficient:
+            BrandPanel {
                 ContentUnavailableView(
                     "No supporting evidence",
-                    systemImage: "doc.text.magnifyingglass"
+                    systemImage: "doc.text.magnifyingglass",
+                    description: Text("Try a broader scope, a different date range, or another question.")
                 )
-            case .generating:
-                workingView(label: "Generating answer")
-            case let .failed(message):
+                .frame(maxWidth: .infinity, minHeight: 240)
+            }
+        case .generating:
+            BrandPanel { workingView(label: "Generating an evidence-bound answer") }
+        case let .failed(message):
+            BrandPanel {
                 ContentUnavailableView(
                     "Ask failed",
                     systemImage: "exclamationmark.triangle",
                     description: Text(message)
                 )
-            case .answered:
-                answerView
+                .frame(maxWidth: .infinity, minHeight: 240)
             }
+        case .answered:
+            answerView
         }
-        .padding(32)
-        .frame(maxWidth: 1_000, maxHeight: .infinity, alignment: .topLeading)
-        .navigationTitle("Ask Notive")
-        .onDisappear { cancelQuestion() }
     }
 
     private func submitQuestion(externalEvidenceConfirmed: Bool = false) {
         askTask?.cancel()
+        let taskID = UUID()
+        let submittedQuestion = question
+        let submittedScope = scope
+        askTaskID = taskID
         askTask = Task {
             await store.answerQuestion(
-                question: question,
-                scope: scope,
+                question: submittedQuestion,
+                scope: submittedScope,
                 externalEvidenceConfirmed: externalEvidenceConfirmed
             )
+            guard askTaskID == taskID else { return }
             askTask = nil
+            askTaskID = nil
         }
     }
 
     private func cancelQuestion() {
         askTask?.cancel()
         askTask = nil
+        askTaskID = nil
         store.cancelAsk()
     }
 
@@ -183,11 +233,12 @@ struct AskView: View {
             }
             .padding(.vertical, 6)
         }
-        .listStyle(.inset)
+        .listStyle(.plain)
     }
 
     private var answerView: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        BrandPanel(padding: 0) {
+            VStack(alignment: .leading, spacing: 0) {
             if let answer = store.askAnswer {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
@@ -205,12 +256,23 @@ struct AskView: View {
                             .foregroundStyle(.tertiary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
                 }
             }
-            Text("Sources")
-                .font(.headline)
+            Divider()
+            HStack {
+                Text("Sources")
+                    .font(.headline)
+                Spacer()
+                Text("\(store.askEvidence.count) cited segment\(store.askEvidence.count == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
             evidenceList
                 .frame(minHeight: 220)
+            }
         }
     }
 }

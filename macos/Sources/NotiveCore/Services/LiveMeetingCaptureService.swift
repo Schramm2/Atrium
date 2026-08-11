@@ -106,13 +106,14 @@ private func makeSpeechRecognitionHandler(
 }
 
 @MainActor
-public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
+public final class LiveMeetingCaptureService: NSObject {
     private let audioEngine = AVAudioEngine()
     private var audioFile: AVAudioFile?
     private var outputURL: URL?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private let captureState = RealtimeCaptureState()
+    private var hasInstalledTap = false
 
     public func requestPermission() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
@@ -131,6 +132,9 @@ public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
         inputDeviceID: String = "",
         onPartialTranscript: @escaping @MainActor ([SpeechRecognitionSegment]) -> Void
     ) throws {
+        guard outputURL == nil, !hasInstalledTap else {
+            throw AudioRecordingError.alreadyRecording
+        }
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
@@ -178,8 +182,14 @@ public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
                 speechRequest: speechRequest
             )
         )
+        hasInstalledTap = true
         audioEngine.prepare()
-        try audioEngine.start()
+        do {
+            try audioEngine.start()
+        } catch {
+            cleanUp(removeOutputFile: true)
+            throw error
+        }
     }
 
     public func pause() {
@@ -192,7 +202,7 @@ public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
 
     public func stop() throws -> URL {
         guard let outputURL else { throw AudioRecordingError.noActiveRecording }
-        audioEngine.inputNode.removeTap(onBus: 0)
+        removeTapIfNeeded()
         audioEngine.stop()
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
@@ -205,15 +215,7 @@ public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
     }
 
     public func cancel() {
-        audioEngine.inputNode.removeTap(onBus: 0)
-        audioEngine.stop()
-        recognitionTask?.cancel()
-        recognitionTask = nil
-        recognitionRequest = nil
-        audioFile = nil
-        if let outputURL { try? FileManager.default.removeItem(at: outputURL) }
-        outputURL = nil
-        captureState.setAcceptsAudio(true)
+        cleanUp(removeOutputFile: true)
     }
 
     public var currentTime: TimeInterval {
@@ -221,4 +223,24 @@ public final class LiveMeetingCaptureService: NSObject, @unchecked Sendable {
     }
 
     public var averagePower: Float { captureState.snapshot().averagePower }
+
+    private func removeTapIfNeeded() {
+        guard hasInstalledTap else { return }
+        audioEngine.inputNode.removeTap(onBus: 0)
+        hasInstalledTap = false
+    }
+
+    private func cleanUp(removeOutputFile: Bool) {
+        removeTapIfNeeded()
+        audioEngine.stop()
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        recognitionRequest = nil
+        audioFile = nil
+        if removeOutputFile, let outputURL {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+        outputURL = nil
+        captureState.setAcceptsAudio(true)
+    }
 }

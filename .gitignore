@@ -5,6 +5,8 @@
 # dependencies
 /node_modules
 **/models
+!/macos/Sources/NotiveCore/Models/
+!/macos/Sources/NotiveCore/Models/*.swift
 /.pnp
 .pnp.*
 .yarn/*
@@ -78,3 +80,8 @@ experiments/
 target/
 
 frontend/src-tauri/binaries/
+# matt-ai project-local skills
+/.agents/skills/swift-concurrency-pro
+/.agents/skills/swiftui-pro
+/.claude/skills/swift-concurrency-pro
+/.claude/skills/swiftui-pro

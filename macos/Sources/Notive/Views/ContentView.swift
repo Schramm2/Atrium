@@ -17,14 +17,16 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             SidebarView(store: store, theme: theme)
-                .navigationSplitViewColumnWidth(min: 230, ideal: 270, max: 340)
+                .navigationSplitViewColumnWidth(min: 240, ideal: 268, max: 320)
         } detail: {
             detail
-                .environment(\.brandTheme, theme)
         }
+        .environment(\.brandTheme, theme)
         .tint(BrandPalette.palette(for: theme, colorScheme: colorScheme).accent)
         .preferredColorScheme(
-            appearance == "light" ? .light : appearance == "dark" ? .dark : nil
+            theme == .firstMotive
+                ? .dark
+                : appearance == "light" ? .light : appearance == "dark" ? .dark : nil
         )
         .onAppear { GlobalDictationShortcut.shared.install(store: store) }
         .dropDestination(for: URL.self) { urls, _ in
@@ -80,6 +82,7 @@ struct ContentView: View {
             MeetingNotesView(store: store)
         case let .meeting(id):
             MeetingDetailView(store: store, meetingID: id)
+                .id(id)
         }
     }
 }

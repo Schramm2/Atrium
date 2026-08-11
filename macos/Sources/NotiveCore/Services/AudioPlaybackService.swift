@@ -51,8 +51,9 @@ public enum MeetingAudioFiles {
         return files
             .filter { extensions.contains($0.pathExtension.lowercased()) }
             .sorted { lhs, rhs in
-                if lhs.lastPathComponent == "audio.m4a" { return true }
-                if rhs.lastPathComponent == "audio.m4a" { return false }
+                let lhsIsPrimary = lhs.lastPathComponent == "audio.m4a"
+                let rhsIsPrimary = rhs.lastPathComponent == "audio.m4a"
+                if lhsIsPrimary != rhsIsPrimary { return lhsIsPrimary }
                 return lhs.lastPathComponent.localizedStandardCompare(rhs.lastPathComponent) == .orderedAscending
             }
             .first

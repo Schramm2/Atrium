@@ -11,152 +11,18 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            List(selection: Binding(
-                get: { store.selection },
-                set: { store.select($0) }
-            )) {
-                Section {
-                    Label("Home", systemImage: "house")
-                        .tag(WorkspaceSelection.home)
-                    Label("Ask Notive", systemImage: "bubble.left.and.text.bubble.right")
-                        .tag(WorkspaceSelection.ask)
-                    Label("Dictation", systemImage: "waveform")
-                        .tag(WorkspaceSelection.dictation)
-                    Label("Meeting Notes", systemImage: "note.text")
-                        .tag(WorkspaceSelection.notes)
-                }
-
-                Section("Meetings") {
-                    ForEach(store.meetings) { meeting in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(meeting.title)
-                                .lineLimit(1)
-                            Text(meeting.createdAt, format: .dateTime.month(.abbreviated).day())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .tag(WorkspaceSelection.meeting(meeting.id))
-                        .contextMenu {
-                            Button("Delete", role: .destructive) {
-                                meetingToDelete = meeting
-                            }
-                        }
-                        .accessibilityAction(named: "Delete") {
-                            meetingToDelete = meeting
-                        }
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .searchable(text: $store.searchText, prompt: "Search meeting content")
-            .onSubmit(of: .search) { store.search() }
-            .onChange(of: store.searchText) { _, value in
-                if value.isEmpty { store.reloadMeetings() }
-            }
-
+            identity
             Divider()
-
-            VStack(spacing: 8) {
-                switch store.recordingState {
-                case .idle, .failed:
-                    Button {
-                        store.resetRecordingError()
-                        Task { await store.startRecording() }
-                    } label: {
-                        Label("Start Recording", systemImage: "mic.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                case .recording:
-                    HStack {
-                        Button("Pause", systemImage: "pause.fill") {
-                            store.pauseRecording()
-                        }
-                        Button("Stop", systemImage: "stop.fill") {
-                            Task { await store.stopRecording() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    RecordingMeter(
-                        elapsed: store.recordingElapsed,
-                        power: store.recordingPower
-                    )
-                case .paused:
-                    HStack {
-                        Button("Resume", systemImage: "play.fill") {
-                            store.resumeRecording()
-                        }
-                        Button("Stop", systemImage: "stop.fill") {
-                            Task { await store.stopRecording() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                case .transcribing:
-                    if store.isImportingAudio {
-                        VStack(spacing: 8) {
-                            ProgressView("Importing audio")
-                                .frame(maxWidth: .infinity)
-                            Button("Cancel Import", role: .cancel) {
-                                store.cancelImport()
-                            }
-                        }
-                    } else {
-                        ProgressView("Transcribing")
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-
-                Button {
-                    showsAudioImporter = true
-                } label: {
-                    Label("Import Audio", systemImage: "square.and.arrow.down")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .disabled(store.isImportingAudio)
-
-                SettingsLink {
-                    Label("Settings", systemImage: "gearshape")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.plain)
-
-                HStack {
-                    Picker("Theme", selection: Binding(
-                        get: { theme.rawValue },
-                        set: { UserDefaults.standard.set($0, forKey: "ubundi-meet-brand-theme") }
-                    )) {
-                        ForEach(BrandTheme.allCases) { theme in
-                            Text(theme.title).tag(theme.rawValue)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    Button("Appearance", systemImage: appearanceIcon) {
-                        appearance = appearance == "dark" ? "light" : "dark"
-                    }
-                    .labelStyle(.iconOnly)
-                }
-
-                Text("Notive · v\(AppVersion.current)")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(12)
+            navigation
+            Divider()
+            captureControls
         }
         .fileImporter(
             isPresented: $showsAudioImporter,
             allowedContentTypes: [.audio, .mpeg4Movie],
-            allowsMultipleSelection: false
-        ) { result in
-            guard case let .success(urls) = result, let url = urls.first else { return }
-            Task {
-                let accessed = url.startAccessingSecurityScopedResource()
-                defer { if accessed { url.stopAccessingSecurityScopedResource() } }
-                await store.importAudio(from: url)
-            }
-        }
+            allowsMultipleSelection: false,
+            onCompletion: importAudio
+        )
         .confirmationDialog(
             "Delete \(meetingToDelete?.title ?? "this meeting")?",
             isPresented: Binding(
@@ -176,8 +42,213 @@ struct SidebarView: View {
         }
     }
 
+    private var identity: some View {
+        HStack(spacing: 10) {
+            BrandMarkView(size: 34)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Notive")
+                    .font(.headline)
+                Text(theme.title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            BrandStatusLabel(title: "Local", systemImage: "lock.fill", kind: .local)
+                .labelStyle(.iconOnly)
+                .help("Local-first workspace")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .fixedSize(horizontal: false, vertical: true)
+        .layoutPriority(1)
+    }
+
+    private var navigation: some View {
+        List(selection: Binding(
+            get: { store.selection },
+            set: { store.select($0) }
+        )) {
+            Section("Workspace") {
+                Label("Home", systemImage: "square.grid.2x2")
+                    .tag(WorkspaceSelection.home)
+                Label("Ask Notive", systemImage: "bubble.left.and.text.bubble.right")
+                    .tag(WorkspaceSelection.ask)
+                Label("Dictation", systemImage: "waveform")
+                    .tag(WorkspaceSelection.dictation)
+                Label("Meeting Notes", systemImage: "note.text")
+                    .tag(WorkspaceSelection.notes)
+            }
+
+            Section("Recent Meetings") {
+                ForEach(store.meetings) { meeting in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(meeting.title)
+                            .lineLimit(1)
+                        Text(meeting.createdAt, format: .dateTime.month(.abbreviated).day())
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .tag(WorkspaceSelection.meeting(meeting.id))
+                    .contextMenu {
+                        Button("Delete", role: .destructive) {
+                            meetingToDelete = meeting
+                        }
+                    }
+                    .accessibilityAction(named: "Delete") {
+                        meetingToDelete = meeting
+                    }
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .searchable(text: $store.searchText, prompt: "Search meeting content")
+        .onSubmit(of: .search) { store.search() }
+        .onChange(of: store.searchText) { _, value in
+            if value.isEmpty { store.reloadMeetings() }
+        }
+    }
+
+    private var captureControls: some View {
+        VStack(spacing: 9) {
+            recordingControl
+
+            Button {
+                showsAudioImporter = true
+            } label: {
+                Label("Import Audio", systemImage: "square.and.arrow.down")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .disabled(store.isImportingAudio)
+
+            HStack(spacing: 8) {
+                SettingsLink {
+                    Label("Settings", systemImage: "gearshape")
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+                .fixedSize()
+
+                Spacer()
+
+                Menu {
+                    ForEach(BrandTheme.allCases) { option in
+                        Button {
+                            UserDefaults.standard.set(
+                                option.rawValue,
+                                forKey: "ubundi-meet-brand-theme"
+                            )
+                        } label: {
+                            if option == theme {
+                                Label(option.title, systemImage: "checkmark")
+                            } else {
+                                Text(option.title)
+                            }
+                        }
+                    }
+                } label: {
+                    Label(theme.title, systemImage: "paintpalette")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+
+                Menu {
+                    appearanceButton("System", value: "system", icon: "circle.lefthalf.filled")
+                    appearanceButton("Light", value: "light", icon: "sun.max")
+                    appearanceButton("Dark", value: "dark", icon: "moon")
+                } label: {
+                    Label("Appearance", systemImage: appearanceIcon)
+                        .labelStyle(.iconOnly)
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .help(theme == .firstMotive ? "First Motive uses its canonical dark surface" : "Appearance")
+            }
+            .font(.callout)
+
+            Text("Native Swift · v\(AppVersion.current)")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(12)
+        .background(.bar)
+        .fixedSize(horizontal: false, vertical: true)
+        .layoutPriority(1)
+    }
+
+    @ViewBuilder
+    private var recordingControl: some View {
+        switch store.recordingState {
+        case .idle, .failed:
+            Button {
+                store.resetRecordingError()
+                Task { await store.startRecording() }
+            } label: {
+                Label("Start Recording", systemImage: "mic.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        case .recording:
+            VStack(spacing: 8) {
+                HStack {
+                    Button("Pause", systemImage: "pause.fill") { store.pauseRecording() }
+                    Button("Stop", systemImage: "stop.fill") {
+                        Task { await store.stopRecording() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                RecordingMeter(elapsed: store.recordingElapsed, power: store.recordingPower)
+            }
+        case .paused:
+            HStack {
+                Button("Resume", systemImage: "play.fill") { store.resumeRecording() }
+                Button("Stop", systemImage: "stop.fill") {
+                    Task { await store.stopRecording() }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        case .transcribing:
+            if store.isImportingAudio {
+                VStack(spacing: 8) {
+                    ProgressView("Importing audio")
+                    Button("Cancel Import", role: .cancel) { store.cancelImport() }
+                }
+            } else {
+                ProgressView("Transcribing")
+            }
+        }
+    }
+
+    private func appearanceButton(_ title: String, value: String, icon: String) -> some View {
+        Button {
+            appearance = value
+        } label: {
+            if appearance == value {
+                Label(title, systemImage: "checkmark")
+            } else {
+                Label(title, systemImage: icon)
+            }
+        }
+    }
+
     private var appearanceIcon: String {
         appearance == "dark" ? "moon.fill" : appearance == "light" ? "sun.max.fill" : "circle.lefthalf.filled"
+    }
+
+    private func importAudio(_ result: Result<[URL], any Error>) {
+        switch result {
+        case let .success(urls):
+            guard let url = urls.first else { return }
+            Task {
+                let accessed = url.startAccessingSecurityScopedResource()
+                defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+                await store.importAudio(from: url)
+            }
+        case let .failure(error):
+            guard (error as? CocoaError)?.code != .userCancelled else { return }
+            store.errorMessage = "Notive could not open the selected audio. \(error.localizedDescription)"
+        }
     }
 }
 

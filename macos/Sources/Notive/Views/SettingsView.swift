@@ -10,6 +10,13 @@ import UserNotifications
 struct SettingsView: View {
     let store: AppStore?
     let updater: UpdaterService
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.firstMotive.rawValue
+    @AppStorage("notive.appearance") private var appearance = "system"
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var theme: BrandTheme {
+        BrandTheme(rawValue: themeRaw) ?? .firstMotive
+    }
 
     var body: some View {
         TabView {
@@ -30,7 +37,14 @@ struct SettingsView: View {
             AboutSettingsView()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(width: 680, height: 510)
+        .environment(\.brandTheme, theme)
+        .tint(BrandPalette.palette(for: theme, colorScheme: colorScheme).accent)
+        .preferredColorScheme(
+            theme == .firstMotive
+                ? .dark
+                : appearance == "light" ? .light : appearance == "dark" ? .dark : nil
+        )
+        .frame(width: 760, height: 580)
         .scenePadding()
     }
 }
@@ -261,12 +275,23 @@ private struct AppearanceSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section("Interface theme") {
-                Picker("Theme", selection: $themeRaw) {
+                HStack(spacing: 12) {
                     ForEach(BrandTheme.allCases) { theme in
-                        Text(theme.title).tag(theme.rawValue)
+                        ThemeChoice(
+                            theme: theme,
+                            isSelected: themeRaw == theme.rawValue
+                        ) {
+                            themeRaw = theme.rawValue
+                        }
                     }
                 }
-                .pickerStyle(.segmented)
+                Text(
+                    themeRaw == BrandTheme.firstMotive.rawValue
+                        ? "First Motive keeps its canonical dark aubergine workspace in every macOS appearance."
+                        : "Ubundi follows the selected macOS appearance with Navy as the interface anchor."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Section("App icon") {
                 Picker("Icon", selection: $iconRaw) {
@@ -281,6 +306,45 @@ private struct AppearanceSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct ThemeChoice: View {
+    @Environment(\.brandTheme) private var activeTheme
+    @Environment(\.colorScheme) private var colorScheme
+    let theme: BrandTheme
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                BrandMarkView(size: 36)
+                    .environment(\.brandTheme, theme)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(theme.title)
+                        .font(.headline)
+                    Text(theme == .ubundi ? "Open · Navy · Precise" : "Aubergine · Warm · Technical")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? palette.accent : Color.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(.quaternary.opacity(isSelected ? 0.75 : 0.3), in: RoundedRectangle(cornerRadius: 10))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? palette.accent : Color.secondary.opacity(0.2), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: activeTheme, colorScheme: colorScheme)
     }
 }
 
@@ -625,8 +689,7 @@ private extension AIProvider {
 private struct AboutSettingsView: View {
     var body: some View {
         VStack(spacing: 14) {
-            Image(systemName: "waveform.badge.mic")
-                .font(.system(size: 52))
+            BrandMarkView(size: 74)
             Text("Notive")
                 .font(.largeTitle.weight(.semibold))
             Text("Version \(AppVersion.current) · Native Swift")
