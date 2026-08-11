@@ -1,57 +1,49 @@
-# System Architecture
+# System architecture
 
-Notive is a self-contained macOS desktop application built with [Tauri](https://tauri.app/). It combines a Rust core with a Next.js frontend in one application.
+Notive is a native macOS application built with Swift 6.1 and SwiftUI. The `Notive` target owns scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, and language services. Sparkle is the only production Swift package dependency.
 
-## High-Level Architecture Diagram
+## Components
 
 ```mermaid
-graph TD
-    subgraph User Interface
-        A[Next.js Frontend]
-    end
-
-    subgraph "Core Logic (Rust)"
-        B[Tauri Core]
-        C[Audio Engine]
-        D[Transcription and Speaker Labelling]
-        E[Database]
-        F[Summary Engine]
-        G[Ask Service]
-    end
-
-    A -- Tauri Commands --> B
-    B -- Manages --> C
-    B -- Manages --> D
-    B -- Manages --> E
-    B -- Manages --> F
-    B -- Manages --> G
-    B -- Manages --> H[Local Dictation]
-    G -- Local FTS5 retrieval --> E
-    G -- Configured model --> F
+flowchart TD
+    UI["SwiftUI application"] --> Store["Main-actor AppStore"]
+    Store --> Audio["AVAudioEngine and ScreenCaptureKit"]
+    Store --> Speech["Apple on-device Speech"]
+    Store --> Voice["Per-recording voice grouping"]
+    Store --> Media["AVFoundation mixing and playback"]
+    Store --> DB["Compatible local SQLite and FTS5"]
+    Store --> Intelligence["Apple Intelligence or local fallback"]
+    Store --> Providers["Optional configured AI provider"]
+    Store --> System["Notifications, Accessibility, and Keychain"]
+    UI --> Sparkle["Signed Sparkle updates"]
 ```
 
-## Component Details
+### Application interface
 
-### Frontend (Next.js)
+SwiftUI provides the workspace window, Settings scene, menu-bar controls, onboarding, meetings, Ask, notes, summaries, playback, and Local Dictation. AppKit is used only for narrow macOS integration such as folders, the clipboard, and global keyboard events.
 
-*   Provides the user interface for managing meetings, displaying transcriptions, and configuring the application.
-*   Communicates with the Rust core through Tauri's command system.
+### Audio and transcription
 
-### Backend (Rust Core)
+`AVAudioEngine` records the selected microphone. `ScreenCaptureKit` records system audio after macOS grants access. `AVFoundation` creates the playback file and plays saved or imported audio. Apple Speech performs on-device live and final transcription. Imported audio is copied to a meeting folder before transcription. Import cancellation removes the partial copy and database record but never changes the source file.
 
-*   **Tauri Core:** The heart of the application, responsible for managing the window, handling events, and exposing the Rust core to the frontend.
-*   **Audio Engine:** Captures audio from the microphone and system, processes it, and prepares it for transcription.
-*   **Transcription and Speaker Labelling:** Uses local speech-to-text models (Whisper or Parakeet) to transcribe captured audio. During a recording, a local speaker-embedding model groups speech segments by voice and adds anonymous labels such as `Speaker 1`. The app stores these labels in the transcript. It keeps per-recording voice profiles and embeddings in memory and discards them when recording stops. It does not infer identity or match voices across meetings. Transcription can use GPU acceleration.
-*   **Database:** A local SQLite database stores meeting metadata, transcripts, summaries, the transcript search index, and meeting-scoped speaker aliases. An alias maps a user-entered name to an original diarization label without changing the source transcript row. Deleting a meeting also deletes its aliases.
-*   **Resolved Transcript Names:** The frontend resolves an alias for saved transcript display and copied text while it retains the original label as context. The same resolution is used for the next explicit summary generation or regeneration. An alias change does not change an existing summary.
-*   **Summary Engine:** Generates meeting summaries with different Large Language Models (LLMs), including local models through Ollama. The selected model receives user-confirmed speaker aliases in the resolved transcript input.
-*   **Ask Service:** Separates deterministic local evidence retrieval from answer generation. A bounded SQLite FTS5 query ranks transcript segments and adds nearby context. The model receives labelled evidence as untrusted data and must return structured claims with valid source IDs. Rust rejects malformed citations and claims without retrieved evidence.
-*   **Local Dictation:** A macOS global shortcut captures microphone audio, transcribes it locally, and inserts the result into the focused app after the required Accessibility permission is granted. Dictation does not retain its audio or transcript.
+Voice grouping uses acoustic features from the current recording. It creates anonymous labels such as `Speaker 1`, keeps no identity profile, and does not compare people across meetings. User-entered aliases apply only to one meeting.
 
-## Ask data boundary
+### Local data
 
-The Ask surface uses all saved meetings by default. A user can restrict retrieval by meeting and date. Retrieval, ranking, neighbor selection, citation construction, and citation navigation run in the Rust core against local SQLite data. Results are bounded before prompt construction.
+Notive uses the existing SQLite database below `~/Library/Application Support/com.ubundi.meet/`. The native code reads and writes the compatible meetings, transcripts, notes, summaries, speaker aliases, and FTS5 search tables. No database import or rewrite is required.
 
-Built-in AI and Ollama on a loopback address use the existing model path without an additional Ask warning. Remote Ollama endpoints and other configured providers are external. Before the first external Ask request in an app session, the interface identifies the provider and requires confirmation that it can receive the question and the selected transcript evidence. The Rust command also rejects an unconfirmed external request.
+Recording files use `~/Movies/notive-recordings/` by default. The user can select another local folder. Disabling saved audio removes only files created by the recorder after transcription completes. Imported source copies remain available for playback and retranscription.
 
-The model returns JSON claims and citation IDs. Each ID must refer to retrieved evidence. The frontend renders the validated citation next to its claim. A citation opens `/meeting-details` with the meeting ID, transcript ID, and recording-relative timestamp so the transcript can load, scroll to, and highlight the exact segment.
+### Ask and summaries
+
+Ask retrieves a bounded set of local FTS5 evidence and nearby transcript context. Each generated claim must cite retrieved evidence. Apple Intelligence runs on device when it is available. A deterministic extractive implementation is the local fallback.
+
+Ollama on a loopback address stays local. OpenAI, Anthropic, Groq, OpenRouter, remote Ollama, and custom OpenAI-compatible endpoints are external. API keys are stored in Keychain. Before the first external Ask request in an app session, Notive identifies the provider and requires confirmation before it sends the question and selected evidence.
+
+### Updates and distribution
+
+Swift Package Manager builds the native application. The release process embeds Sparkle 2.9.2, creates an Apple Silicon DMG and ZIP, and signs the appcast and update archive with a Notive Ed25519 key. The internal distribution model uses an ad-hoc macOS signature and is not notarized. macOS can show a Gatekeeper warning on first installation.
+
+## Migration baseline
+
+The former Tauri application remains in `frontend/` as a buildable migration baseline. It is not the native release target. The archived Python implementation remains in `backend/`.

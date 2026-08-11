@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ubundi"
+  short_description: "Apply Ubundi identity and operating principles"
+  default_prompt: "Use $ubundi to shape this work around Ubundi's identity, beliefs, and way of working."
+
+policy:
+  allow_implicit_invocation: false

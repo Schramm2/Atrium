@@ -1,0 +1,7 @@
+interface:
+  display_name: "Create DESIGN.md"
+  short_description: "Create and enforce DESIGN.md contracts"
+  default_prompt: "Use $create-design-md to create, update, audit, or apply this repo's DESIGN.md contract."
+
+policy:
+  allow_implicit_invocation: false
