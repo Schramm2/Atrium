@@ -8,7 +8,7 @@ struct NotiveApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var store: AppStore?
     @State private var startupError: String?
-    private let updater = UpdaterService()
+    @State private var updater = UpdaterService()
 
     init() {
         do {
@@ -24,6 +24,7 @@ struct NotiveApp: App {
                 if let store {
                     ContentView(store: store)
                         .task { store.start() }
+                        .task { await updater.checkAutomaticallyIfEnabled() }
                 } else {
                     ContentUnavailableView(
                         "Notive could not open",
@@ -37,10 +38,10 @@ struct NotiveApp: App {
         .defaultSize(width: 1_100, height: 700)
         .commands {
             CommandGroup(after: .appInfo) {
-                Button("Check for Updates…") {
-                    updater.checkForUpdates()
+                Button(updater.primaryActionTitle) {
+                    Task { await updater.performPrimaryAction() }
                 }
-                .disabled(!updater.canCheckForUpdates)
+                .disabled(!updater.canPerformPrimaryAction)
             }
             CommandMenu("Meeting") {
                 Button("New Meeting") {

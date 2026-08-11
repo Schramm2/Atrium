@@ -9,8 +9,7 @@ Notive records microphone and system audio, transcribes speech on the Mac, store
 - macOS 14 or later
 - Xcode with the macOS SDK
 - Swift 6.1 or later
-
-Sparkle is the only production Swift package dependency.
+- GitHub CLI, authenticated with access to `Schramm2/notive`, for release updates
 
 ## Run
 
@@ -35,7 +34,7 @@ swift test -Xswiftc -warnings-as-errors
 ./script/build_and_run.sh --package
 ```
 
-This creates the internal DMG and signed-update ZIP inputs in `dist/`. See [Build Notive](docs/BUILDING.md), [Release Notive](docs/RELEASING.md), and [Local macOS updates](docs/LOCAL_MACOS_UPDATES.md).
+This creates the versioned and stable internal DMGs in `dist/`. See [Build Notive](docs/BUILDING.md), [Release Notive](docs/RELEASING.md), and [Local macOS updates](docs/LOCAL_MACOS_UPDATES.md).
 
 ## Architecture
 

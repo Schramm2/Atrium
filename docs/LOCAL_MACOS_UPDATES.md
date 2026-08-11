@@ -1,6 +1,6 @@
 # Local macOS Updates
 
-This workflow builds the current checkout and replaces `/Applications/Notive.app`. It does not create a tag, publish a GitHub release, or modify the Sparkle appcast.
+This workflow builds the current checkout and replaces `/Applications/Notive.app`. It does not create a tag or publish a GitHub Release.
 
 ## Update the installed app
 
@@ -14,7 +14,7 @@ cd /path/to/notive
 The script:
 
 1. Records the current branch, commit, version, and worktree status.
-2. Builds the native Swift bundle, ZIP update archive, and DMG.
+2. Builds the native Swift bundle and DMGs.
 3. Verifies the nested ad-hoc code signature.
 4. Replaces `/Applications/Notive.app` through a staged copy with rollback.
 5. Registers the application with Launch Services.

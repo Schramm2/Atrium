@@ -1,6 +1,6 @@
 # System architecture
 
-Notive is a native macOS application built with Swift 6.1 and SwiftUI. The `Notive` target owns scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, and language services. Sparkle is the only production Swift package dependency.
+Notive is a native macOS application built with Swift 6.1 and SwiftUI. The `Notive` target owns scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, language services, and the private GitHub Release update contract. The application has no production Swift package dependencies.
 
 ## Components
 
@@ -15,7 +15,7 @@ flowchart TD
     Store --> Intelligence["Apple Intelligence or local fallback"]
     Store --> Providers["Optional configured AI provider"]
     Store --> System["Notifications, Accessibility, and Keychain"]
-    UI --> Sparkle["Signed Sparkle updates"]
+    UI --> Updates["Authenticated GitHub Release updates"]
 ```
 
 ### Application interface
@@ -42,7 +42,9 @@ Ollama on a loopback address stays local. OpenAI, Anthropic, Groq, OpenRouter, r
 
 ### Updates and distribution
 
-Swift Package Manager builds the native application. The release process embeds Sparkle 2.9.2, creates an Apple Silicon DMG and ZIP, and signs the appcast and update archive with a Notive Ed25519 key. The internal distribution model uses an ad-hoc macOS signature and is not notarized. macOS can show a Gatekeeper warning on first installation.
+Swift Package Manager builds the native application. A maintainer runs `scripts/release.sh` to update the version, commit and push it, create the Apple Silicon DMGs, and publish the private GitHub Release and tag. Installed applications use an authenticated GitHub CLI session to find and download the newest release. The updater stages and verifies the ad-hoc code-signed application before it replaces `/Applications/Notive.app`, and it restores the prior copy when installation fails.
+
+The internal distribution model is not Developer ID signed or notarized. macOS can show a Gatekeeper warning on first installation. GitHub authentication restricts access to the release but does not provide a separate application-update signature.
 
 ## Repository boundary
 

@@ -5,8 +5,6 @@ MODE="${1:-run}"
 APP_NAME="Notive"
 BUNDLE_ID="com.ubundi.meet"
 MIN_SYSTEM_VERSION="14.0"
-SPARKLE_PUBLIC_KEY="zNZF6Pmy9ZXc1vZOVRvmL5RBZ8BieC0mHYaele1HAvo="
-SPARKLE_FEED_URL="https://github.com/Schramm2/notive/releases/latest/download/appcast.xml"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SWIFT_DIR="$ROOT_DIR/macos"
@@ -15,12 +13,11 @@ APP_BUNDLE="$DIST_DIR/$APP_NAME.app"
 APP_CONTENTS="$APP_BUNDLE/Contents"
 APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
-APP_FRAMEWORKS="$APP_CONTENTS/Frameworks"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
-VERSION="$(plutil -extract version raw "$SWIFT_DIR/version.json")"
-ARCHIVE_PATH="$DIST_DIR/$APP_NAME-$VERSION.zip"
+VERSION="${NOTIVE_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/version.json")}"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION-arm64.dmg"
+STABLE_DMG_PATH="$DIST_DIR/$APP_NAME.dmg"
 CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/notive-swift-module-cache"
 export CLANG_MODULE_CACHE_PATH
 
@@ -44,10 +41,9 @@ BUILD_DIR="$(swift build --package-path "$SWIFT_DIR" -c release --show-bin-path)
 BUILD_BINARY="$BUILD_DIR/$APP_NAME"
 
 rm -rf "$APP_BUNDLE"
-mkdir -p "$APP_MACOS" "$APP_RESOURCES" "$APP_FRAMEWORKS"
+mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
-cp -R "$BUILD_DIR/Sparkle.framework" "$APP_FRAMEWORKS/Sparkle.framework"
 
 cp "$SWIFT_DIR/BrandAssets/Notive.icns" "$APP_RESOURCES/Notive.icns"
 cp "$SWIFT_DIR/BrandAssets/notive-ubundi-icon.png" "$APP_RESOURCES/notive-ubundi-icon.png"
@@ -59,7 +55,6 @@ cp "$SWIFT_DIR/BrandAssets/first-motive-wordmark.png" "$APP_RESOURCES/first-moti
 cp "$SWIFT_DIR/BrandAssets/first-motive-atmosphere.png" "$APP_RESOURCES/first-motive-atmosphere.png"
 cp "$ROOT_DIR/LICENSE.md" "$APP_RESOURCES/LICENSE.md"
 cp "$ROOT_DIR/NOTICE.md" "$APP_RESOURCES/NOTICE.md"
-cp "$SWIFT_DIR/.build/checkouts/Sparkle/LICENSE" "$APP_RESOURCES/Sparkle-LICENSE.txt"
 
 cat >"$INFO_PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -92,25 +87,12 @@ cat >"$INFO_PLIST" <<PLIST
   <string>Notive transcribes meeting and dictation audio on this Mac.</string>
   <key>NSScreenCaptureUsageDescription</key>
   <string>Notive captures system audio only while you record a meeting.</string>
-  <key>SUFeedURL</key>
-  <string>$SPARKLE_FEED_URL</string>
-  <key>SUPublicEDKey</key>
-  <string>$SPARKLE_PUBLIC_KEY</string>
-  <key>SUEnableAutomaticChecks</key>
-  <true/>
-  <key>SUAutomaticallyUpdate</key>
-  <false/>
-  <key>SUVerifyUpdateBeforeExtraction</key>
-  <true/>
-  <key>SURequireSignedFeed</key>
-  <true/>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
 </dict>
 </plist>
 PLIST
 
-/usr/bin/codesign --force --deep --sign - "$APP_FRAMEWORKS/Sparkle.framework"
 /usr/bin/codesign --force --sign - "$APP_BUNDLE"
 
 open_app() {
@@ -148,8 +130,7 @@ case "$MODE" in
   --package|package)
     package_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/notive-package.XXXXXX")"
     trap 'rm -rf "$package_temp_dir"' EXIT
-    rm -f "$ARCHIVE_PATH" "$DMG_PATH"
-    /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ARCHIVE_PATH"
+    rm -f "$DMG_PATH" "$STABLE_DMG_PATH"
     /usr/bin/ditto "$APP_BUNDLE" "$package_temp_dir/$APP_NAME.app"
     ln -s /Applications "$package_temp_dir/Applications"
     /usr/bin/hdiutil create \
@@ -158,10 +139,11 @@ case "$MODE" in
       -ov \
       -format UDZO \
       "$DMG_PATH" >/dev/null
-    test -s "$ARCHIVE_PATH"
     test -s "$DMG_PATH"
+    cp "$DMG_PATH" "$STABLE_DMG_PATH"
+    test -s "$STABLE_DMG_PATH"
     rm -rf "$package_temp_dir"
     trap - EXIT
-    echo "Created $ARCHIVE_PATH and $DMG_PATH."
+    echo "Created $DMG_PATH and $STABLE_DMG_PATH."
     ;;
 esac

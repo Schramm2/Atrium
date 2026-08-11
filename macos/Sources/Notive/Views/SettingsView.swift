@@ -185,7 +185,7 @@ private struct PermissionRow: View {
 }
 
 private struct GeneralSettingsView: View {
-    @ObservedObject var updater: UpdaterService
+    @Bindable var updater: UpdaterService
     @AppStorage("notive.notifications.recording") private var recordingNotifications = false
     @AppStorage("notive.notifications.transcription") private var transcriptionNotifications = true
     @AppStorage("notive.notifications.errors") private var errorNotifications = true
@@ -219,19 +219,20 @@ private struct GeneralSettingsView: View {
                 }
             }
             Section("Updates") {
-                Toggle(
-                    "Automatic update checks",
-                    isOn: Binding(
-                        get: { updater.automaticallyChecksForUpdates },
-                        set: { enabled in
-                            updater.setAutomaticallyChecksForUpdates(enabled)
-                        }
-                    )
-                )
+                Toggle("Automatic update checks", isOn: $updater.automaticallyChecksForUpdates)
                 HStack {
-                    Button("Check now") { updater.checkForUpdates() }
-                        .disabled(!updater.canCheckForUpdates)
+                    Button(updater.primaryActionTitle, action: performUpdateAction)
+                        .disabled(!updater.canPerformPrimaryAction)
+                    if case .checking = updater.phase {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else if case .installing = updater.phase {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
                 }
+                Text(updater.statusText)
+                    .foregroundStyle(statusColor)
             }
             Section("Local data") {
                 LocalPathRow(
@@ -245,6 +246,14 @@ private struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var statusColor: Color {
+        if case .failed = updater.phase { .red } else { .secondary }
+    }
+
+    private func performUpdateAction() {
+        Task { await updater.performPrimaryAction() }
     }
 
     private var applicationSupportURL: URL {
@@ -699,9 +708,6 @@ private struct AboutSettingsView: View {
             HStack {
                 Button("License") { openResource("LICENSE", extension: "md") }
                 Button("Notices") { openResource("NOTICE", extension: "md") }
-                Button("Sparkle License") {
-                    openResource("Sparkle-LICENSE", extension: "txt")
-                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

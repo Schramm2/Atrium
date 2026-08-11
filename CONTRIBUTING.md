@@ -10,7 +10,7 @@ Notive is an internal macOS product for Ubundi and First Motive.
 4. Run the native test suite.
 5. Open a pull request to `main` and state the verification result.
 
-Do not change the bundle identifier, local database path, stored meeting format, release signing, or external-data confirmation boundary without an accepted architecture decision.
+Do not change the bundle identifier, local database path, stored meeting format, private release boundary, or external-data confirmation boundary without an accepted architecture decision.
 
 ## Verify
 
@@ -30,7 +30,7 @@ For packaging or release changes, run the checks in [docs/RELEASING.md](docs/REL
 ## Style
 
 - Follow the surrounding Swift and SwiftUI code.
-- Prefer Apple system frameworks. Sparkle is the approved exception.
+- Prefer Apple system frameworks and the authenticated GitHub CLI update path.
 - Keep recording, transcription, storage, retrieval, citations, and default answer generation on the Mac.
 - Add tests for changed behavior.
 - Update documentation when a command, boundary, or user workflow changes.

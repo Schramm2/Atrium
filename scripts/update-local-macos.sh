@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Build the current checkout and replace the local Notive app.
-# This is intentionally separate from the GitHub release workflow. It does
-# not create a tag, publish an artifact, or touch the updater manifest.
+# This is intentionally separate from the GitHub release command. It does
+# not create a tag or publish an artifact.
 
 set -euo pipefail
 
