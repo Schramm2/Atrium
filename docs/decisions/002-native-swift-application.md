@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted; the temporary migration-baseline clause is superseded by ADR-004
 
 ## Date
 
@@ -18,7 +18,7 @@ The replacement must preserve the current SQLite data, application identity, loc
 
 Build the replacement as a Swift 6.1 package with a SwiftUI application target and a separate `NotiveCore` target. Use Apple frameworks for application UI, microphone capture, system audio capture, audio mixing and playback, speech recognition, notifications, and on-device language generation. Use the SQLite C API directly and keep the existing bundle identifier and database location.
 
-Keep `frontend/` buildable as the migration baseline until the native migration ledger has no release blockers. Use Sparkle only for signed native update installation, as accepted in ADR-003.
+Keep the former application buildable as the migration baseline until the native migration ledger has no release blockers. Use Sparkle only for signed native update installation, as accepted in ADR-003. ADR-004 records the completed cutover and removal of that baseline.
 
 ## Alternatives considered
 
@@ -42,4 +42,4 @@ Model runtimes and database wrappers could shorten some work, but they would rec
 - macOS 14 remains the minimum system version. Apple Intelligence is optional and has a deterministic local fallback.
 - Native acoustic feature clustering replaces the ONNX speaker runtime without retaining voice profiles.
 - Sparkle replaces the Tauri updater for native releases.
-- The Tauri source remains a buildable migration baseline, not the native release target.
+- ADR-004 retires the temporary Tauri migration baseline after the native cutover.

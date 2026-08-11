@@ -35,7 +35,6 @@ The repository must allow GitHub Actions read and write workflow permissions. Th
 
    ```bash
    node scripts/check-release-version.mjs
-   node scripts/check-swift-migration-inventory.mjs --check
    cd macos
    swift test -Xswiftc -warnings-as-errors
    cd ..

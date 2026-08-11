@@ -59,8 +59,7 @@ echo "Building the current checkout..."
 
 [[ -d "$BUILD_APP" ]] || fail "The build did not produce $BUILD_APP."
 
-BUILD_BINARY="$(find "$BUILD_APP/Contents/MacOS" -maxdepth 1 -type f \
-  ! -name 'ffmpeg' ! -name 'llama-helper' -print -quit)"
+BUILD_BINARY="$(find "$BUILD_APP/Contents/MacOS" -maxdepth 1 -type f -print -quit)"
 [[ -n "$BUILD_BINARY" ]] || fail "The build did not produce a main executable in $BUILD_APP."
 
 BUILD_MTIME="$(stat -f %m "$BUILD_BINARY")"

@@ -26,9 +26,6 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/check-release-version.mjs
 
-      - name: Validate Tauri-to-Swift command inventory
-        run: node scripts/check-swift-migration-inventory.mjs --check
-
       - name: Require a commit from main
         run: |
           git fetch origin main
