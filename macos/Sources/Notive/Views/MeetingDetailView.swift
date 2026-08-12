@@ -94,7 +94,8 @@ struct MeetingDetailView: View {
     }
 
     private func header(_ workspace: MeetingWorkspace) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let status = recordingStatus(for: workspace.meeting.id)
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
                 TextField("Meeting title", text: $title)
                     .font(.system(size: 27, weight: .semibold))
@@ -144,13 +145,33 @@ struct MeetingDetailView: View {
                 }
                 Spacer()
                 BrandStatusLabel(
-                    title: store.activeRecordingMeetingID == meetingID ? "Recording" : "Saved locally",
-                    systemImage: store.activeRecordingMeetingID == meetingID ? "record.circle" : "internaldrive",
-                    kind: store.activeRecordingMeetingID == meetingID ? .processing : .local
+                    title: status.title,
+                    systemImage: status.systemImage,
+                    kind: status.isActive ? .processing : .local
                 )
             }
             .font(.callout)
             .foregroundStyle(.secondary)
+        }
+    }
+
+    private func recordingStatus(for meetingID: String) -> (
+        title: String,
+        systemImage: String,
+        isActive: Bool
+    ) {
+        guard store.activeRecordingMeetingID == meetingID else {
+            return ("Saved locally", "internaldrive", false)
+        }
+        switch store.recordingState {
+        case .recording:
+            return ("Recording", "record.circle", true)
+        case .paused:
+            return ("Recording paused", "pause.circle", true)
+        case .transcribing:
+            return ("Transcribing", "waveform", true)
+        case .idle, .failed:
+            return ("Saved locally", "internaldrive", false)
         }
     }
 

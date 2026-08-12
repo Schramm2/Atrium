@@ -27,16 +27,16 @@ public actor AudioMixingService {
         outputURL: URL
     ) async throws -> URL {
         try? FileManager.default.removeItem(at: outputURL)
-        guard let systemAudioURL else {
-            try FileManager.default.copyItem(at: microphoneURL, to: outputURL)
-            return outputURL
-        }
 
         let composition = AVMutableComposition()
         let audioMix = AVMutableAudioMix()
         var parameters: [AVMutableAudioMixInputParameters] = []
+        var sources = [(microphoneURL, Float(1))]
+        if let systemAudioURL {
+            sources.append((systemAudioURL, Float(0.82)))
+        }
 
-        for (url, volume) in [(microphoneURL, Float(1)), (systemAudioURL, Float(0.82))] {
+        for (url, volume) in sources {
             let asset = AVURLAsset(url: url)
             guard let sourceTrack = try await asset.loadTracks(withMediaType: .audio).first,
                   let destinationTrack = composition.addMutableTrack(

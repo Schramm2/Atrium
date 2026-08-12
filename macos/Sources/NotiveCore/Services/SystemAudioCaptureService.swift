@@ -110,12 +110,23 @@ public final class SystemAudioCaptureService {
         guard let stream, let sampleWriter, let outputURL else {
             throw SystemAudioCaptureError.noActiveCapture
         }
-        try await stream.stopCapture()
         self.stream = nil
-        let completed = await sampleWriter.finish()
         self.sampleWriter = nil
         self.outputURL = nil
-        guard completed else { throw SystemAudioCaptureError.couldNotWrite }
+        do {
+            try await stream.stopCapture()
+            try? stream.removeStreamOutput(sampleWriter, type: .audio)
+        } catch {
+            try? stream.removeStreamOutput(sampleWriter, type: .audio)
+            sampleWriter.cancel()
+            try? FileManager.default.removeItem(at: outputURL)
+            throw error
+        }
+        let completed = await sampleWriter.finish()
+        guard completed else {
+            try? FileManager.default.removeItem(at: outputURL)
+            throw SystemAudioCaptureError.couldNotWrite
+        }
         return outputURL
     }
 
@@ -127,6 +138,9 @@ public final class SystemAudioCaptureService {
         sampleWriter = nil
         outputURL = nil
         try? await activeStream?.stopCapture()
+        if let activeStream, let activeWriter {
+            try? activeStream.removeStreamOutput(activeWriter, type: .audio)
+        }
         activeWriter?.cancel()
         if let activeOutputURL { try? FileManager.default.removeItem(at: activeOutputURL) }
     }

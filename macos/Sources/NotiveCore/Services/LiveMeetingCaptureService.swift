@@ -107,7 +107,7 @@ private func makeSpeechRecognitionHandler(
 
 @MainActor
 public final class LiveMeetingCaptureService: NSObject {
-    private let audioEngine = AVAudioEngine()
+    private var audioEngine = AVAudioEngine()
     private var audioFile: AVAudioFile?
     private var outputURL: URL?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -195,8 +195,7 @@ public final class LiveMeetingCaptureService: NSObject {
 
     public func stop() throws -> URL {
         guard let outputURL else { throw AudioRecordingError.noActiveRecording }
-        removeTapIfNeeded()
-        audioEngine.stop()
+        releaseAudioEngine()
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
         recognitionTask = nil
@@ -217,6 +216,8 @@ public final class LiveMeetingCaptureService: NSObject {
 
     public var averagePower: Float { captureState.snapshot().averagePower }
 
+    var audioEngineIdentity: ObjectIdentifier { ObjectIdentifier(audioEngine) }
+
     private func removeTapIfNeeded() {
         guard hasInstalledTap else { return }
         audioEngine.inputNode.removeTap(onBus: 0)
@@ -224,8 +225,7 @@ public final class LiveMeetingCaptureService: NSObject {
     }
 
     private func cleanUp(removeOutputFile: Bool) {
-        removeTapIfNeeded()
-        audioEngine.stop()
+        releaseAudioEngine()
         recognitionTask?.cancel()
         recognitionTask = nil
         recognitionRequest = nil
@@ -235,5 +235,14 @@ public final class LiveMeetingCaptureService: NSObject {
         }
         outputURL = nil
         captureState.setAcceptsAudio(true)
+    }
+
+    private func releaseAudioEngine() {
+        removeTapIfNeeded()
+        audioEngine.stop()
+        audioEngine.reset()
+        // Release the input audio unit as well as its tap. Keeping the same
+        // engine alive can leave Bluetooth devices in their microphone route.
+        audioEngine = AVAudioEngine()
     }
 }
