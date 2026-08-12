@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct SidebarView: View {
     @Bindable var store: AppStore
     let theme: BrandTheme
+    @Environment(CompanyHubStore.self) private var hub
     @State private var showsAudioImporter = false
     @State private var meetingToDelete: Meeting?
     @AppStorage("notive.appearance") private var appearance = "system"
@@ -77,6 +78,36 @@ struct SidebarView: View {
                     .tag(WorkspaceSelection.dictation)
                 Label("Meeting Notes", systemImage: "note.text")
                     .tag(WorkspaceSelection.notes)
+            }
+
+            Section {
+                Label("Company", systemImage: "chart.line.uptrend.xyaxis")
+                    .tag(WorkspaceSelection.company)
+                Label("Agents", systemImage: "bolt.fill")
+                    .badge(hub.runningAgentCount)
+                    .tag(WorkspaceSelection.agents)
+                Label("Shared Context", systemImage: "square.stack.3d.up")
+                    .tag(WorkspaceSelection.sharedContext)
+                Label("People", systemImage: "person.2")
+                    .tag(WorkspaceSelection.people)
+                Label("Search", systemImage: "magnifyingglass")
+                    .tag(WorkspaceSelection.search)
+                Label("Activity", systemImage: "bell")
+                    .badge(hub.unreadActivityCount)
+                    .tag(WorkspaceSelection.activity)
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Company Hub")
+                    Text("SHARED")
+                        .font(.caption2.weight(.heavy))
+                        .tracking(0.4)
+                        .foregroundStyle(.tint)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .overlay { Capsule().stroke(.tint.opacity(0.4), lineWidth: 1) }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Company Hub, shared with the team")
             }
 
             Section("Recent Meetings") {

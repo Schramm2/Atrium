@@ -69,6 +69,28 @@ struct NotiveApp: App {
                 }
                 .keyboardShortcut("k")
             }
+            CommandMenu("Company") {
+                Button("Search Everything") {
+                    store?.select(.search)
+                }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+
+                Button("Company Today") {
+                    store?.select(.company)
+                }
+
+                Button("Agents") {
+                    store?.select(.agents)
+                }
+
+                Button("Shared Context") {
+                    store?.select(.sharedContext)
+                }
+
+                Button("Activity") {
+                    store?.select(.activity)
+                }
+            }
         }
 
         Settings {
