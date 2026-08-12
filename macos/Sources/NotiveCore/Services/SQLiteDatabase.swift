@@ -17,25 +17,77 @@ public enum DatabaseError: LocalizedError, Equatable {
     }
 }
 
+/// What another Notive database holds, read before anything is copied from it.
+public struct MeetingDataSurvey: Equatable, Sendable {
+    public let meetingCount: Int
+    public let transcriptCount: Int
+    public let latestMeetingDate: Date?
+
+    public init(meetingCount: Int, transcriptCount: Int, latestMeetingDate: Date?) {
+        self.meetingCount = meetingCount
+        self.transcriptCount = transcriptCount
+        self.latestMeetingDate = latestMeetingDate
+    }
+}
+
+public struct MeetingImportResult: Equatable, Sendable {
+    public let imported: [Meeting]
+    public let skippedMeetingCount: Int
+
+    public var importedMeetingCount: Int { imported.count }
+}
+
 public final class SQLiteDatabase: @unchecked Sendable {
+    public static let applicationSupportDirectory = "Notive"
     public static let legacyApplicationSupportDirectory = "com.ubundi.meet"
     public static let databaseFilename = "meeting_minutes.sqlite"
 
     private let connection: OpaquePointer
     private let lock = NSRecursiveLock()
 
+    public static func applicationSupportURL(
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        try supportURL(named: applicationSupportDirectory, create: true, fileManager: fileManager)
+    }
+
     public static func defaultDatabaseURL(
         fileManager: FileManager = .default
+    ) throws -> URL {
+        try applicationSupportURL(fileManager: fileManager)
+            .appendingPathComponent(databaseFilename)
+    }
+
+    /// Notive stored data under the bundle identifier before the `Notive` folder.
+    public static func legacyApplicationSupportURL(
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        try supportURL(
+            named: legacyApplicationSupportDirectory,
+            create: false,
+            fileManager: fileManager
+        )
+    }
+
+    public static func legacyDatabaseURL(
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        try legacyApplicationSupportURL(fileManager: fileManager)
+            .appendingPathComponent(databaseFilename)
+    }
+
+    private static func supportURL(
+        named name: String,
+        create: Bool,
+        fileManager: FileManager
     ) throws -> URL {
         let support = try fileManager.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
-            create: true
+            create: create
         )
-        return support
-            .appendingPathComponent(legacyApplicationSupportDirectory, isDirectory: true)
-            .appendingPathComponent(databaseFilename)
+        return support.appendingPathComponent(name, isDirectory: true)
     }
 
     public init(url: URL, createIfMissing: Bool = true) throws {
@@ -153,6 +205,225 @@ public final class SQLiteDatabase: @unchecked Sendable {
 
     public func deleteMeeting(id: String) throws {
         try execute("DELETE FROM meetings WHERE id = ?", values: [.text(id)])
+    }
+
+    public func updateMeetingFolderPath(id: String, folderPath: String?) throws {
+        try execute(
+            "UPDATE meetings SET folder_path = ? WHERE id = ?",
+            values: [folderPath.map(Value.text) ?? .null, .text(id)]
+        )
+    }
+
+    // MARK: - Earlier meeting data
+
+    /// Counts the meeting data in another Notive database without changing it.
+    ///
+    /// Returns `nil` when the file is missing, is not a Notive database, or holds no meetings.
+    public static func survey(at url: URL) -> MeetingDataSurvey? {
+        guard FileManager.default.fileExists(atPath: url.path),
+              let database = try? SQLiteDatabase(url: url, createIfMissing: false),
+              database.hasTable("meetings", schema: "main") else {
+            return nil
+        }
+        let meetingCount = database.count("SELECT COUNT(*) FROM main.meetings")
+        guard meetingCount > 0 else { return nil }
+        let transcriptCount = database.hasTable("transcripts", schema: "main")
+            ? database.count("SELECT COUNT(*) FROM main.transcripts")
+            : 0
+        let latest = (try? database.query("SELECT MAX(created_at) FROM main.meetings") {
+            database.optionalText($0, 0)
+        })?.first ?? nil
+        return MeetingDataSurvey(
+            meetingCount: meetingCount,
+            transcriptCount: transcriptCount,
+            latestMeetingDate: latest.map(DateCoding.decode)
+        )
+    }
+
+    /// Copies meetings that this database does not hold yet from another Notive database.
+    ///
+    /// A meeting is already held when its identifier matches, or when both its title and its
+    /// creation time match. Held meetings and everything attached to them stay unchanged.
+    @discardableResult
+    public func importMeetings(from sourceURL: URL) throws -> MeetingImportResult {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw DatabaseError.invalidData("There is no Notive database at \(sourceURL.path).")
+        }
+        try execute("ATTACH DATABASE ? AS previous", values: [.text(sourceURL.path)])
+        defer { try? execute("DETACH DATABASE previous") }
+
+        guard hasTable("meetings", schema: "previous") else {
+            throw DatabaseError.invalidData("That file is not a Notive meeting database.")
+        }
+
+        let sourceColumns = Set(columns(of: "meetings", schema: "previous"))
+        guard ["id", "title", "created_at", "updated_at"].allSatisfy(sourceColumns.contains) else {
+            throw DatabaseError.invalidData("That file is not a Notive meeting database.")
+        }
+        let folderPathColumn = sourceColumns.contains("folder_path") ? "folder_path" : "NULL"
+        let candidates = try query(
+            """
+            SELECT id, title, created_at, updated_at, \(folderPathColumn)
+            FROM previous.meetings ORDER BY created_at
+            """
+        ) { statement in
+            SourceMeeting(
+                id: self.text(statement, 0),
+                title: self.text(statement, 1),
+                createdAt: self.text(statement, 2),
+                updatedAt: self.text(statement, 3),
+                folderPath: self.optionalText(statement, 4)
+            )
+        }
+
+        let heldIDs = Set(try query("SELECT id FROM main.meetings") { self.text($0, 0) })
+        let heldTitleAndTime = Set(
+            try query("SELECT title, created_at FROM main.meetings") { statement in
+                SourceMeeting.titleAndTimeKey(self.text(statement, 0), self.text(statement, 1))
+            }
+        )
+        let arriving = candidates.filter { candidate in
+            !heldIDs.contains(candidate.id)
+                && !heldTitleAndTime.contains(candidate.titleAndTimeKey)
+        }
+        guard !arriving.isEmpty else {
+            return MeetingImportResult(
+                imported: [],
+                skippedMeetingCount: candidates.count
+            )
+        }
+
+        try transaction {
+            try execute("CREATE TEMP TABLE IF NOT EXISTS arriving_meetings(id TEXT PRIMARY KEY)")
+            try execute("DELETE FROM arriving_meetings")
+            for meeting in arriving {
+                try execute(
+                    "INSERT INTO arriving_meetings(id) VALUES (?)",
+                    values: [.text(meeting.id)]
+                )
+                try execute(
+                    """
+                    INSERT INTO main.meetings(id, title, created_at, updated_at, folder_path)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    values: [
+                        .text(meeting.id),
+                        .text(meeting.title),
+                        .text(meeting.createdAt),
+                        .text(meeting.updatedAt),
+                        meeting.folderPath.map(Value.text) ?? .null,
+                    ]
+                )
+            }
+            for table in Self.attachedTables {
+                try copyArrivingRows(table: table)
+            }
+            try execute("DROP TABLE arriving_meetings")
+        }
+
+        return MeetingImportResult(
+            imported: arriving.map(\.meeting),
+            skippedMeetingCount: candidates.count - arriving.count
+        )
+    }
+
+    /// The tables carried across with each meeting, and the columns each one may hold.
+    ///
+    /// A database written by an earlier Notive release can be missing a table or a column, so
+    /// only the columns present in both databases are copied.
+    private static let attachedTables: [AttachedTable] = [
+        AttachedTable(
+            name: "transcripts",
+            required: ["id", "meeting_id", "transcript", "timestamp"],
+            optional: [
+                "summary", "action_items", "key_points",
+                "audio_start_time", "audio_end_time", "duration", "speaker",
+            ]
+        ),
+        AttachedTable(
+            name: "meeting_notes",
+            required: ["meeting_id", "created_at", "updated_at"],
+            optional: ["notes_markdown", "notes_json"]
+        ),
+        AttachedTable(
+            name: "summary_processes",
+            required: ["meeting_id", "status", "created_at", "updated_at"],
+            optional: [
+                "error", "result", "start_time", "end_time", "chunk_count",
+                "processing_time", "metadata", "result_backup", "result_backup_timestamp",
+            ]
+        ),
+        AttachedTable(
+            name: "speaker_aliases",
+            required: ["meeting_id", "original_speaker_label", "alias"],
+            optional: ["created_at", "updated_at"]
+        ),
+    ]
+
+    private struct AttachedTable {
+        let name: String
+        let required: [String]
+        let optional: [String]
+    }
+
+    private struct SourceMeeting {
+        let id: String
+        let title: String
+        let createdAt: String
+        let updatedAt: String
+        let folderPath: String?
+
+        var titleAndTimeKey: String { Self.titleAndTimeKey(title, createdAt) }
+
+        var meeting: Meeting {
+            Meeting(
+                id: id,
+                title: title,
+                createdAt: DateCoding.decode(createdAt),
+                updatedAt: DateCoding.decode(updatedAt),
+                folderPath: folderPath
+            )
+        }
+
+        static func titleAndTimeKey(_ title: String, _ createdAt: String) -> String {
+            "\(title)\u{1}\(createdAt)"
+        }
+    }
+
+    private func copyArrivingRows(table: AttachedTable) throws {
+        guard hasTable(table.name, schema: "previous") else { return }
+        let present = Set(columns(of: table.name, schema: "previous"))
+        guard table.required.allSatisfy(present.contains) else { return }
+        let columns = table.required + table.optional.filter(present.contains)
+        let columnList = columns.joined(separator: ", ")
+        let sourceList = columns.map { "source.\($0)" }.joined(separator: ", ")
+        try execute(
+            """
+            INSERT OR IGNORE INTO main.\(table.name)(\(columnList))
+            SELECT \(sourceList) FROM previous.\(table.name) source
+            JOIN arriving_meetings arriving ON arriving.id = source.meeting_id
+            """
+        )
+    }
+
+    private func hasTable(_ name: String, schema: String) -> Bool {
+        let rows = try? query(
+            "SELECT name FROM \(schema).sqlite_master WHERE type = 'table' AND name = ?",
+            values: [.text(name)]
+        ) { self.text($0, 0) }
+        return rows?.isEmpty == false
+    }
+
+    private func columns(of table: String, schema: String) -> [String] {
+        (try? query("PRAGMA \(schema).table_info(\(table))") { self.text($0, 1) }) ?? []
+    }
+
+    private func count(_ sql: String) -> Int {
+        let rows = try? query(sql) { Int(self.optionalDouble($0, 0) ?? 0) }
+        return rows?.first ?? 0
     }
 
     public func fetchTranscripts(meetingID: String) throws -> [TranscriptSegment] {

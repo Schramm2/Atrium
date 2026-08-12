@@ -42,7 +42,7 @@ Voice grouping uses acoustic features from the current recording. It creates ano
 
 ### Local data
 
-Notive uses the existing SQLite database below `~/Library/Application Support/com.ubundi.meet/`. The native code reads and writes the compatible meetings, transcripts, notes, summaries, speaker aliases, and FTS5 search tables. No database import or rewrite is required.
+Notive uses the SQLite database below `~/Library/Application Support/Notive/`. The native code reads and writes compatible meetings, transcripts, notes, summaries, speaker aliases, and FTS5 search tables. On user confirmation, it can add non-duplicate meetings and available recordings from the earlier `~/Library/Application Support/com.ubundi.meet/` location without changing the earlier copy. See [ADR-006](decisions/006-use-branded-application-support-directory.md).
 
 Recording files use `~/Movies/notive-recordings/` by default. The user can select another local folder. Disabling saved audio removes only files created by the recorder after transcription completes. Imported source copies remain available for playback and retranscription.
 

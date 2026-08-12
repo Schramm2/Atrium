@@ -5,6 +5,7 @@ import Speech
 import SwiftUI
 
 struct OnboardingView: View {
+    @Bindable var store: AppStore
     @Binding var isComplete: Bool
     @Environment(\.brandTheme) private var theme
     @Environment(\.colorScheme) private var colorScheme
@@ -16,18 +17,28 @@ struct OnboardingView: View {
     @AppStorage("notive.hub.agents-read-shared") private var agentsReadShared = true
     @AppStorage("notive.hub.github-login") private var githubLogin = ""
     @AppStorage("notive.hub.github-organization") private var githubOrganization = ""
-    @State private var step = 0
+    @State private var step = OnboardingStep.welcome
     @State private var permissions = OnboardingPermissions()
     @State private var identityPhase = GitHubCheckPhase.unchecked
+    @State private var restoredData: PreviousInstallationImport?
 
-    private static let captions = [
-        "Set up in about a minute",
-        "Step 2 of 5 — what Notive does",
-        "Step 3 of 5 — permissions",
-        "Step 4 of 5 — the shared hub",
-        "Step 5 of 5 — all set",
-    ]
-    private static let stepLabels = ["Welcome", "Your workspace", "Access", "Company Hub", "Ready"]
+    /// The earlier-data step is offered only when this Mac holds meetings to take back.
+    private var steps: [OnboardingStep] {
+        OnboardingStep.allCases.filter { $0 != .earlierData || offersEarlierData }
+    }
+
+    private var offersEarlierData: Bool {
+        store.previousInstallation != nil || restoredData != nil
+    }
+
+    private var currentIndex: Int {
+        steps.firstIndex(of: step) ?? 0
+    }
+
+    private var caption: String {
+        guard currentIndex > 0 else { return "Set up in about a minute" }
+        return "Step \(currentIndex + 1) of \(steps.count) — \(step.caption)"
+    }
 
     var body: some View {
         ZStack {
@@ -66,29 +77,29 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text("Notive")
                     .font(.headline)
-                Text(Self.captions[step])
+                Text(caption)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             HStack(spacing: 7) {
-                ForEach(0..<5, id: \.self) { index in
+                ForEach(Array(steps.enumerated()), id: \.element) { index, item in
                     Capsule()
                         .fill(
-                            index < step
+                            index < currentIndex
                                 ? palette.secondaryAccent
-                                : index == step ? palette.accent : palette.border
+                                : item == step ? palette.accent : palette.border
                         )
-                        .frame(width: index == step ? 26 : 8, height: 7)
+                        .frame(width: item == step ? 26 : 8, height: 7)
                         .onTapGesture {
-                            if index <= step { step = index }
+                            if index <= currentIndex { step = item }
                         }
-                        .help(Self.stepLabels[index])
+                        .help(item.label)
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: step)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Step \(step + 1) of 5")
+            .accessibilityLabel("Step \(currentIndex + 1) of \(steps.count)")
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
@@ -99,11 +110,12 @@ struct OnboardingView: View {
     @ViewBuilder
     private var stepBody: some View {
         switch step {
-        case 0: identityStep
-        case 1: workspaceStep
-        case 2: accessStep
-        case 3: hubStep
-        default: readyStep
+        case .welcome: identityStep
+        case .earlierData: earlierDataStep
+        case .workspace: workspaceStep
+        case .access: accessStep
+        case .hub: hubStep
+        case .ready: readyStep
         }
     }
 
@@ -252,6 +264,36 @@ struct OnboardingView: View {
             Text("Permissions are optional and can be changed later in System Settings.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .transition(.opacity)
+    }
+
+    private var earlierDataStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            OnboardingEyebrow("Earlier meetings")
+            OnboardingTitle("Notive found meetings from before")
+            OnboardingLead(
+                "An earlier Notive installation left meeting data on this Mac. Take it back and your meetings, transcripts, notes, summaries, and speaker names return with their recordings."
+            )
+            EarlierDataCard(
+                installation: store.previousInstallation,
+                restored: restoredData,
+                isRestoring: store.isRestoringPreviousData,
+                errorMessage: store.previousInstallationRestoreError
+            ) {
+                restoredData = await store.restorePreviousInstallation()
+            }
+            .frame(maxWidth: 660)
+            Label(
+                "Meetings you already have stay as they are. Nothing is removed from the earlier folder.",
+                systemImage: "lock"
+            )
+            .font(.caption)
+            .foregroundStyle(.tertiary)
             Spacer()
         }
         .padding(.horizontal, 44)
@@ -425,17 +467,26 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack(spacing: 14) {
-            if step > 0 {
+            if currentIndex > 0 {
                 Button("Back") {
-                    step -= 1
+                    step = steps[currentIndex - 1]
                 }
             }
             Spacer()
-            if step == 2 {
+            switch step {
+            case .earlierData:
+                Text(
+                    restoredData == nil
+                        ? "You can also do this later in Settings."
+                        : "Your earlier meetings are in the sidebar."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            case .access:
                 Text("Permissions are optional and can be changed later.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            } else if step == 3 {
+            case .hub:
                 Text(
                     isHubVerified
                         ? "You can change all of this in Settings."
@@ -443,19 +494,21 @@ struct OnboardingView: View {
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            default:
+                EmptyView()
             }
-            if step == 2 || step == 3 {
+            if step.isSkippable, !(step == .earlierData && restoredData != nil) {
                 Button("Skip for now") { advance() }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
             }
-            Button(step == 4 ? "Start Using Notive" : "Continue") {
+            Button(step == .ready ? "Start Using Notive" : "Continue") {
                 advance()
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
-            .disabled(step == 3 && !isHubVerified)
+            .disabled(continueIsBlocked)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 18)
@@ -466,12 +519,153 @@ struct OnboardingView: View {
         return false
     }
 
+    private var continueIsBlocked: Bool {
+        switch step {
+        case .hub: !isHubVerified
+        case .earlierData: store.isRestoringPreviousData || restoredData == nil
+        default: false
+        }
+    }
+
     private func advance() {
-        if step == 4 {
+        if step == .ready {
             isComplete = true
         } else {
-            step += 1
+            step = steps[min(currentIndex + 1, steps.count - 1)]
         }
+    }
+}
+
+// MARK: - Steps
+
+private enum OnboardingStep: CaseIterable, Hashable {
+    case welcome
+    case earlierData
+    case workspace
+    case access
+    case hub
+    case ready
+
+    var label: String {
+        switch self {
+        case .welcome: "Welcome"
+        case .earlierData: "Earlier meetings"
+        case .workspace: "Your workspace"
+        case .access: "Access"
+        case .hub: "Company Hub"
+        case .ready: "Ready"
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .welcome: "welcome"
+        case .earlierData: "meetings from before"
+        case .workspace: "what Notive does"
+        case .access: "permissions"
+        case .hub: "the shared hub"
+        case .ready: "all set"
+        }
+    }
+
+    var isSkippable: Bool {
+        self == .earlierData || self == .access || self == .hub
+    }
+}
+
+// MARK: - Earlier meeting data
+
+private struct EarlierDataCard: View {
+    @Environment(\.brandTheme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
+    let installation: PreviousInstallation?
+    let restored: PreviousInstallationImport?
+    let isRestoring: Bool
+    let errorMessage: String?
+    let restore: () async -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: restored == nil ? "clock.arrow.circlepath" : "checkmark")
+                .foregroundStyle(restored == nil ? palette.secondaryAccent : palette.accent)
+                .frame(width: 38, height: 38)
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(palette.border, lineWidth: 1)
+                }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(detailColor)
+            }
+            Spacer()
+            if isRestoring {
+                ProgressView()
+                    .controlSize(.small)
+            } else if restored == nil {
+                Button("Restore") {
+                    Task { await restore() }
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 15)
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(restored == nil ? palette.border : palette.accent, lineWidth: 1)
+        }
+        .animation(.easeInOut(duration: 0.25), value: isRestoring)
+    }
+
+    private var title: String {
+        if let restored {
+            return "\(Self.meetings(restored.importedMeetingCount)) restored"
+        }
+        guard let installation else { return "No earlier meetings found" }
+        return "\(Self.meetings(installation.meetingCount)) found"
+    }
+
+    private var detail: String {
+        if let errorMessage { return errorMessage }
+        if let restored {
+            var parts: [String] = []
+            if restored.copiedRecordingCount > 0 {
+                let recordings = restored.copiedRecordingCount == 1
+                    ? "1 recording"
+                    : "\(restored.copiedRecordingCount) recordings"
+                parts.append("\(recordings) copied into your recordings folder")
+            }
+            if restored.skippedMeetingCount > 0 {
+                parts.append("\(restored.skippedMeetingCount) you already had were left alone")
+            }
+            return parts.isEmpty ? "Everything came across." : parts.joined(separator: " · ")
+        }
+        guard let installation else {
+            return "Notive found no meeting data from an earlier installation."
+        }
+        var parts = ["\(installation.transcriptCount) transcript segments"]
+        if let latest = installation.latestMeetingDate, latest > .distantPast {
+            parts.append("most recent \(latest.formatted(date: .abbreviated, time: .omitted))")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private static func meetings(_ count: Int) -> String {
+        count == 1 ? "1 meeting" : "\(count) meetings"
+    }
+
+    private var detailColor: Color {
+        errorMessage == nil ? .secondary : .red
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
     }
 }
 

@@ -19,7 +19,7 @@ struct SettingsView: View {
 
     var body: some View {
         TabView {
-            GeneralSettingsView(updater: updater)
+            GeneralSettingsView(store: store, updater: updater)
                 .tabItem { Label("General", systemImage: "gearshape") }
             PermissionSettingsView()
                 .tabItem { Label("Permissions", systemImage: "hand.raised") }
@@ -183,6 +183,7 @@ private struct PermissionRow: View {
 }
 
 private struct GeneralSettingsView: View {
+    let store: AppStore?
     @Bindable var updater: UpdaterService
     @AppStorage("notive.notifications.recording") private var recordingNotifications = false
     @AppStorage("notive.notifications.transcription") private var transcriptionNotifications = true
@@ -246,6 +247,32 @@ private struct GeneralSettingsView: View {
                     title: "Recordings",
                     url: recordingFolderURL
                 )
+            }
+            if let store, let installation = store.previousInstallation {
+                Section("Earlier installation") {
+                    LabeledContent("Meetings found") {
+                        Text("\(installation.meetingCount)")
+                    }
+                    LocalPathRow(title: "Folder", url: installation.applicationSupportURL)
+                    HStack {
+                        Button("Restore Meetings") {
+                            Task { await store.restorePreviousInstallation() }
+                        }
+                        .disabled(store.isRestoringPreviousData)
+                        if store.isRestoringPreviousData {
+                            ProgressView().controlSize(.small)
+                        }
+                        Spacer()
+                    }
+                    Text("Meetings you already have stay as they are.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let message = store.previousInstallationRestoreError {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
             }
         }
         .formStyle(.grouped)
