@@ -40,6 +40,8 @@ This creates the versioned and stable internal DMGs in `dist/`. See [Build Notiv
 
 The `Notive` target owns native scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, and language services. See [System architecture](docs/architecture.md) and the accepted records in [docs/decisions](docs/decisions/).
 
+Notive is growing from a private meeting assistant into a private company intelligence workspace that connects conversations, shared knowledge, people, and agents. See [Product vision](docs/product-vision.md) for the product model, privacy boundary, and planned Grounding integration.
+
 The application keeps its compatible bundle identifier, `com.ubundi.meet`, and reads the existing database under `~/Library/Application Support/com.ubundi.meet/`.
 
 ## Privacy and notices

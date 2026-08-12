@@ -26,9 +26,13 @@ SwiftUI provides the workspace window, Settings scene, menu-bar controls, onboar
 
 The sidebar has a second section, `Company Hub`, with the Company, Agents, Shared Context, People, Search, and Activity screens in `Sources/Notive/Views/CompanyHub/`. This is the shared scope across Ubundi and First Motive. The workspace scope stays local and is unchanged.
 
+The [product vision](product-vision.md) defines Company Hub as part of a private company intelligence workspace. Meetings can become shared company memory through an explicit owner action. People and agents can then use that approved context, while private workspace data stays on its owner's Mac.
+
 The screens are built. The shared workspace behind them is not. `CompanyHubStore` holds their state and reads through the `CompanyHubProviding` protocol. The default `DisconnectedCompanyHubService` returns nothing for reads and `CompanyHubUnavailableError` for writes, so every screen shows an empty state that explains it, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. No Company Hub screen reads or writes the local database, and nothing leaves the Mac.
 
 To implement the Company Hub, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore` in `ContentView`. An implementation that moves meeting content off this Mac needs an accepted architecture decision first, because it crosses the local-first boundary.
+
+The future direction includes a connection to the installation-owned Grounding company knowledge system through MCP. Each user must connect with their own Grounding account, and Grounding must enforce that user's access, citations, and query audit. Grounding's MCP service and the Notive connection do not exist yet. Their authentication, principal mapping, token lifecycle, agent identity, and publishing boundaries need an accepted architecture decision before implementation.
 
 ### Audio and transcription
 
