@@ -9,13 +9,13 @@ public enum ProviderModelError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .unsupported:
-            "This provider does not use downloadable models."
+            "This AI service does not use downloadable models."
         case .invalidEndpoint:
-            "The model endpoint is invalid."
+            "Enter a valid model service URL, then try again."
         case .invalidResponse:
-            "The provider returned an invalid model list."
-        case let .requestFailed(code, message):
-            "The provider returned HTTP \(code): \(message)"
+            "Notive could not read the available models. Check the service settings and try again."
+        case .requestFailed:
+            "The AI service could not load models. Check its settings and try again."
         }
     }
 }

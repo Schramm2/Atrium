@@ -10,7 +10,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     NotivePageHeader(
                         "Your conversation workspace",
-                        detail: "Capture, review, recall, and write from one private workspace."
+                        detail: "Record, review, ask, and dictate from one private workspace."
                     ) {
                         BrandStatusLabel(
                             title: "On-device by default",
@@ -52,7 +52,7 @@ struct HomeView: View {
                     Divider().padding(.vertical, 16)
                     WorkspaceAction(
                         title: "Ask",
-                        detail: "Recall cited evidence",
+                        detail: "Get cited answers",
                         systemImage: "bubble.left.and.text.bubble.right"
                     ) { store.select(.ask) }
                     Divider().padding(.vertical, 16)
@@ -80,7 +80,7 @@ struct HomeView: View {
                         Divider().padding(.vertical, 12)
                         WorkspaceAction(
                             title: "Ask",
-                            detail: "Recall cited evidence",
+                            detail: "Get cited answers",
                             systemImage: "bubble.left.and.text.bubble.right"
                         ) { store.select(.ask) }
                     }
@@ -109,7 +109,7 @@ struct HomeView: View {
                 Text("Recent meetings")
                     .font(.title2.weight(.semibold))
                 Spacer()
-                Text("\(store.meetings.count) saved locally")
+                Text("\(store.meetings.count) meeting\(store.meetings.count == 1 ? "" : "s") saved on this Mac")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -190,10 +190,10 @@ struct HomeView: View {
         HStack(spacing: 10) {
             Image(systemName: "internaldrive")
                 .foregroundStyle(.tint)
-            Text("Recordings, transcripts, notes, retrieval, and citations stay on this Mac.")
+            Text("Recordings, transcripts, notes, searches, and citations stay on this Mac.")
                 .font(.callout)
             Spacer()
-            Text("External AI is always explicit")
+            Text("Notive asks before sending anything outside this Mac")
                 .font(.callout.weight(.medium))
                 .foregroundStyle(.secondary)
         }

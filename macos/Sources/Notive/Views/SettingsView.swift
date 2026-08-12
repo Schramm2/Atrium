@@ -198,7 +198,7 @@ private struct GeneralSettingsView: View {
             Section("Notifications") {
                 Toggle("Recording activity", isOn: $recordingNotifications)
                 Toggle("Transcription complete", isOn: $transcriptionNotifications)
-                Toggle("System errors", isOn: $errorNotifications)
+                Toggle("Problems that need attention", isOn: $errorNotifications)
                 Toggle("Notification sound", isOn: $notificationSound)
                 Toggle("Pause non-critical notifications", isOn: $notificationsPaused)
                 HStack {
@@ -206,8 +206,8 @@ private struct GeneralSettingsView: View {
                         Task {
                             let queued = await notificationService.sendTest()
                             notificationTestStatus = queued
-                                ? "Test notification sent"
-                                : "Allow notifications to run this test"
+                                ? "Test notification queued"
+                                : "Allow notifications to run this test."
                         }
                     }
                     if let notificationTestStatus {
@@ -237,9 +237,9 @@ private struct GeneralSettingsView: View {
                 Text(updater.statusText)
                     .foregroundStyle(statusColor)
             }
-            Section("Local data") {
+            Section("Data on this Mac") {
                 LocalPathRow(
-                    title: "Database",
+                    title: "Meeting data",
                     url: applicationSupportURL
                 )
                 LocalPathRow(
@@ -299,8 +299,8 @@ private struct AppearanceSettingsView: View {
                 }
                 Text(
                     themeRaw == BrandTheme.firstMotive.rawValue
-                        ? "First Motive keeps its canonical dark aubergine workspace in every macOS appearance."
-                        : "Ubundi follows the selected macOS appearance with Navy as the interface anchor."
+                        ? "First Motive always uses its dark purple theme."
+                        : "Ubundi follows your macOS light or dark appearance and uses navy accents."
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -336,7 +336,7 @@ private struct ThemeChoice: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(theme.title)
                         .font(.headline)
-                    Text(theme == .ubundi ? "Open · Navy · Precise" : "Aubergine · Warm · Technical")
+                    Text(theme == .ubundi ? "Light · Navy" : "Dark · Purple")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -374,7 +374,7 @@ private struct RecordingSettingsView: View {
                 Toggle("Save audio recordings", isOn: $savesAudio)
                 Toggle("Recording start notification", isOn: $recordingNotification)
                 LabeledContent("Save location") {
-                    Text(recordingFolderURL.path(percentEncoded: false))
+                    Text(recordingFolderURL.lastPathComponent)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -462,7 +462,7 @@ private struct TranscriptionSettingsView: View {
     var body: some View {
         Form {
             Section("Speech model") {
-                LabeledContent("Transcript model", value: "Apple on-device speech")
+                LabeledContent("Processing", value: "On this Mac")
             }
             Section("Language") {
                 Picker("Transcription language", selection: $language) {
@@ -557,7 +557,7 @@ private struct SummarySettingsView: View {
                 }
                 if provider.isExternal(endpoint: endpoint) {
                     Label(
-                        "Summaries and confirmed Ask evidence will be sent to \(provider.title).",
+                        "Summaries and transcript excerpts you approve will leave this Mac.",
                         systemImage: "network.badge.shield.half.filled"
                     )
                     .foregroundStyle(.secondary)
@@ -605,15 +605,16 @@ private struct SummarySettingsView: View {
                             endpoint: endpoint,
                             apiKey: apiKey
                         ).save()
-                        saveMessage = "Saved"
+                        saveMessage = "Model settings saved"
                     } catch {
-                        saveMessage = error.localizedDescription
+                        DiagnosticLogger.failure(operation: "model_settings_save", error: error)
+                        saveMessage = "Notive could not save the model settings. Check the values and try again."
                     }
                 }
                 if let saveMessage {
                     Text(saveMessage)
                         .font(.caption)
-                        .foregroundStyle(saveMessage == "Saved" ? Color.secondary : Color.red)
+                        .foregroundStyle(saveMessage == "Model settings saved" ? Color.secondary : Color.red)
                 }
             }
         }
@@ -646,7 +647,8 @@ private struct SummarySettingsView: View {
             availableModels = try await modelService.listModels(configuration: currentConfiguration)
             modelActionMessage = "Found \(availableModels.count) model\(availableModels.count == 1 ? "" : "s")."
         } catch {
-            modelActionMessage = error.localizedDescription
+            DiagnosticLogger.failure(operation: "model_list", error: error)
+            modelActionMessage = "Notive could not load models. Check the service address and try again."
         }
     }
 
@@ -667,9 +669,10 @@ private struct SummarySettingsView: View {
             ollamaModelToPull = ""
             availableModels = try await modelService.listModels(configuration: currentConfiguration)
             model = name
-            modelActionMessage = "Pulled \(name)."
+            modelActionMessage = "Downloaded \(name)."
         } catch {
-            modelActionMessage = error.localizedDescription
+            DiagnosticLogger.failure(operation: "model_download", error: error)
+            modelActionMessage = "Notive could not download the model. Check the service address and try again."
         }
     }
 
@@ -687,7 +690,8 @@ private struct SummarySettingsView: View {
             }
             modelActionMessage = "Deleted \(name)."
         } catch {
-            modelActionMessage = error.localizedDescription
+            DiagnosticLogger.failure(operation: "model_delete", error: error)
+            modelActionMessage = "Notive could not delete the model. Check the service address and try again."
         }
     }
 }
@@ -704,9 +708,9 @@ private struct AboutSettingsView: View {
             BrandMarkView(size: 74)
             Text("Notive")
                 .font(.largeTitle.weight(.semibold))
-            Text("Version \(AppVersion.current) · Native Swift")
+            Text("Version \(AppVersion.current)")
                 .foregroundStyle(.secondary)
-            Text("A privacy-first, local-first AI meeting assistant.")
+            Text("A private meeting assistant that keeps your data on this Mac.")
                 .multilineTextAlignment(.center)
             HStack {
                 Button("License") { openResource("LICENSE", extension: "md") }
@@ -730,7 +734,7 @@ private struct LocalPathRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                Text(url.path)
+                Text(title == "Meeting data" ? "Stored on this Mac" : url.lastPathComponent)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

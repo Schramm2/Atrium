@@ -17,10 +17,10 @@ struct AskView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     NotivePageHeader(
                         "Ask Notive",
-                        detail: "Find answers grounded in cited meeting transcript evidence."
+                        detail: "Find answers from your meeting transcripts, with citations."
                     ) {
                         BrandStatusLabel(
-                            title: "Local retrieval",
+                            title: "Searches this Mac",
                             systemImage: "checkmark.shield.fill",
                             kind: .local
                         )
@@ -108,27 +108,27 @@ struct AskView: View {
                 ContentUnavailableView(
                     "Ask across your meeting history",
                     systemImage: "bubble.left.and.text.bubble.right",
-                    description: Text("Notive retrieves local transcript evidence and cites each answer claim.")
+                    description: Text("Notive searches your transcripts and cites the source for each part of the answer.")
                 )
                 .frame(maxWidth: .infinity, minHeight: 260)
             }
         case .retrieving:
-            BrandPanel { workingView(label: "Searching local transcripts") }
+            BrandPanel { workingView(label: "Searching your transcripts…") }
         case let .confirming(provider):
             BrandPanel {
                 VStack(alignment: .leading, spacing: 14) {
                     BrandStatusLabel(
-                        title: "External provider",
+                        title: "Leaves this Mac",
                         systemImage: "network.badge.shield.half.filled",
                         kind: .warning
                     )
-                    Text("Send selected evidence to \(provider)?")
+                    Text("Send the selected transcript excerpts to \(provider)?")
                         .font(.title2.weight(.semibold))
-                    Text("The question and retrieved transcript evidence will leave this Mac. You will not be asked again for this provider until Notive quits.")
+                    Text("Your question and the selected transcript excerpts will leave this Mac. Notive will remember your choice until you quit the app.")
                         .foregroundStyle(.secondary)
                     HStack {
                         Button("Cancel") { cancelQuestion() }
-                        Button("Send Evidence and Answer") {
+                        Button("Send and Answer") {
                             confirmQuestion()
                         }
                         .buttonStyle(.borderedProminent)
@@ -138,18 +138,18 @@ struct AskView: View {
         case .insufficient:
             BrandPanel {
                 ContentUnavailableView(
-                    "No supporting evidence",
+                    "Not enough information found",
                     systemImage: "doc.text.magnifyingglass",
-                    description: Text("Try a broader scope, a different date range, or another question.")
+                    description: Text("Select more meetings, widen the date range, or ask a different question.")
                 )
                 .frame(maxWidth: .infinity, minHeight: 240)
             }
         case .generating:
-            BrandPanel { workingView(label: "Generating an evidence-bound answer") }
+            BrandPanel { workingView(label: "Writing an answer from your transcripts…") }
         case let .failed(message):
             BrandPanel {
                 ContentUnavailableView(
-                    "Ask failed",
+                    "Notive could not answer",
                     systemImage: "exclamationmark.triangle",
                     description: Text(message)
                 )
@@ -206,7 +206,7 @@ struct AskView: View {
     private var scopeLabel: String {
         selectedMeetingIDs.isEmpty
             ? "All meetings"
-            : "\(selectedMeetingIDs.count) selected"
+            : "\(selectedMeetingIDs.count) meeting\(selectedMeetingIDs.count == 1 ? "" : "s") selected"
     }
 
     private var scope: AskScope {
@@ -223,11 +223,6 @@ struct AskView: View {
         List(evidence) { evidence in
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(evidence.id)
-                        .font(.caption.monospaced().weight(.semibold))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(.quaternary, in: Capsule())
                     Text(evidence.meetingTitle)
                         .font(.headline)
                     Spacer()
@@ -270,9 +265,6 @@ struct AskView: View {
                                 }
                             }
                         }
-                        Text("\(answer.provider) · \(answer.model)")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
@@ -283,7 +275,7 @@ struct AskView: View {
                 Text("Sources")
                     .font(.headline)
                 Spacer()
-                Text("\(citedEvidence.count) cited segment\(citedEvidence.count == 1 ? "" : "s")")
+                Text("\(citedEvidence.count) cited excerpt\(citedEvidence.count == 1 ? "" : "s")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

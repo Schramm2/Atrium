@@ -38,7 +38,7 @@ struct SidebarView: View {
             }
             Button("Cancel", role: .cancel) { meetingToDelete = nil }
         } message: {
-            Text("This removes the meeting, transcript, summary, notes, and speaker aliases from the local database. Recording files remain on this Mac.")
+            Text("This removes the meeting, transcript, summary, notes, and speaker names from Notive. Recording files remain on this Mac.")
         }
     }
 
@@ -53,9 +53,9 @@ struct SidebarView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            BrandStatusLabel(title: "Local", systemImage: "lock.fill", kind: .local)
+            BrandStatusLabel(title: "On this Mac", systemImage: "lock.fill", kind: .local)
                 .labelStyle(.iconOnly)
-                .help("Local-first workspace")
+                .help("Private workspace on this Mac")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -101,7 +101,7 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .searchable(text: $store.searchText, prompt: "Search meeting content")
+        .searchable(text: $store.searchText, prompt: "Search meetings")
         .onSubmit(of: .search) { store.search() }
         .onChange(of: store.searchText) { _, value in
             if value.isEmpty { store.reloadMeetings() }
@@ -162,11 +162,11 @@ struct SidebarView: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                .help(theme == .firstMotive ? "First Motive uses its canonical dark surface" : "Appearance")
+                .help(theme == .firstMotive ? "First Motive always uses its dark theme" : "Appearance")
             }
             .font(.callout)
 
-            Text("Native Swift · v\(AppVersion.current)")
+            Text("Version \(AppVersion.current)")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -247,7 +247,8 @@ struct SidebarView: View {
             }
         case let .failure(error):
             guard (error as? CocoaError)?.code != .userCancelled else { return }
-            store.errorMessage = "Notive could not open the selected audio. \(error.localizedDescription)"
+            DiagnosticLogger.failure(operation: "audio_file_select", error: error)
+            store.errorMessage = "Notive could not open the selected audio. Choose another file and try again."
         }
     }
 }

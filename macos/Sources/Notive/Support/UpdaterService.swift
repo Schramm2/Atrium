@@ -55,15 +55,15 @@ final class UpdaterService {
     var primaryActionTitle: String {
         switch phase {
         case .checking:
-            "Checking for Updates…"
+            "Checking for updates…"
         case .available(let version):
-            "Update to v\(version)…"
+            "Update to \(version)…"
         case .installing:
-            "Installing Update…"
+            "Installing update…"
         case .failed(_, let version?):
-            "Update to v\(version)…"
+            "Update to \(version)…"
         case .idle, .upToDate, .failed:
-            "Check for Updates…"
+            "Check for updates…"
         }
     }
 
@@ -81,10 +81,10 @@ final class UpdaterService {
 
     var statusText: String {
         switch phase {
-        case .idle: "Updates use the authenticated GitHub CLI."
-        case .checking: "Checking GitHub Releases…"
-        case .upToDate: "Notive \(currentVersion) is current."
-        case .available(let version): "Notive \(version) is available."
+        case .idle: "Notive checks for updates automatically when enabled."
+        case .checking: "Checking for updates…"
+        case .upToDate: "Notive \(currentVersion) is up to date."
+        case .available(let version): "Notive version \(version) is available."
         case .installing(_, let message): message
         case .failed(let message, _): message
         }
@@ -107,6 +107,10 @@ final class UpdaterService {
     func checkForUpdates() async {
         guard canPerformPrimaryAction else { return }
         phase = .checking
+        DiagnosticLogger.started(
+            operation: "update_check",
+            context: "current_version=\(currentVersion)"
+        )
         let updater = updater
         let currentVersion = currentVersion
         let status = await Task.detached(priority: .utility) {
@@ -115,12 +119,21 @@ final class UpdaterService {
         switch status {
         case .upToDate:
             phase = .upToDate
+            DiagnosticLogger.success(operation: "update_check")
         case .updateAvailable(let version, _):
             phase = .available(version)
+            DiagnosticLogger.success(
+                operation: "update_check",
+                context: "update_available=true target_version=\(version)"
+            )
         case .unknown:
             phase = .failed(
-                message: "Could not check releases. Install GitHub CLI and sign in with access to Schramm2/notive.",
+                message: "Notive could not check for updates. Check your internet connection and try again.",
                 availableVersion: nil
+            )
+            DiagnosticLogger.failure(
+                operation: "update_check",
+                error: UpdateDiagnosticError.statusUnavailable
             )
         }
     }
@@ -136,6 +149,11 @@ final class UpdaterService {
             phase = .installing(version: version, message: "Relaunching Notive \(version)…")
             relaunch()
         } catch {
+            DiagnosticLogger.failure(
+                operation: "update_install",
+                error: error,
+                context: "target_version=\(version)"
+            )
             phase = .failed(
                 message: Self.message(for: error),
                 availableVersion: version
@@ -153,19 +171,25 @@ final class UpdaterService {
 
     private static func message(for error: Error) -> String {
         guard let updateError = error as? GitHubReleaseUpdater.UpdateError else {
-            return "The update stopped. Notive is still on the current version."
+            return "The update stopped. Notive is still on the current version. Try again later."
         }
         switch updateError {
         case .invalidVersion:
-            return "The release version is invalid."
+            return "Notive cannot use this update. Try again later."
         case .downloadFailed:
-            return "The update could not download. Check GitHub CLI access and try again."
+            return "The update could not download. Check your internet connection and try again."
         case .mountFailed:
-            return "The downloaded disk image could not open."
+            return "Notive could not open the downloaded update. Try again."
         case .appNotFound:
-            return "The release does not contain Notive.app."
+            return "This update is incomplete and cannot be installed. Try again later."
         case .installFailed:
-            return "The update could not replace Notive. The current installation was preserved."
+            return "Notive could not install the update. Your current version is unchanged. Quit other copies of Notive, then try again."
         }
     }
+}
+
+private enum UpdateDiagnosticError: LocalizedError {
+    case statusUnavailable
+
+    var errorDescription: String? { "The update service returned an unknown status." }
 }

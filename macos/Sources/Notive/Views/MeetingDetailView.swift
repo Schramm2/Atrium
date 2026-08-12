@@ -89,7 +89,7 @@ struct MeetingDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This removes the meeting data from Notive. Recording files remain on this Mac.")
+            Text("This removes the meeting, transcript, summary, notes, and speaker names from Notive. Recording files remain on this Mac.")
         }
     }
 
@@ -117,11 +117,11 @@ struct MeetingDetailView: View {
                 .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
                 Menu {
                     if store.isRetranscribing {
-                        Button("Cancel Retranscription", systemImage: "xmark", role: .cancel) {
+                        Button("Cancel transcription", systemImage: "xmark", role: .cancel) {
                             store.cancelRetranscription()
                         }
                     } else {
-                        Button("Retranscribe", systemImage: "arrow.triangle.2.circlepath") {
+                        Button("Transcribe again", systemImage: "arrow.triangle.2.circlepath") {
                             store.beginRetranscription()
                         }
                         .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
@@ -141,7 +141,7 @@ struct MeetingDetailView: View {
             HStack(spacing: 12) {
                 Text(workspace.meeting.createdAt, format: .dateTime.weekday(.wide).month(.wide).day().year().hour().minute())
                 if !workspace.transcripts.isEmpty {
-                    Text("\(workspace.transcripts.count) transcript segment\(workspace.transcripts.count == 1 ? "" : "s")")
+                    Text("\(workspace.transcripts.count) transcript excerpt\(workspace.transcripts.count == 1 ? "" : "s")")
                 }
                 Spacer()
                 BrandStatusLabel(
@@ -237,8 +237,8 @@ private struct TranscriptView: View {
                 systemImage: "text.quote",
                 description: Text(
                     MeetingAudioFiles.primary(in: meeting.folderPath) == nil
-                        ? "Record or import audio to add transcript segments."
-                        : "Use Retranscribe to recover the transcript from the saved audio."
+                        ? "Record or import audio to add a transcript."
+                        : "Select Transcribe again to recover it from the saved audio."
                 )
             )
         } else {

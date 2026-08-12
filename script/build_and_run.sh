@@ -9,7 +9,8 @@ MIN_SYSTEM_VERSION="14.0"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SWIFT_DIR="$ROOT_DIR/macos"
 DIST_DIR="$ROOT_DIR/dist"
-APP_BUNDLE="$DIST_DIR/$APP_NAME.app"
+APP_BUNDLE="$DIST_DIR/.$APP_NAME.app"
+LEGACY_APP_BUNDLE="$DIST_DIR/$APP_NAME.app"
 APP_CONTENTS="$APP_BUNDLE/Contents"
 APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
@@ -18,8 +19,14 @@ INFO_PLIST="$APP_CONTENTS/Info.plist"
 VERSION="${NOTIVE_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/version.json")}"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION-arm64.dmg"
 STABLE_DMG_PATH="$DIST_DIR/$APP_NAME.dmg"
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/notive-swift-module-cache"
 export CLANG_MODULE_CACHE_PATH
+
+unregister_development_bundle() {
+  "$LSREGISTER" -u "$APP_BUNDLE" >/dev/null 2>&1 || true
+  "$LSREGISTER" -u "$LEGACY_APP_BUNDLE" >/dev/null 2>&1 || true
+}
 
 usage() {
   echo "usage: $0 [run|--debug|--logs|--telemetry|--verify|--package]" >&2
@@ -35,6 +42,8 @@ case "$MODE" in
 esac
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+unregister_development_bundle
+rm -rf "$LEGACY_APP_BUNDLE"
 
 swift build --package-path "$SWIFT_DIR" -c release
 BUILD_DIR="$(swift build --package-path "$SWIFT_DIR" -c release --show-bin-path)"
@@ -42,6 +51,7 @@ BUILD_BINARY="$BUILD_DIR/$APP_NAME"
 
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"
+touch "$DIST_DIR/.metadata_never_index"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
@@ -94,9 +104,11 @@ cat >"$INFO_PLIST" <<PLIST
 PLIST
 
 /usr/bin/codesign --force --sign - "$APP_BUNDLE"
+unregister_development_bundle
 
 open_app() {
   /usr/bin/open -n "$APP_BUNDLE"
+  unregister_development_bundle
 }
 
 case "$MODE" in

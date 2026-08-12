@@ -95,7 +95,7 @@ NOTIVE_BUILD_VERSION="$VERSION" "$ROOT_DIR/script/build_and_run.sh" --package
 
 [[ -s "$VERSIONED_DMG" ]] || fail "Expected $VERSIONED_DMG."
 [[ -s "$STABLE_DMG" ]] || fail "Expected $STABLE_DMG."
-codesign --verify --deep --strict "$ROOT_DIR/dist/Notive.app"
+codesign --verify --deep --strict "$ROOT_DIR/dist/.Notive.app"
 hdiutil verify "$VERSIONED_DMG" >/dev/null
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
