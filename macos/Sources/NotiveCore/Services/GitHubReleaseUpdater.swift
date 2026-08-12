@@ -169,7 +169,7 @@ public struct GitHubReleaseUpdater: Sendable {
         return result.trimmedOutput.isEmpty ? "exit \(result.exitCode)" : result.trimmedOutput
     }
 
-    private static func execute(_ arguments: [String]) -> CommandResult {
+    static func execute(_ arguments: [String]) -> CommandResult {
         let fileManager = FileManager.default
         let captureDirectory = fileManager.temporaryDirectory
             .appending(path: "notive-command-\(UUID().uuidString)")

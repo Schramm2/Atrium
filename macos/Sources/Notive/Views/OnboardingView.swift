@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 import NotiveCore
 import Speech
 import SwiftUI
@@ -6,7 +7,27 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var isComplete: Bool
     @Environment(\.brandTheme) private var theme
-    @State private var page = 0
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.firstMotive.rawValue
+    @AppStorage("notive.hub.profile-name") private var profileName = ""
+    @AppStorage("notive.hub.profile-role") private var profileRole = ""
+    @AppStorage("notive.hub.appear-in-people") private var appearInPeople = true
+    @AppStorage("notive.hub.share-activity") private var shareActivity = true
+    @AppStorage("notive.hub.agents-read-shared") private var agentsReadShared = true
+    @AppStorage("notive.hub.github-login") private var githubLogin = ""
+    @AppStorage("notive.hub.github-organization") private var githubOrganization = ""
+    @State private var step = 0
+    @State private var permissions = OnboardingPermissions()
+    @State private var identityPhase = GitHubCheckPhase.unchecked
+
+    private static let captions = [
+        "Set up in about a minute",
+        "Step 2 of 5 — what Notive does",
+        "Step 3 of 5 — permissions",
+        "Step 4 of 5 — the shared hub",
+        "Step 5 of 5 — all set",
+    ]
+    private static let stepLabels = ["Welcome", "Your workspace", "Access", "Company Hub", "Ready"]
 
     var body: some View {
         ZStack {
@@ -15,160 +36,767 @@ struct OnboardingView: View {
                 .clipped()
 
             VStack(spacing: 0) {
-                HStack(spacing: 10) {
-                    BrandMarkView(size: 38)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Notive")
-                            .font(.headline)
-                        Text(theme.title)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    HStack(spacing: 7) {
-                        ForEach(0..<3, id: \.self) { index in
-                            Capsule()
-                                .fill(index == page ? Color.accentColor : Color.secondary.opacity(0.24))
-                                .frame(width: index == page ? 28 : 8, height: 7)
-                        }
-                    }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Step \(page + 1) of 3")
-                }
-                .padding(24)
-
+                header
                 Divider()
-
-                HStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Image(systemName: pageIcon)
-                            .font(.system(size: 42, weight: .medium))
-                            .foregroundStyle(.tint)
-                            .accessibilityHidden(true)
-                        Text(title)
-                            .font(.largeTitle.weight(.semibold))
-                            .tracking(-0.6)
-                        Text(detail)
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .lineSpacing(3)
-                            .frame(maxWidth: 460, alignment: .leading)
-
-                        if page == 1 {
-                            permissionControls
-                        } else if page == 2 {
-                            VStack(alignment: .leading, spacing: 11) {
-                                OnboardingFact(icon: "internaldrive", title: "Meeting data stays on this Mac")
-                                OnboardingFact(icon: "text.bubble", title: "Transcription stays on this Mac")
-                                OnboardingFact(icon: "checkmark.shield", title: "You choose when transcript excerpts leave this Mac")
-                            }
-                            .padding(.top, 4)
-                        }
-                        Spacer()
-                    }
-                    .padding(36)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-                    if page == 0 {
-                        BrandPanel {
-                            VStack(alignment: .leading, spacing: 0) {
-                                OnboardingWorkflow(icon: "mic.fill", title: "Capture", detail: "Record live or import audio")
-                                Divider()
-                                OnboardingWorkflow(icon: "text.quote", title: "Review", detail: "Transcript, summary, and notes")
-                                Divider()
-                                OnboardingWorkflow(icon: "bubble.left.and.text.bubble.right", title: "Ask", detail: "Get answers with citations")
-                                Divider()
-                                OnboardingWorkflow(icon: "waveform", title: "Dictate", detail: "Write by voice in any app")
-                            }
-                        }
-                        .padding(.trailing, 36)
-                        .frame(width: 330)
-                    }
-                }
-
+                stepBody
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 Divider()
-
-                HStack {
-                    if page > 0 {
-                        Button("Back") { page -= 1 }
-                    }
-                    Spacer()
-                    if page == 1 {
-                        Text("Permissions are optional and can be changed later.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Button(page == 2 ? "Start Using Notive" : "Continue") {
-                        if page == 2 {
-                            isComplete = true
-                        } else {
-                            page += 1
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .keyboardShortcut(.defaultAction)
-                }
-                .padding(24)
+                footer
             }
         }
-        .frame(width: 820, height: 560)
+        .frame(width: 880, height: 620)
         .interactiveDismissDisabled()
+        .task { permissions.refresh() }
+        .onReceive(
+            NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+        ) { _ in
+            permissions.refresh()
+        }
     }
 
-    private var permissionControls: some View {
-        VStack(spacing: 10) {
-            PermissionButton(title: "Microphone", systemImage: "mic") {
-                _ = await MicrophoneAuthorization.request()
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            BrandMarkView(size: 36)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Notive")
+                    .font(.headline)
+                Text(Self.captions[step])
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            PermissionButton(title: "Speech Recognition", systemImage: "text.bubble") {
-                _ = await SpeechAuthorization.request()
-            }
-            Button("Open Screen Recording Settings", systemImage: "rectangle.dashed.badge.record") {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-                    NSWorkspace.shared.open(url)
+            Spacer()
+            HStack(spacing: 7) {
+                ForEach(0..<5, id: \.self) { index in
+                    Capsule()
+                        .fill(
+                            index < step
+                                ? palette.secondaryAccent
+                                : index == step ? palette.accent : palette.border
+                        )
+                        .frame(width: index == step ? 26 : 8, height: 7)
+                        .onTapGesture {
+                            if index <= step { step = index }
+                        }
+                        .help(Self.stepLabels[index])
                 }
             }
-            .buttonStyle(.bordered)
+            .animation(.easeInOut(duration: 0.25), value: step)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Step \(step + 1) of 5")
         }
-        .frame(maxWidth: 360, alignment: .leading)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 20)
     }
 
-    private var pageIcon: String {
-        switch page {
-        case 0: "waveform.badge.mic"
-        case 1: "hand.raised.fill"
-        default: "checkmark.seal.fill"
+    // MARK: - Steps
+
+    @ViewBuilder
+    private var stepBody: some View {
+        switch step {
+        case 0: identityStep
+        case 1: workspaceStep
+        case 2: accessStep
+        case 3: hubStep
+        default: readyStep
         }
     }
 
-    private var title: String {
-        switch page {
-        case 0: "One private workspace for every conversation"
-        case 1: "Choose the access each feature needs"
-        default: "Your local workspace is ready"
+    private var identityStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            OnboardingEyebrow("Welcome")
+            OnboardingTitle("One private workspace for every conversation")
+                .frame(maxWidth: 560, alignment: .leading)
+            OnboardingLead(
+                "Record meetings, dictate text, review notes, and get cited answers — with a shared Company Hub when you choose to share. First, whose workspace is this?"
+            )
+            HStack(alignment: .top, spacing: 16) {
+                IdentityCard(
+                    markName: "ubundi-mark",
+                    title: "Ubundi",
+                    detail: "Open, precise, human. Light workspace with navy identity.",
+                    isSelected: theme == .ubundi
+                ) {
+                    themeRaw = BrandTheme.ubundi.rawValue
+                }
+                IdentityCard(
+                    markName: "first-motive-mark",
+                    title: "First Motive",
+                    detail: "Grounded, technical, warm. Signature dark aubergine workspace.",
+                    isSelected: theme == .firstMotive
+                ) {
+                    themeRaw = BrandTheme.firstMotive.rawValue
+                }
+            }
+            .frame(maxWidth: 640)
+            .padding(.top, 8)
+            Text("This sets your workspace identity and theme. Change it any time in Settings.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .transition(.opacity)
+    }
+
+    private var workspaceStep: some View {
+        HStack(alignment: .top, spacing: 36) {
+            VStack(alignment: .leading, spacing: 18) {
+                OnboardingEyebrow("Your workspace")
+                OnboardingTitle("Four ways to work, one place")
+                OnboardingLead(
+                    "Everything below runs on this Mac. Meetings, transcripts, and notes are yours — the Company Hub only sees what you choose to share."
+                )
+                Spacer()
+                Label(
+                    "New: the Company Hub adds shared context, agents, and company-wide search.",
+                    systemImage: "square.stack.3d.up"
+                )
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(palette.border, lineWidth: 1)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            BrandPanel(padding: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    OnboardingWorkflow(
+                        icon: "mic.fill", title: "Capture", detail: "Record live or import audio"
+                    )
+                    Divider()
+                    OnboardingWorkflow(
+                        icon: "text.quote", title: "Review",
+                        detail: "Transcript, summary, and notes"
+                    )
+                    Divider()
+                    OnboardingWorkflow(
+                        icon: "bubble.left.and.text.bubble.right", title: "Ask",
+                        detail: "Get answers with citations"
+                    )
+                    Divider()
+                    OnboardingWorkflow(
+                        icon: "waveform", title: "Dictate", detail: "Write by voice in any app"
+                    )
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 6)
+            }
+            .frame(width: 330)
+            .frame(maxHeight: .infinity, alignment: .center)
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .transition(.opacity)
+    }
+
+    private var accessStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            OnboardingEyebrow("Access")
+            OnboardingTitle("Choose the access each feature needs")
+            OnboardingLead(
+                "Notive asks for access only when a feature needs it. Grant what you like now — everything can wait until later in Settings."
+            )
+            VStack(spacing: 10) {
+                PermissionCard(
+                    icon: "mic",
+                    title: "Microphone",
+                    detail: "Needed to record meetings and dictate.",
+                    cta: "Allow",
+                    granted: permissions.microphone
+                ) {
+                    _ = await MicrophoneAuthorization.request()
+                    permissions.refresh()
+                }
+                PermissionCard(
+                    icon: "text.bubble",
+                    title: "Speech Recognition",
+                    detail: "Transcribes speech on this Mac — audio never leaves the device.",
+                    cta: "Allow",
+                    granted: permissions.speech
+                ) {
+                    _ = await SpeechAuthorization.request()
+                    permissions.refresh()
+                }
+                PermissionCard(
+                    icon: "rectangle.dashed.badge.record",
+                    title: "System Audio",
+                    detail: "Captures the other side of calls. Opens System Settings.",
+                    cta: "Open Settings",
+                    granted: permissions.systemAudio
+                ) {
+                    if !CGRequestScreenCaptureAccess(),
+                        let url = URL(
+                            string:
+                                "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+                        ) {
+                        NSWorkspace.shared.open(url)
+                    }
+                    permissions.refresh()
+                }
+            }
+            .frame(maxWidth: 600)
+            .padding(.top, 6)
+            Text("Permissions are optional and can be changed later in System Settings.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .transition(.opacity)
+    }
+
+    private var hubStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            OnboardingEyebrow("Company Hub")
+            OnboardingTitle("Join the shared workspace")
+            OnboardingLead(
+                "The hub is where the team — and the company agents — share context. Your meetings stay private unless you share them, one at a time."
+            )
+            GitHubIdentityCard(phase: identityPhase) {
+                await verifyGitHubIdentity()
+            }
+            .frame(maxWidth: 660)
+            .task { if identityPhase == .unchecked { await verifyGitHubIdentity() } }
+            HStack(alignment: .top, spacing: 16) {
+                BrandPanel(padding: 18) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Your profile in the hub")
+                            .font(.caption.weight(.bold))
+                            .textCase(.uppercase)
+                            .foregroundStyle(.tertiary)
+                        TextField("Your name", text: $profileName)
+                            .textFieldStyle(.roundedBorder)
+                        TextField("Role — e.g. Product Lead", text: $profileRole)
+                            .textFieldStyle(.roundedBorder)
+                        Text("Shown in People and next to anything you share.")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                BrandPanel(padding: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HubToggleRow(
+                            title: "Appear in People",
+                            detail: "Your name, role, and status are visible to the team.",
+                            isOn: $appearInPeople
+                        )
+                        Divider()
+                        HubToggleRow(
+                            title: "Show my shares in Activity",
+                            detail: "When you share a meeting, it appears in the company feed.",
+                            isOn: $shareActivity
+                        )
+                        Divider()
+                        HubToggleRow(
+                            title: "Let agents read what I share",
+                            detail: "Openclaw and Hermes can use your shared items — never local ones.",
+                            isOn: $agentsReadShared
+                        )
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 4)
+                }
+            }
+            .frame(maxWidth: 660)
+            .padding(.top, 6)
+            Label(
+                "Sharing a meeting to the hub is always a separate, explicit action — never automatic.",
+                systemImage: "lock"
+            )
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .transition(.opacity)
+    }
+
+    private var readyStep: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(palette.accent)
+                .frame(width: 64, height: 64)
+                .background(palette.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 18))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(palette.border, lineWidth: 1)
+                }
+                .accessibilityHidden(true)
+            OnboardingTitle(readyTitle)
+            Text("Recordings, transcripts, notes, and searches stay on this Mac. Notive asks before anything leaves it.")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 480)
+            VStack(spacing: 10) {
+                ForEach(Array(summaryChipRows.enumerated()), id: \.offset) { row in
+                    HStack(spacing: 10) {
+                        ForEach(row.element, id: \.label) { chip in
+                            Label(chip.label, systemImage: "checkmark")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(palette.surface, in: Capsule())
+                                .overlay { Capsule().stroke(palette.border, lineWidth: 1) }
+                        }
+                    }
+                }
+            }
+            .padding(.top, 6)
+        }
+        .padding(.horizontal, 44)
+        .padding(.vertical, 32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
+    }
+
+    private var readyTitle: String {
+        let firstName = profileName.trimmingCharacters(in: .whitespaces)
+            .split(separator: " ").first.map(String.init)
+        if let firstName, !firstName.isEmpty {
+            return "Your workspace is ready, \(firstName)"
+        }
+        return "Your local workspace is ready"
+    }
+
+    private struct SummaryChip {
+        let label: String
+    }
+
+    private var summaryChips: [SummaryChip] {
+        [
+            SummaryChip(label: "\(theme.title) workspace"),
+            SummaryChip(label: "\(permissions.grantedCount) of 3 permissions granted"),
+            SummaryChip(
+                label: githubLogin.isEmpty
+                    ? "GitHub not connected"
+                    : "GitHub: @\(githubLogin) · \(githubOrganization)"
+            ),
+            SummaryChip(label: appearInPeople ? "Visible in People" : "Hidden from People"),
+            SummaryChip(label: "Sharing: per-meeting, opt-in"),
+        ]
+    }
+
+    private var summaryChipRows: [[SummaryChip]] {
+        stride(from: 0, to: summaryChips.count, by: 3).map {
+            Array(summaryChips[$0..<min($0 + 3, summaryChips.count)])
         }
     }
 
-    private var detail: String {
-        switch page {
-        case 0:
-            "Record meetings, dictate text, review notes, and get cited answers in one place."
-        case 1:
-            "Notive asks for access only when a feature needs it. You can continue now and grant access later in Settings."
-        default:
-            "Recordings, transcripts, notes, searches, and default answers stay on this Mac. Notive asks before anything is sent outside this Mac."
+    private func verifyGitHubIdentity() async {
+        guard identityPhase != .checking else { return }
+        identityPhase = .checking
+        let service = GitHubIdentityService.live()
+        let status = await Task.detached { service.verify() }.value
+        identityPhase = .checked(status)
+        if case let .verified(identity, organization) = status {
+            githubLogin = identity.login
+            githubOrganization = organization
+            if profileName.trimmingCharacters(in: .whitespaces).isEmpty, let name = identity.name {
+                profileName = name
+            }
+        } else {
+            githubLogin = ""
+            githubOrganization = ""
+        }
+    }
+
+    // MARK: - Footer
+
+    private var footer: some View {
+        HStack(spacing: 14) {
+            if step > 0 {
+                Button("Back") {
+                    step -= 1
+                }
+            }
+            Spacer()
+            if step == 2 {
+                Text("Permissions are optional and can be changed later.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if step == 3 {
+                Text(
+                    isHubVerified
+                        ? "You can change all of this in Settings."
+                        : "Joining the hub needs a company GitHub identity — or skip for now."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            if step == 2 || step == 3 {
+                Button("Skip for now") { advance() }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+            }
+            Button(step == 4 ? "Start Using Notive" : "Continue") {
+                advance()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+            .disabled(step == 3 && !isHubVerified)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 18)
+    }
+
+    private var isHubVerified: Bool {
+        if case .checked(.verified) = identityPhase { return true }
+        return false
+    }
+
+    private func advance() {
+        if step == 4 {
+            isComplete = true
+        } else {
+            step += 1
         }
     }
 }
 
-private struct OnboardingFact: View {
-    let icon: String
-    let title: String
+// MARK: - GitHub identity check
+
+private enum GitHubCheckPhase: Equatable {
+    case unchecked
+    case checking
+    case checked(GitHubIdentityStatus)
+}
+
+private struct GitHubIdentityCard: View {
+    @Environment(\.brandTheme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
+    let phase: GitHubCheckPhase
+    let recheck: () async -> Void
 
     var body: some View {
-        Label(title, systemImage: icon)
-            .font(.headline)
+        HStack(spacing: 14) {
+            Image(systemName: iconName)
+                .foregroundStyle(iconColor)
+                .frame(width: 38, height: 38)
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(palette.border, lineWidth: 1)
+                }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            switch phase {
+            case .checking:
+                ProgressView()
+                    .controlSize(.small)
+            case .checked(.verified):
+                Label("Verified", systemImage: "checkmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(palette.accent)
+            default:
+                Button("Check Again") {
+                    Task { await recheck() }
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 15)
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isVerified ? palette.accent : palette.border, lineWidth: 1)
+        }
+        .animation(.easeInOut(duration: 0.25), value: phase)
+    }
+
+    private var isVerified: Bool {
+        if case .checked(.verified) = phase { return true }
+        return false
+    }
+
+    private var iconName: String {
+        switch phase {
+        case .checked(.verified): "person.badge.shield.checkmark"
+        case .checked(.notMember): "person.badge.minus"
+        default: "person.crop.circle.badge.questionmark"
+        }
+    }
+
+    private var iconColor: Color {
+        switch phase {
+        case .checked(.verified): palette.accent
+        case .checked(.notMember), .checked(.notAuthenticated), .checked(.cliMissing):
+            palette.warning
+        default: palette.secondaryAccent
+        }
+    }
+
+    private var title: String {
+        switch phase {
+        case .unchecked, .checking:
+            "GitHub identity"
+        case .checked(.cliMissing):
+            "GitHub CLI not found"
+        case .checked(.notAuthenticated):
+            "GitHub sign-in required"
+        case let .checked(.notMember(identity)):
+            "@\(identity.login) is not in a company organization"
+        case let .checked(.verified(identity, organization)):
+            "Signed in as @\(identity.login) · \(organization)"
+        }
+    }
+
+    private var detail: String {
+        switch phase {
+        case .unchecked, .checking:
+            "Checking the GitHub CLI on this Mac."
+        case .checked(.cliMissing):
+            "Install the GitHub CLI (gh), then check again."
+        case .checked(.notAuthenticated):
+            "Run “gh auth login” in Terminal, then check again."
+        case .checked(.notMember):
+            "The hub needs membership in Ubundi or first-motive on GitHub."
+        case .checked(.verified):
+            "Your company GitHub identity connects you to the hub."
+        }
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
+}
+
+// MARK: - Permission state
+
+@Observable
+private final class OnboardingPermissions {
+    var microphone = false
+    var speech = false
+    var systemAudio = false
+
+    var grantedCount: Int {
+        [microphone, speech, systemAudio].count(where: { $0 })
+    }
+
+    func refresh() {
+        microphone = MicrophoneAuthorization.currentStatus == .authorized
+        speech = SFSpeechRecognizer.authorizationStatus() == .authorized
+        systemAudio = CGPreflightScreenCaptureAccess()
+    }
+}
+
+// MARK: - Shared step typography
+
+private struct OnboardingEyebrow: View {
+    let text: String
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .font(.caption.weight(.bold))
+            .textCase(.uppercase)
+            .tracking(1.2)
+            .foregroundStyle(.tint)
+    }
+}
+
+private struct OnboardingTitle: View {
+    let text: String
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .font(.largeTitle.weight(.semibold))
+            .tracking(-0.6)
+    }
+}
+
+private struct OnboardingLead: View {
+    let text: String
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .font(.title3)
+            .foregroundStyle(.secondary)
+            .lineSpacing(3)
+            .frame(maxWidth: 540, alignment: .leading)
+    }
+}
+
+// MARK: - Step components
+
+private struct IdentityCard: View {
+    @Environment(\.brandTheme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
+    let markName: String
+    let title: String
+    let detail: String
+    let isSelected: Bool
+    let select: () -> Void
+
+    var body: some View {
+        Button(action: select) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12) {
+                    Group {
+                        if let image = BrandAssets.image(named: markName) {
+                            Image(nsImage: image)
+                                .resizable()
+                                .scaledToFit()
+                        } else {
+                            Image(systemName: "waveform.badge.mic")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(8)
+                        }
+                    }
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    Text(title)
+                        .font(.headline)
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.body.weight(.bold))
+                            .foregroundStyle(palette.accent)
+                    }
+                }
+                Text(detail)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(22)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? palette.accent : palette.border, lineWidth: 2)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
+}
+
+private struct PermissionCard: View {
+    @Environment(\.brandTheme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
+    let icon: String
+    let title: String
+    let detail: String
+    let cta: String
+    let granted: Bool
+    let request: () async -> Void
+    @State private var isRequesting = false
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .foregroundStyle(granted ? palette.accent : palette.secondaryAccent)
+                .frame(width: 38, height: 38)
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(palette.border, lineWidth: 1)
+                }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if granted {
+                Label("Granted", systemImage: "checkmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(palette.accent)
+            } else {
+                Button(cta) {
+                    isRequesting = true
+                    Task {
+                        await request()
+                        isRequesting = false
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(isRequesting)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 15)
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(granted ? palette.accent : palette.border, lineWidth: 1)
+        }
+        .animation(.easeInOut(duration: 0.25), value: granted)
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
+}
+
+private struct HubToggleRow: View {
+    let title: String
+    let detail: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.callout.weight(.semibold))
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Toggle(title, isOn: $isOn)
+                .toggleStyle(.switch)
+                .labelsHidden()
+                .controlSize(.small)
+        }
+        .padding(.vertical, 11)
+        .contentShape(Rectangle())
+        .onTapGesture { isOn.toggle() }
     }
 }
 
@@ -189,29 +817,5 @@ private struct OnboardingWorkflow: View {
             Spacer()
         }
         .padding(.vertical, 13)
-    }
-}
-
-private struct PermissionButton: View {
-    let title: String
-    let systemImage: String
-    let action: () async -> Void
-    @State private var requested = false
-    @State private var isRequesting = false
-
-    var body: some View {
-        Button(
-            requested ? "\(title) Requested" : isRequesting ? "Requesting \(title)" : "Allow \(title)",
-            systemImage: requested ? "checkmark" : systemImage
-        ) {
-            isRequesting = true
-            Task {
-                await action()
-                requested = true
-                isRequesting = false
-            }
-        }
-        .buttonStyle(.bordered)
-        .disabled(requested || isRequesting)
     }
 }
