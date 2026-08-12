@@ -23,6 +23,10 @@ public actor NotificationService {
             preferenceKey: preferenceKey,
             enabled: enabled
         ) else { return false }
+        // UserNotifications requires an application bundle. SwiftPM tests and
+        // command-line launches do not have one and can raise an Objective-C
+        // exception before the async API can return an error.
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return false }
 
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()

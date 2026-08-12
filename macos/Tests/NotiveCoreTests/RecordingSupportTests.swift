@@ -63,6 +63,35 @@ struct RecordingSupportTests {
         )
     }
 
+    @Test("Microphone-only mixing creates a real M4A playback file")
+    func microphoneOnlyMixing() async throws {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("notive-mix-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let microphoneURL = folder.appendingPathComponent("microphone.wav")
+        let outputURL = folder.appendingPathComponent("audio.m4a")
+        let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
+        do {
+            let file = try AVAudioFile(forWriting: microphoneURL, settings: format.settings)
+            let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000))
+            buffer.frameLength = 16_000
+            try file.write(from: buffer)
+        }
+
+        _ = try await AudioMixingService().mix(
+            microphoneURL: microphoneURL,
+            systemAudioURL: nil,
+            outputURL: outputURL
+        )
+
+        let data = try Data(contentsOf: outputURL, options: .mappedIfSafe)
+        let microphoneData = try Data(contentsOf: microphoneURL, options: .mappedIfSafe)
+        #expect(data.count > 12)
+        #expect(String(decoding: data[4..<8], as: UTF8.self) == "ftyp")
+        #expect(data != microphoneData)
+    }
+
     @Test("Adjacent recognized words form readable utterances")
     @MainActor
     func utterances() {
@@ -117,6 +146,17 @@ struct RecordingSupportTests {
         #expect(snapshot.averagePower == -24)
         state.setAcceptsAudio(false)
         #expect(!state.shouldAcceptAudio())
+    }
+
+    @Test("Cancelling capture releases the microphone audio engine")
+    @MainActor
+    func captureCancellationReleasesEngine() {
+        let service = LiveMeetingCaptureService()
+        let activeEngine = service.audioEngineIdentity
+
+        service.cancel()
+
+        #expect(service.audioEngineIdentity != activeEngine)
     }
 
     @Test("Legacy recording preferences migrate without replacing native choices")
