@@ -15,7 +15,7 @@ The product is the native Swift 6.1 and SwiftUI macOS application in `macos/`. `
 
 ## Boundaries
 
-- Preserve the bundle identifier `com.ubundi.meet`, the database at `~/Library/Application Support/com.ubundi.meet/`, and compatible meeting data unless Matthew approves a migration.
+- Preserve the bundle identifier `com.ubundi.meet`, the active database at `~/Library/Application Support/Notive/`, the additive import from `~/Library/Application Support/com.ubundi.meet/`, and compatible meeting data unless Matthew approves another migration.
 - Keep recording, transcription, SQLite storage, retrieval, citations, and default answer generation on the Mac. Require the existing confirmation boundary before an external Ask provider receives a question and selected evidence.
 - Use Apple system frameworks and the authenticated GitHub CLI update path before proposing a production dependency.
 - Treat `dist/`, `target/`, `.next/`, Swift `.build/`, and generated migration inventories as derived output. Change their source or generator.

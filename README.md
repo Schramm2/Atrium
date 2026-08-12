@@ -42,7 +42,7 @@ The `Notive` target owns native scenes and views. The `NotiveCore` target owns l
 
 Notive is growing from a private meeting assistant into a private company intelligence workspace that connects conversations, shared knowledge, people, and agents. See [Product vision](docs/product-vision.md) for the product model, privacy boundary, and planned Grounding integration.
 
-The application keeps its compatible bundle identifier, `com.ubundi.meet`, and reads the existing database under `~/Library/Application Support/com.ubundi.meet/`.
+The application keeps its compatible bundle identifier, `com.ubundi.meet`, and stores active data under `~/Library/Application Support/Notive/`. It can restore compatible data from the earlier `~/Library/Application Support/com.ubundi.meet/` folder without changing the earlier copy.
 
 ## Privacy and notices
 

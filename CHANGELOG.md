@@ -6,8 +6,13 @@ This project uses stable semantic versions in the form `X.Y.Z`.
 
 ## Unreleased
 
+### Added
+
+- Onboarding, the workspace, and Settings can restore non-duplicate meetings and available recordings from an earlier Notive installation.
+
 ### Changed
 
+- Active application data now uses `~/Library/Application Support/Notive/`; the earlier `com.ubundi.meet` folder remains unchanged during restoration.
 - Notive now has one supported implementation: the native Swift and SwiftUI macOS application.
 - Native bundle assets now live with the macOS source.
 - Private GitHub Releases, tags, and authenticated GitHub CLI now provide application updates.

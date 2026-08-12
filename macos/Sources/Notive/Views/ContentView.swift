@@ -10,6 +10,8 @@ struct ContentView: View {
     @AppStorage("notive.onboarding.complete") private var onboardingComplete = false
     @AppStorage("notive.appearance") private var appearance = "system"
     @State private var isAudioDropTargeted = false
+    @State private var didPresentOnboardingThisLaunch = false
+    @State private var dismissedPreviousInstallationNotice = false
     /// No shared workspace is connected yet, so this holds the disconnected provider.
     @State private var hub = CompanyHubStore()
 
@@ -25,6 +27,14 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 if updater.updateNoticeVersion != nil {
                     UpdateBanner(updater: updater)
+                }
+                if let installation = store.previousInstallation,
+                   onboardingComplete,
+                   !didPresentOnboardingThisLaunch,
+                   !dismissedPreviousInstallationNotice {
+                    PreviousInstallationBanner(store: store, installation: installation) {
+                        dismissedPreviousInstallationNotice = true
+                    }
                 }
                 if let message = store.errorMessage {
                     ErrorBanner(message: message) {
@@ -47,7 +57,12 @@ struct ContentView: View {
                 ? .dark
                 : appearance == "light" ? .light : appearance == "dark" ? .dark : nil
         )
-        .onAppear { GlobalDictationShortcut.shared.install(store: store) }
+        .onAppear {
+            if !onboardingComplete {
+                didPresentOnboardingThisLaunch = true
+            }
+            GlobalDictationShortcut.shared.install(store: store)
+        }
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first(where: isSupportedAudio) else { return false }
             Task {
@@ -70,7 +85,7 @@ struct ContentView: View {
             get: { !onboardingComplete },
             set: { if !$0 { onboardingComplete = true } }
         )) {
-            OnboardingView(isComplete: $onboardingComplete)
+            OnboardingView(store: store, isComplete: $onboardingComplete)
         }
     }
 

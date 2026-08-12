@@ -18,24 +18,24 @@ The script:
 3. Verifies the nested ad-hoc code signature.
 4. Replaces `/Applications/Notive.app` through a staged copy with rollback.
 5. Registers the application with Launch Services.
-6. Writes the installed-source receipt to `~/Library/Application Support/com.ubundi.meet/installed-build.txt`.
+6. Writes the installed-source receipt to `~/Library/Application Support/Notive/installed-build.txt`.
 
 The local build includes uncommitted worktree changes. Review the printed list before installation.
 
 ## Data compatibility
 
-The native application keeps bundle identifier `com.ubundi.meet` and uses the existing database beneath:
+The native application keeps bundle identifier `com.ubundi.meet` and uses the active database beneath:
 
 ```text
-~/Library/Application Support/com.ubundi.meet/
+~/Library/Application Support/Notive/
 ```
 
-The installer does not move, rewrite, or delete application data.
+The application can restore compatible data from `~/Library/Application Support/com.ubundi.meet/` after user confirmation. The installer does not move, rewrite, or delete application data.
 
 ## Verify the installed source
 
 ```bash
-cat "$HOME/Library/Application Support/com.ubundi.meet/installed-build.txt"
+cat "$HOME/Library/Application Support/Notive/installed-build.txt"
 git rev-parse HEAD
 ```
 

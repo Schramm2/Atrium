@@ -16,7 +16,7 @@ Notive keeps these operations on the user's Mac:
 - Apple Intelligence or deterministic local answer generation
 - Local Dictation audio and text
 
-Notive stores application data under `~/Library/Application Support/com.ubundi.meet/`. Recordings use the selected local recording folder. The application does not add encryption at rest; macOS account and file-system controls protect local data.
+Notive stores active application data under `~/Library/Application Support/Notive/`. It can copy compatible meeting data from the earlier `~/Library/Application Support/com.ubundi.meet/` folder after user confirmation. Recordings use the selected local recording folder. The application does not add encryption at rest; macOS account and file-system controls protect local data.
 
 ## External AI providers
 

@@ -30,6 +30,9 @@ public final class AppStore {
     public private(set) var isPreparingDictation = false
     public private(set) var isProcessingDictation = false
     public private(set) var dictationText = ""
+    public private(set) var previousInstallation: PreviousInstallation?
+    public private(set) var isRestoringPreviousData = false
+    public private(set) var previousInstallationRestoreError: String?
     public var errorMessage: String?
 
     public let databaseURL: URL
@@ -63,7 +66,10 @@ public final class AppStore {
 
     public convenience init() throws {
         let url = try SQLiteDatabase.defaultDatabaseURL()
-        try self.init(databaseURL: url)
+        try self.init(
+            databaseURL: url,
+            previousInstallation: PreviousInstallationService.find(currentDatabaseURL: url)
+        )
     }
 
     public init(
@@ -71,17 +77,52 @@ public final class AppStore {
         transcription: any SpeechTranscribing = SpeechTranscriptionService(),
         recordingsFolder: @escaping () -> URL = { RecordingPreferenceStore.folder() },
         askAnswerer: any AskAnswering = LocalIntelligenceService(),
-        askConfiguration: @escaping () -> AIConfiguration = { AIConfiguration.load() }
+        askConfiguration: @escaping () -> AIConfiguration = { AIConfiguration.load() },
+        previousInstallation: PreviousInstallation? = nil
     ) throws {
         self.databaseURL = databaseURL
         self.transcription = transcription
         self.recordingsFolder = recordingsFolder
         self.askAnswerer = askAnswerer
         self.askConfiguration = askConfiguration
+        self.previousInstallation = previousInstallation
         database = try SQLiteDatabase(url: databaseURL)
-        try? RecordingPreferenceStore.migrateLegacyPreferences(
-            from: databaseURL.deletingLastPathComponent()
-        )
+        for folder in [databaseURL.deletingLastPathComponent(), previousInstallation?.applicationSupportURL] {
+            guard let folder else { continue }
+            try? RecordingPreferenceStore.migrateLegacyPreferences(from: folder)
+        }
+    }
+
+    /// Copies the meetings held by an earlier installation into this one.
+    ///
+    /// Meetings Notive already holds stay unchanged.
+    @discardableResult
+    public func restorePreviousInstallation() async -> PreviousInstallationImport? {
+        guard let installation = previousInstallation, !isRestoringPreviousData else { return nil }
+        isRestoringPreviousData = true
+        previousInstallationRestoreError = nil
+        defer { isRestoringPreviousData = false }
+
+        let database = database
+        let folder = recordingsFolder()
+        do {
+            let summary = try await Task.detached {
+                try PreviousInstallationService.restore(
+                    installation,
+                    into: database,
+                    recordingsFolder: folder
+                )
+            }.value
+            previousInstallation = nil
+            reloadMeetings()
+            return summary
+        } catch {
+            let message = "Notive could not read the meetings from the earlier installation."
+            previousInstallationRestoreError = message
+            errorMessage = message
+            DiagnosticLogger.failure(operation: "previous_installation_restore", error: error)
+            return nil
+        }
     }
 
     public func start() {

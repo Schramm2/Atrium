@@ -20,7 +20,7 @@ Notive keeps recording, transcription, storage, retrieval, citation construction
 
 ## Operating Context
 
-Notive is an internal desktop workspace used during and after meetings. It supports live capture, imported audio, timed transcripts, meeting-scoped speaker aliases, summaries, Markdown notes, evidence citations, playback, global Local Dictation, native notifications, and a menu-bar control surface. It reads and writes the existing local database under `~/Library/Application Support/com.ubundi.meet/` and stores recordings locally.
+Notive is an internal desktop workspace used during and after meetings. It supports live capture, imported audio, timed transcripts, meeting-scoped speaker aliases, summaries, Markdown notes, evidence citations, playback, global Local Dictation, native notifications, and a menu-bar control surface. It reads and writes the local database under `~/Library/Application Support/Notive/`, can restore data from the earlier `~/Library/Application Support/com.ubundi.meet/` folder, and stores recordings locally.
 
 ## Capabilities and Constraints
 

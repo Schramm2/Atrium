@@ -25,7 +25,7 @@ public enum SystemAudioCaptureError: LocalizedError {
 
 @MainActor
 public final class SystemAudioCaptureService {
-    private let sampleQueue = DispatchQueue(label: "com.ubundi.meet.system-audio")
+    private let sampleQueue = DispatchQueue(label: "Notive.system-audio")
     private var stream: SCStream?
     private var sampleWriter: SystemAudioSampleWriter?
     private var outputURL: URL?
