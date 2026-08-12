@@ -31,6 +31,6 @@ jobs:
       - name: Verify package
         run: |
           VERSION="$(plutil -extract version raw macos/version.json)"
-          codesign --verify --deep --strict dist/Notive.app
+          codesign --verify --deep --strict dist/.Notive.app
           hdiutil verify "dist/Notive-$VERSION-arm64.dmg"
           test -s "dist/Notive.dmg"
