@@ -37,6 +37,36 @@ Company Hub contains only company-visible information. It includes items that ow
 
 Nothing crosses from My Workspace to Company Hub by default. Sharing is a per-item choice. The owner must be able to see the sharing state and withdraw a shared item.
 
+## Highest-priority privacy invariant
+
+**Sensitive personal content stays on the person's Mac.** This is a product invariant and a release requirement, not an optional setting or later hardening task. A shared backend, Grounding connection, or company agent must not weaken it.
+
+Local-only content includes:
+
+- private meetings, notes, dictation, drafts, and search history that the owner did not share;
+- meeting recordings and the acoustic features used for local voice grouping;
+- credentials, authentication tokens, and recovery information;
+- private contact details and personal profile information that the company workspace does not need;
+- health, financial, identity, family, and other personal-life information;
+- private employment information such as compensation, performance, disciplinary, or wellbeing records; and
+- any content that the owner marks as private or that company policy excludes from shared systems.
+
+The shared company scope can contain the minimum work identity needed for collaboration, such as a person's name, company, role, and stated work focus. It must not become a general employee profile or personnel system.
+
+Before Notive shares meeting or note text, it must:
+
+1. show the exact content and destination to the owner;
+2. detect and remove likely sensitive personal content on the Mac;
+3. let the owner edit or cancel the share;
+4. send only the approved text and minimum metadata; and
+5. record what was shared without copying the private source into the shared database.
+
+Local detection is a safeguard, not proof that content is safe. Owner review remains required. Notive must not send private content to an external service to decide whether that content is private.
+
+Sensitive personal content must also stay out of analytics, crash reports, logs, notifications, agent prompts, agent output, search indexes, embeddings, caches, and backups outside the Mac. Automated agents must use the same boundary as the interface and must not share local context on a user's behalf.
+
+If Notive cannot prove that a write stays within the approved shared content, it must fail closed and keep the content local.
+
 ## The company intelligence loop
 
 The central product loop is:
@@ -124,11 +154,13 @@ Before implementation, an accepted architecture decision must define:
 
 The MCP retrieval connection must not silently turn every local meeting into company knowledge. Publishing a meeting from Notive to the Company Hub or Grounding remains a separate, explicit owner action.
 
+Questions sent to Grounding leave the Mac and become subject to Grounding's query audit. Notive must make this scope clear before submission. A question that contains sensitive personal content must stay in local Ask and must not be sent through MCP.
+
 ## Product principles
 
 ### Local by default
 
-Capture and private thinking stay on the Mac. A connected company service does not change the default scope.
+Capture, recordings, sensitive personal content, and private thinking stay on the Mac. A connected company service does not change the default scope.
 
 ### Share with intent
 
@@ -158,19 +190,169 @@ The Company Hub interface and its service contract are implemented. The default 
 
 Grounding already has company-source ingestion, cited retrieval, user identity, and per-user access controls in its proof of concept. Its MCP service and the Notive integration are not implemented.
 
+## Functionality still to implement
+
+Yes, Company Hub needs a backend and shared database. The local SQLite database belongs to one person's private workspace. It cannot coordinate multiple users, shared items, company agents, permissions, or activity across Macs.
+
+The likely system shape is:
+
+```mermaid
+flowchart LR
+    App["Notive on each Mac"] -->|"Authenticated Company Hub API"| Hub["Company Hub backend"]
+    Hub --> SharedDB["Shared relational database"]
+    Hub --> Agents["Company agent runtimes"]
+    App -.->|"Future user-authenticated MCP"| Grounding["Grounding"]
+    Grounding --> Knowledge["Company knowledge and cited retrieval"]
+```
+
+This diagram is a product-level proposal, not an accepted deployment design. An ADR must select the backend, database, hosting, authentication, and transport.
+
+### Data ownership
+
+The systems have different responsibilities:
+
+| System | Responsibility | Must not become |
+| --- | --- | --- |
+| Local Notive SQLite | Private meetings, transcripts, notes, summaries, settings, and local search | A shared company database |
+| Company Hub database | Users, memberships, shared-item metadata, agent registry, threads, run state, activity, permissions, and unread state | A copy of every private workspace |
+| Grounding | Ingested company knowledge, access-controlled retrieval, citations, and knowledge relationships | The authority for Company Hub operational state unless an ADR explicitly assigns that role |
+| Shared object storage, if needed | Large shared files or attachments | A default destination for private recordings |
+
+A relational database such as PostgreSQL is a likely fit for Company Hub because accounts, permissions, threads, activity, and sharing relationships need transactions and clear constraints. This is not yet a selected technology. If the first version shares only transcript text, notes, and metadata, it might not need object storage. Shared audio or large attachments would add that requirement.
+
+### Shared backend foundation
+
+Implement a network service that conforms to the behavior expected by `CompanyHubProviding`. It needs:
+
+- a versioned authenticated API;
+- persistent shared data and database migrations;
+- company membership and workspace isolation;
+- validation, rate limits, and idempotent writes;
+- pagination and bounded queries for lists, threads, activity, and search;
+- reliable error responses that Notive can explain;
+- backup, restore, retention, and deletion procedures; and
+- development, test, and production environments.
+
+### Accounts, identity, and access
+
+Implement:
+
+- user sign-in, sign-out, session renewal, and account recovery;
+- membership in Ubundi, First Motive, or the shared company workspace;
+- roles for members, administrators, and agents;
+- per-item read, share, withdraw, and delete permissions;
+- an identity for each company agent;
+- secure token storage in macOS Keychain;
+- access checks on every backend read and write; and
+- an audit record for sensitive reads, shares, withdrawals, agent actions, and administration.
+
+The design must decide whether Notive has its own account system or uses the same identity provider and user identity as Grounding. One shared company identity is preferable, but it must not be assumed until the account mapping is designed and tested.
+
+### Sharing and synchronization
+
+Implement the complete sharing lifecycle:
+
+- show exactly which local meeting or note will be shared;
+- run sensitive-content detection and redaction locally before any network write;
+- publish only the selected content and required metadata;
+- record the owner, source, sharing time, and current sharing state;
+- prevent duplicate shares when a request is retried;
+- let the owner update or withdraw a shared item;
+- propagate withdrawals to Company Hub search and downstream knowledge systems;
+- define what happens to citations and agent output after a source is withdrawn;
+- synchronize shared state across Macs;
+- handle offline use, retries, conflicts, and partial failures;
+- keep meeting recordings and voice-grouping features local; and
+- block a share when its approved payload cannot be separated from local-only content.
+
+### Company Hub product surfaces
+
+Connect the existing screens to real shared behavior:
+
+- **Company:** shared measures, recent knowledge, agent status, and open activity;
+- **Agents:** agent roster, run state, company-visible threads, message sending, and output review;
+- **Shared Context:** shared items, filters, provenance, share, update, and withdrawal;
+- **People:** company directory, roles, current focus, status, and distinct agent entries;
+- **Search:** one experience that combines the user's private local results with permitted shared results without merging their visibility; and
+- **Activity:** ordered events, unread state, mark-all-read, and links to their source objects.
+
+The application also needs loading, empty, unavailable, permission-denied, partial-result, and retry states for every connected screen.
+
+### Agent operations
+
+The current interface represents agents, but no agent runtime is connected. Implement:
+
+- an agent registry with roles, owners, capabilities, and status;
+- authenticated messaging and company-visible threads;
+- run creation, progress, cancellation, completion, and failure states;
+- durable run history and reviewable output;
+- source and citation capture for agent output;
+- explicit approval for actions that affect external systems or other people;
+- permissions based on the acting user or the agent's own principal; and
+- an audit trail that distinguishes a person, an agent, and the person who requested a run.
+
+### Grounding and MCP
+
+Grounding must complete and approve its MCP service before Notive can depend on it. The integration then needs:
+
+- a Notive account-linking flow for each Grounding user;
+- secure MCP session authentication and token renewal;
+- a tested mapping from the Notive account to the Grounding principal;
+- tools for permitted company search, entity lookup, related knowledge, people expertise, and recent activity;
+- citations and source metadata that Notive can render;
+- Grounding access checks and query audit for every tool call;
+- a clear warning that an MCP question leaves the Mac and enters Grounding's audit history;
+- a local-only path for questions that contain sensitive personal content;
+- clear unavailable, expired-session, denied, and partial-result behavior; and
+- a separate approved ingestion or publishing path for shared Notive content.
+
+MCP retrieval does not replace the Company Hub backend. Grounding can answer questions from company knowledge, but Company Hub still needs an operational source of truth for memberships, agent conversations, run state, sharing state, activity, and unread state. A later ADR can combine responsibilities only if Grounding provides the required operational contracts without weakening its knowledge and access boundaries.
+
+### Security and operations
+
+Before the shared service can be used by the company, implement and verify:
+
+- encrypted network transport and secure secret management;
+- least-privilege service and database access;
+- structured logs that do not contain meeting content or credentials;
+- local-only processing for sensitive-content detection and redaction;
+- monitoring for availability, failed jobs, denied access, and synchronization errors;
+- database backups and tested recovery;
+- account removal, content retention, export, and deletion workflows;
+- dependency, vulnerability, and access reviews;
+- end-to-end tests for privacy boundaries, local redaction, sharing, withdrawal, search, and agent permissions; and
+- release-blocking tests that prove local-only content does not enter network requests, logs, analytics, shared search, agent context, or remote caches.
+
+### Decisions required before implementation
+
+Write and accept ADRs for:
+
+- Company Hub service ownership and hosting;
+- the shared database and migration strategy;
+- account identity, authentication, and organisation membership;
+- authorization and agent principals;
+- the API and synchronization protocol;
+- shared-content storage, retention, withdrawal, and deletion;
+- the local-only sensitive-content classification, detection, and enforcement boundary;
+- Grounding MCP authentication and principal mapping; and
+- agent runtime, approval, and audit boundaries.
+
 The expected delivery order is:
 
 1. Keep the local and shared scope boundary explicit in the product.
-2. Define and approve the shared Company Hub architecture.
-3. Connect shared items, people, agents, search, and activity through `CompanyHubProviding`.
-4. Complete and approve Grounding's MCP service and identity mapping.
-5. Connect Notive to Grounding with each user's account and enforce cited, audited retrieval.
-6. Add agent workflows only after their identities, access, review, and audit rules are clear.
+2. Define and approve identity, authorization, and the shared Company Hub architecture.
+3. Build the backend, shared database, account flow, and sharing lifecycle.
+4. Connect shared items, people, search, and activity through `CompanyHubProviding`.
+5. Connect agent identities, threads, runs, review, and audit.
+6. Complete and approve Grounding's MCP service and identity mapping.
+7. Connect Notive to Grounding with each user's account and enforce cited, audited retrieval.
+8. Expand agent workflows only after their access, approval, review, and audit rules are verified.
 
 ## Success
 
 Notive succeeds when:
 
+- sensitive personal content stays on the person's Mac in every supported workflow;
 - important conversations strengthen company memory;
 - people can find trusted knowledge without asking who remembers it;
 - agents work from approved context and produce reviewable output;
