@@ -127,7 +127,7 @@ struct DictationView: View {
                 systemImage: "mic"
             )
             Divider()
-            SetupValue(title: "Processing", value: "Apple on-device speech", systemImage: "cpu")
+            SetupValue(title: "Processing", value: "On this Mac", systemImage: "cpu")
         }
     }
 

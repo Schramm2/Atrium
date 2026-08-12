@@ -17,7 +17,7 @@ struct UpdaterServiceTests {
 
         #expect(service.phase == .available("0.5.2"))
         #expect(service.updateNoticeVersion == "0.5.2")
-        #expect(service.primaryActionTitle == "Update to v0.5.2…")
+        #expect(service.primaryActionTitle == "Update to 0.5.2…")
     }
 
     @Test("Automatic checks can discover a release published after launch")

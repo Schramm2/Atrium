@@ -9,13 +9,13 @@ public enum LanguageProviderError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            "The selected AI provider needs an API key."
+            "Enter an API key for the selected AI service, then try again."
         case .invalidEndpoint:
-            "The selected AI provider endpoint is invalid."
+            "Enter a valid service URL, then try again."
         case .invalidResponse:
-            "The AI provider returned an invalid response."
-        case let .requestFailed(code, message):
-            "The AI provider returned HTTP \(code): \(message)"
+            "The AI service returned an answer that Notive could not use. Try again."
+        case .requestFailed:
+            "The AI service could not complete the request. Check its settings and try again."
         }
     }
 }

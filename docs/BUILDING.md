@@ -15,7 +15,7 @@ Notive is a native macOS application. Swift Package Manager builds the applicati
 ./script/build_and_run.sh run
 ```
 
-The script builds `macos/`, creates `dist/Notive.app`, applies an ad-hoc signature, and opens the exact bundle.
+The script builds `macos/`, stages the application as the hidden bundle `dist/.Notive.app`, applies an ad-hoc signature, and opens that exact bundle. Hiding the development bundle prevents Launchpad from presenting it as a second installed copy of Notive.
 
 The internal build has no Apple Developer ID signature and is not notarized. On the first launch of a downloaded build, try to open Notive once, then open **System Settings → Privacy & Security** and select **Open Anyway**. Only override this warning for a Notive artifact that came from the repository's trusted release process. See [Apple's warning-flow guidance](https://support.apple.com/guide/mac-help/mh40616/mac).
 
@@ -29,7 +29,7 @@ An ad-hoc signature identifies one exact build. A rebuilt or updated Notive bund
 
 This creates:
 
-- `dist/Notive.app`
+- `dist/.Notive.app`, the hidden staging bundle
 - `dist/Notive-<version>-arm64.dmg`, for first installation
 - `dist/Notive.dmg`, as the stable latest-release asset
 

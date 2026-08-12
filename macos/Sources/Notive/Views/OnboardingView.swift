@@ -58,9 +58,9 @@ struct OnboardingView: View {
                             permissionControls
                         } else if page == 2 {
                             VStack(alignment: .leading, spacing: 11) {
-                                OnboardingFact(icon: "internaldrive", title: "Local meeting database")
-                                OnboardingFact(icon: "text.bubble", title: "On-device transcription")
-                                OnboardingFact(icon: "checkmark.shield", title: "Explicit external evidence sharing")
+                                OnboardingFact(icon: "internaldrive", title: "Meeting data stays on this Mac")
+                                OnboardingFact(icon: "text.bubble", title: "Transcription stays on this Mac")
+                                OnboardingFact(icon: "checkmark.shield", title: "You choose when transcript excerpts leave this Mac")
                             }
                             .padding(.top, 4)
                         }
@@ -76,7 +76,7 @@ struct OnboardingView: View {
                                 Divider()
                                 OnboardingWorkflow(icon: "text.quote", title: "Review", detail: "Transcript, summary, and notes")
                                 Divider()
-                                OnboardingWorkflow(icon: "bubble.left.and.text.bubble.right", title: "Recall", detail: "Ask with cited evidence")
+                                OnboardingWorkflow(icon: "bubble.left.and.text.bubble.right", title: "Ask", detail: "Get answers with citations")
                                 Divider()
                                 OnboardingWorkflow(icon: "waveform", title: "Dictate", detail: "Write by voice in any app")
                             }
@@ -153,11 +153,11 @@ struct OnboardingView: View {
     private var detail: String {
         switch page {
         case 0:
-            "Capture meetings, dictate text, review notes, and recall cited evidence without splitting the work across tools."
+            "Record meetings, dictate text, review notes, and get cited answers in one place."
         case 1:
             "Notive asks for access only when a feature needs it. You can continue now and grant access later in Settings."
         default:
-            "Recordings, transcripts, notes, retrieval, and default answers stay on this Mac. External AI use is always explicit."
+            "Recordings, transcripts, notes, searches, and default answers stay on this Mac. Notive asks before anything is sent outside this Mac."
         }
     }
 }

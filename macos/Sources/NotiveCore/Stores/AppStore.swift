@@ -288,9 +288,15 @@ public final class AppStore {
                 cancelAsk()
                 return
             }
-            askPhase = .failed(error.localizedDescription)
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            let message = "Notive could not answer this question. Check your model settings and try again."
+            askPhase = .failed(message)
+            report(
+                error,
+                operation: "ask_generate",
+                userMessage: message,
+                context: "provider=\(configuration.provider.rawValue) model=\(configuration.model)",
+                showBanner: false
+            )
         }
         if activeAskOperationID == operationID {
             activeAskOperationID = nil
@@ -342,8 +348,11 @@ public final class AppStore {
         } catch {
             guard activeSummaryOperationID == operationID else { return }
             if Task.isCancelled || error is CancellationError { return }
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "summary_generate",
+                userMessage: "Notive could not create the summary. Try again."
+            )
         }
     }
 
@@ -351,7 +360,11 @@ public final class AppStore {
         do {
             return try MeetingSummaryPreferenceStore.language(for: meeting) ?? "auto"
         } catch {
-            errorMessage = "Notive could not read the summary language. \(error.localizedDescription)"
+            report(
+                error,
+                operation: "summary_language_read",
+                userMessage: "Notive could not read the summary language. The automatic setting will be used."
+            )
             return "auto"
         }
     }
@@ -361,8 +374,11 @@ public final class AppStore {
             try MeetingSummaryPreferenceStore.save(language, for: meeting)
             errorMessage = nil
         } catch {
-            errorMessage = "Notive could not save the summary language. \(error.localizedDescription)"
-            notifyError(error)
+            report(
+                error,
+                operation: "summary_language_save",
+                userMessage: "Notive could not save the summary language. Try again."
+            )
         }
     }
 
@@ -381,8 +397,11 @@ public final class AppStore {
             isPlaying = playback.isPlaying
             startPlaybackTimer()
         } catch {
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "audio_playback_toggle",
+                userMessage: "Notive could not play this recording. Check that the audio file is still available."
+            )
         }
     }
 
@@ -402,8 +421,11 @@ public final class AppStore {
             isPlaying = playback.isPlaying
             startPlaybackTimer()
         } catch {
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "audio_playback_seek",
+                userMessage: "Notive could not play this citation. Check that the audio file is still available."
+            )
         }
     }
 
@@ -477,8 +499,11 @@ public final class AppStore {
         } catch {
             guard activeRetranscriptionOperationID == operationID else { return }
             if Task.isCancelled || error is CancellationError { return }
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "meeting_retranscribe",
+                userMessage: "Notive could not transcribe this recording. Check Speech Recognition access and try again."
+            )
         }
     }
 
@@ -493,8 +518,11 @@ public final class AppStore {
         defer { isPreparingDictation = false }
         guard await dictationRecorder.requestPermission() else {
             let error = AudioRecordingError.permissionDenied
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "dictation_start",
+                userMessage: "Notive could not start Dictation. Check Microphone access and try again."
+            )
             return
         }
         guard !Task.isCancelled else { return }
@@ -512,8 +540,11 @@ public final class AppStore {
             isDictating = true
         } catch {
             guard !(error is CancellationError) else { return }
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "dictation_transcribe",
+                userMessage: "Notive could not transcribe the dictation. Try again."
+            )
         }
     }
 
@@ -541,8 +572,11 @@ public final class AppStore {
         } catch {
             guard activeDictationOperationID == operationID else { return }
             if Task.isCancelled || error is CancellationError { return }
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            report(
+                error,
+                operation: "dictation_transcribe",
+                userMessage: "Notive could not transcribe the dictation. Try again."
+            )
         }
     }
 
@@ -570,9 +604,9 @@ public final class AppStore {
         defer { isStartingRecording = false }
         guard await recorder.requestPermission() else {
             let error = AudioRecordingError.permissionDenied
-            recordingState = .failed(error.localizedDescription)
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            let message = "Microphone access is required. Allow access in System Settings, then try again."
+            recordingState = .failed(message)
+            report(error, operation: "recording_authorize", userMessage: message)
             return
         }
         guard !Task.isCancelled else { return }
@@ -608,7 +642,13 @@ public final class AppStore {
                     isCapturingSystemAudio = true
                 } catch {
                     isCapturingSystemAudio = false
-                    errorMessage = "Microphone recording started without system audio. \(error.localizedDescription)"
+                    let message = "Recording started with microphone audio only. Check Screen Recording access before the next meeting."
+                    errorMessage = message
+                    DiagnosticLogger.partialFailure(
+                        operation: "system_audio_start",
+                        error: error,
+                        context: "meeting_id=\(meeting.id) fallback=microphone_only"
+                    )
                 }
             }
             try Task.checkCancellation()
@@ -621,7 +661,7 @@ public final class AppStore {
             Task {
                 await notifications.send(
                     title: "Recording started",
-                    body: "Notive is recording \(meeting.title).",
+                    body: meeting.title,
                     preferenceKey: "notive.notifications.recording",
                     defaultEnabled: false
                 )
@@ -640,9 +680,9 @@ public final class AppStore {
                 recordingState = .idle
                 errorMessage = nil
             } else {
-                recordingState = .failed(error.localizedDescription)
-                errorMessage = error.localizedDescription
-                notifyError(error)
+                let message = "Notive could not start the recording. Check Microphone access and the save location, then try again."
+                recordingState = .failed(message)
+                report(error, operation: "recording_start", userMessage: message)
             }
         }
     }
@@ -653,9 +693,9 @@ public final class AppStore {
         systemAudioCapture.pause()
         recordingState = .paused
         Task {
-            await notifications.send(
-                title: "Recording paused",
-                body: "Notive paused the current recording.",
+                await notifications.send(
+                    title: "Recording paused",
+                    body: "Resume when you are ready.",
                 preferenceKey: "notive.notifications.recording",
                 defaultEnabled: false
             )
@@ -668,9 +708,9 @@ public final class AppStore {
         systemAudioCapture.resume()
         recordingState = .recording
         Task {
-            await notifications.send(
-                title: "Recording resumed",
-                body: "Notive resumed the current recording.",
+                await notifications.send(
+                    title: "Recording resumed",
+                    body: "The meeting recording is active.",
                 preferenceKey: "notive.notifications.recording",
                 defaultEnabled: false
             )
@@ -690,7 +730,13 @@ public final class AppStore {
                     systemAudioURL = try await systemAudioCapture.stop()
                 } catch {
                     systemAudioURL = nil
-                    errorMessage = "The microphone recording stopped, but system audio could not be saved. \(error.localizedDescription)"
+                    let message = "The microphone recording was saved, but system audio was not."
+                    errorMessage = message
+                    DiagnosticLogger.partialFailure(
+                        operation: "system_audio_stop",
+                        error: error,
+                        context: "meeting_id=\(meetingID) fallback=microphone_only"
+                    )
                 }
                 isCapturingSystemAudio = false
             } else {
@@ -698,8 +744,8 @@ public final class AppStore {
             }
             Task {
                 await notifications.send(
-                    title: "Recording stopped",
-                    body: "Notive is preparing the local transcript.",
+                    title: "Recording saved",
+                    body: "Notive is preparing the transcript.",
                     preferenceKey: "notive.notifications.recording",
                     defaultEnabled: false
                 )
@@ -750,7 +796,7 @@ public final class AppStore {
             Task {
                 await notifications.send(
                     title: "Transcript ready",
-                    body: "Notive finished the on-device transcript.",
+                    body: "Open the meeting to review it.",
                     preferenceKey: "notive.notifications.transcription",
                     defaultEnabled: true
                 )
@@ -761,9 +807,9 @@ public final class AppStore {
             isCapturingSystemAudio = false
             activeRecordingMeetingID = nil
             liveTranscriptSegments = []
-            recordingState = .failed(error.localizedDescription)
-            errorMessage = error.localizedDescription
-            notifyError(error)
+            let message = "Notive could not finish this recording. The saved audio remains on this Mac."
+            recordingState = .failed(message)
+            report(error, operation: "recording_finish", userMessage: message)
         }
     }
 
@@ -835,7 +881,7 @@ public final class AppStore {
             Task {
                 await notifications.send(
                     title: "Imported transcript ready",
-                    body: "Notive finished transcribing \(meeting.title).",
+                    body: meeting.title,
                     preferenceKey: "notive.notifications.transcription",
                     defaultEnabled: true
                 )
@@ -854,9 +900,9 @@ public final class AppStore {
                 recordingState = .idle
                 errorMessage = nil
             } else {
-                recordingState = .failed(error.localizedDescription)
-                errorMessage = error.localizedDescription
-                notifyError(error)
+                let message = "Notive could not import this audio. Choose a supported audio file and try again."
+                recordingState = .failed(message)
+                report(error, operation: "audio_import", userMessage: message)
             }
         }
     }
@@ -873,9 +919,11 @@ public final class AppStore {
         do {
             try work()
         } catch {
-            errorMessage = error.localizedDescription
+            let message = "Notive could not update local data. Try the action again."
+            errorMessage = message
+            DiagnosticLogger.failure(operation: "local_data_update", error: error)
             if case .retrieving = askPhase {
-                askPhase = .failed(error.localizedDescription)
+                askPhase = .failed("Notive could not search the meeting transcripts. Try again.")
             }
         }
     }
@@ -891,7 +939,13 @@ public final class AppStore {
             let markdown = try await intelligence.summarize(segments, language: language)
             try database.saveSummary(meetingID: meetingID, markdown: markdown)
         } catch {
-            errorMessage = "The transcript is ready, but the automatic summary failed: \(error.localizedDescription)"
+            let message = "The transcript is ready, but Notive could not create the automatic summary. You can try again from the meeting."
+            errorMessage = message
+            DiagnosticLogger.partialFailure(
+                operation: "automatic_summary_generate",
+                error: error,
+                context: "meeting_id=\(meetingID) transcript_status=ready"
+            )
         }
     }
 
@@ -1009,11 +1063,19 @@ public final class AppStore {
         return defaults.bool(forKey: RecordingPreferenceStore.savesAudioKey)
     }
 
-    private func notifyError(_ error: Error) {
+    private func report(
+        _ error: Error,
+        operation: String,
+        userMessage: String,
+        context: String = "none",
+        showBanner: Bool = true
+    ) {
+        DiagnosticLogger.failure(operation: operation, error: error, context: context)
+        if showBanner { errorMessage = userMessage }
         Task {
             await notifications.send(
-                title: "Notive needs attention",
-                body: error.localizedDescription,
+                title: "Notive could not complete the action",
+                body: userMessage,
                 preferenceKey: "notive.notifications.errors",
                 defaultEnabled: true
             )

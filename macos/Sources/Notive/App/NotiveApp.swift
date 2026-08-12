@@ -19,7 +19,10 @@ struct NotiveApp: App {
                 installationBlocker: { Self.updateInstallationBlockReason(for: store) }
             ))
         } catch {
-            _startupError = State(initialValue: error.localizedDescription)
+            DiagnosticLogger.failure(operation: "app_store_initialize", error: error)
+            _startupError = State(
+                initialValue: "Notive could not open its local data. Quit Notive, then open it again."
+            )
         }
     }
 
@@ -38,7 +41,10 @@ struct NotiveApp: App {
                     ContentUnavailableView(
                         "Notive could not open",
                         systemImage: "exclamationmark.triangle",
-                        description: Text(startupError ?? "The local database is unavailable.")
+                        description: Text(
+                            startupError
+                                ?? "Notive could not open its local data. Quit Notive, then open it again."
+                        )
                     )
                 }
             }
