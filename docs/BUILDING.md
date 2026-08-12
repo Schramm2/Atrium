@@ -35,6 +35,12 @@ This creates:
 
 The version is read from `macos/version.json`.
 
+### Installer window
+
+Both disk images mount as the volume `Notive <version>` and open an icon-view window that shows the Notive bundle beside an Applications shortcut. `script/dmg_background.swift` draws the window background from `macos/BrandAssets/` at 1x and 2x. Packaging then mounts a writable image, lets Finder record the window size, icon places, and background, and converts the result to the compressed disk image.
+
+Finder scripting must be available for the layout step. When it is not, packaging reports the plain disk image and the release still completes.
+
 ## Test
 
 ```bash
