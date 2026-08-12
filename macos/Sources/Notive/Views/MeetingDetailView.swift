@@ -12,6 +12,8 @@ struct MeetingDetailView: View {
     @State private var customSummaryInstruction = ""
     @State private var selectedTab = DetailTab.transcript
     @State private var showsDeleteConfirmation = false
+    @State private var isSharedToHub = false
+    @Environment(CompanyHubStore.self) private var hub
 
     var body: some View {
         Group {
@@ -93,6 +95,26 @@ struct MeetingDetailView: View {
         }
     }
 
+    /// Sharing is a per-meeting choice by its owner. The control stays disabled until a shared
+    /// workspace is connected, because nothing may leave this Mac without one.
+    private var shareToHubButton: some View {
+        Button(
+            isSharedToHub ? "Shared to hub" : "Share to hub",
+            systemImage: "square.stack.3d.up"
+        ) {
+            isSharedToHub.toggle()
+            Task { await hub.setShared(isSharedToHub, meetingID: meetingID) }
+        }
+        .buttonStyle(.bordered)
+        .disabled(!hub.isConnected)
+        .accessibilityAddTraits(isSharedToHub ? [.isSelected] : [])
+        .help(
+            hub.isConnected
+                ? "Share this meeting with the company."
+                : "Connect the Company Hub to share a meeting. This meeting stays on this Mac."
+        )
+    }
+
     private func header(_ workspace: MeetingWorkspace) -> some View {
         let status = recordingStatus(for: workspace.meeting.id)
         return VStack(alignment: .leading, spacing: 8) {
@@ -115,6 +137,7 @@ struct MeetingDetailView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(MeetingAudioFiles.primary(in: workspace.meeting.folderPath) == nil)
+                shareToHubButton
                 Menu {
                     if store.isRetranscribing {
                         Button("Cancel transcription", systemImage: "xmark", role: .cancel) {

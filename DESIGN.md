@@ -8,6 +8,13 @@ Notive is a **conversation ledger**: a calm native workspace where capture, revi
 
 The interface mode is **Operate**. Fast scanning, reliable state, keyboard access, and transcript readability take priority over decoration.
 
+The workspace has two scopes, and the interface must always make clear which one the user looks at:
+
+- **Workspace** is private and local. Home, Ask Notive, Dictation, Meeting Notes, and the meeting workspace read only this Mac.
+- **Company Hub** is shared across Ubundi and First Motive. Company, Agents, Shared Context, People, Search, and Activity show only what an owner chose to share.
+
+Nothing crosses from Workspace to Company Hub without an explicit per-item action by its owner.
+
 ## Shared Structure
 
 - Keep one `NavigationSplitView` shell for both themes.
@@ -68,6 +75,9 @@ First Motive is a dark brand theme. Its canonical aubergine surface remains dark
 
 - Show the Notive mark and active company identity at the top.
 - Keep four primary workspace destinations equal in weight: Home, Ask Notive, Dictation, and Meeting Notes.
+- Put the Company Hub destinations in a second section, labelled `Company Hub` with a `SHARED` marker. The marker states the scope change; do not restate it on every row.
+- Order the Company Hub destinations Company, Agents, Shared Context, People, Search, and Activity.
+- Use native list badges for counts that need action, such as running agents and unread activity. Show no badge at zero.
 - Separate saved meetings with a clear section label and compact title/date rows.
 - Keep capture and import actions in a bottom action area. Do not repeat a second theme selector in page content.
 - Replace the crowded segmented theme control with a compact theme menu. Keep appearance control adjacent.
@@ -83,6 +93,8 @@ First Motive is a dark brand theme. Its canonical aubergine surface remains dark
 - Prefer one flat section with a border and tonal fill over cards nested inside cards.
 - Use dividers and aligned columns for repeated data.
 - Keep empty states actionable and concise. Include one next action.
+- An empty state must say what will appear in that surface, and why it is empty now. Do not show an unexplained blank surface.
+- Where a capability is not connected, disable the actions that need it and explain the reason in help text. Do not hide the action, and do not let it appear to succeed.
 - Use accent edges, icons, or labels only when they encode a real workflow state.
 
 ### Controls
@@ -114,6 +126,30 @@ Use a searchable, date-aware meeting list with title, date, transcript/notes sta
 
 Protect the meeting title from action overflow. Keep Play and Save visible; place Retranscribe, Open Recording, and Delete in an overflow menu. Use a stable content switcher for Transcript, Summary, and Notes. Give transcript rows a narrow timestamp column, optional speaker label, readable text measure, and calm separators.
 
+### Company
+
+Company is the Company Hub landing screen. Lead with a stat strip of headline numbers, then two columns: what the team shared today, and an agent summary with the newest activity. Each column links to its full screen. Close with the sharing boundary statement. Show the connection state in the page header.
+
+### Agents
+
+Use a roster of agent cards beside one thread. A card carries the agent name, role, status, one sentence of purpose, and run counts. The thread is company-visible by default and must say so beside the agent name. Keep the composer at the bottom with one send action.
+
+### Shared Context
+
+Use a filter row of All, Meetings, Notes, and Agent output above one table. Give each row the item, who shared it, its source kind, and when. Keep `Share from my workspace` as the single header action. State that sharing is a per-item choice by its owner and can be withdrawn.
+
+### People
+
+Use one table of everyone in the shared workspace: name, role, company, focus this week, and status. Mark agents with a short `AGENT` label so people and agents stay distinguishable without relying on color.
+
+### Search
+
+Use one large search field, then results grouped by source — meetings, shared context, people, and agent runs. Say in the closing line that search covers the local workspace plus shared items, and that nothing local is exposed to others.
+
+### Activity
+
+Use one reverse-chronological feed. Give each entry an actor, an action, an optional detail block, and a relative time. Mark unread entries and keep `Mark all read` as the single header action, disabled when nothing is unread.
+
 ### Settings
 
 Keep the native Settings scene and toolbar. Use consistent section surfaces, row alignment, labels, helper text, and brand-aware tint across all eight tabs. Appearance must preview both company themes and explain First Motive's fixed dark brand surface.
@@ -133,13 +169,7 @@ Use the selected brand mark, a short three-step progress indicator, and one focu
 
 ## Canonical Assets
 
-The implementation may copy these source assets into the app bundle without modifying the originals:
-
-- Ubundi wordmark: `Ubundi/01_Brand/GitHub-Profile/ubundi-logo-navy.png`
-- Ubundi mark: `Ubundi/01_Brand/Community/ubundi-logo.png`
-- First Motive mark: `First Motive/01_Brand/first-motive-mark-dark-on-white.png`
-- First Motive light and dark wordmarks: `First Motive/01_Brand/firstmotive-wordmark-light.svg` and `firstmotive-wordmark-dark.svg`
-- First Motive atmospheric reference: `First Motive/01_Brand/first-motive-mac-mini-desktop-and-login-3440x1440.png`
+The marks, wordmarks, application icons, and the First Motive atmospheric reference are in `macos/BrandAssets/`. `BrandAssets.image(named:)` loads them from the application bundle. Copy new source assets in without modifying the originals.
 
 Use the atmospheric reference only as a restrained onboarding or empty-state texture. It must not reduce operational contrast or become a full-screen decoration.
 
@@ -152,3 +182,15 @@ Use the atmospheric reference only as a restrained onboarding or empty-state tex
 - No fixed narrow content column that leaves most of a large window unused.
 - No title compression caused by many inline actions.
 - No custom replacement for native macOS selection, menus, toolbars, or Settings-window behavior when SwiftUI already provides it.
+- No sample, seeded, or demonstration content in a shipped screen. An unimplemented capability shows an empty state, not invented data.
+- No control that appears to publish, send, or share while the capability behind it does not exist.
+
+## Implementation State
+
+The interface is built in SwiftUI in `macos/Sources/Notive/Views/`. `BrandStyle.swift` holds the palette and the shared `BrandScreen`, `NotivePageHeader`, `BrandPanel`, and `BrandStatusLabel` types. Use them rather than repeating raw colors and metrics.
+
+**Workspace** — Home, Ask Notive, Dictation, Meeting Notes, the meeting workspace, Settings, and Onboarding are implemented and read local data through `AppStore`.
+
+**Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. No shared workspace exists behind them. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Every Company Hub screen therefore shows its empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled.
+
+To implement the Company Hub, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`. No screen needs to change.

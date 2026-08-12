@@ -6,6 +6,12 @@ public enum WorkspaceSelection: Hashable, Sendable {
     case dictation
     case notes
     case meeting(String)
+    case company
+    case agents
+    case sharedContext
+    case people
+    case search
+    case activity
 }
 
 public enum BrandTheme: String, CaseIterable, Identifiable, Sendable {

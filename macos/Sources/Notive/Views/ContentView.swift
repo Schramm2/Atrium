@@ -10,6 +10,8 @@ struct ContentView: View {
     @AppStorage("notive.onboarding.complete") private var onboardingComplete = false
     @AppStorage("notive.appearance") private var appearance = "system"
     @State private var isAudioDropTargeted = false
+    /// No shared workspace is connected yet, so this holds the disconnected provider.
+    @State private var hub = CompanyHubStore()
 
     private var theme: BrandTheme {
         BrandTheme(rawValue: themeRaw) ?? .firstMotive
@@ -29,9 +31,15 @@ struct ContentView: View {
                         store.clearError()
                     }
                 }
+                if let message = hub.errorMessage {
+                    ErrorBanner(message: message) {
+                        hub.clearError()
+                    }
+                }
                 detail
             }
         }
+        .environment(hub)
         .environment(\.brandTheme, theme)
         .tint(BrandPalette.palette(for: theme, colorScheme: colorScheme).accent)
         .preferredColorScheme(
@@ -87,6 +95,18 @@ struct ContentView: View {
         case let .meeting(id):
             MeetingDetailView(store: store, meetingID: id)
                 .id(id)
+        case .company:
+            CompanyDashboardView(store: store)
+        case .agents:
+            AgentsView()
+        case .sharedContext:
+            SharedContextView()
+        case .people:
+            PeopleView()
+        case .search:
+            SearchEverythingView()
+        case .activity:
+            ActivityView()
         }
     }
 }
