@@ -17,6 +17,7 @@ APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
 VERSION="${NOTIVE_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/version.json")}"
+VOLUME_NAME="$APP_NAME $VERSION"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION-arm64.dmg"
 STABLE_DMG_PATH="$DIST_DIR/$APP_NAME.dmg"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -30,6 +31,42 @@ unregister_development_bundle() {
 
 usage() {
   echo "usage: $0 [run|--debug|--logs|--telemetry|--verify|--package]" >&2
+}
+
+# Lays out the mounted installer volume: background picture, window size, and icon places.
+# The window stays open: Finder writes the icon view options into .DS_Store when the volume ejects.
+style_installer_window() {
+  /usr/bin/osascript <<APPLESCRIPT >/dev/null 2>&1
+tell application "Finder"
+  tell disk "$VOLUME_NAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {180, 140, 940, 660}
+    set viewOptions to the icon view options of container window
+    set arrangement of viewOptions to not arranged
+    set icon size of viewOptions to 128
+    set text size of viewOptions to 13
+    set label position of viewOptions to bottom
+    set background picture of viewOptions to file ".background:background.tiff"
+    set position of item "$APP_NAME.app" of container window to {214, 262}
+    set position of item "Applications" of container window to {546, 262}
+    update without registering applications
+    delay 2
+  end tell
+end tell
+APPLESCRIPT
+}
+
+detach_installer_volume() {
+  for _ in {1..10}; do
+    if /usr/bin/hdiutil detach "$mount_point" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  /usr/bin/hdiutil detach "$mount_point" -force >/dev/null
 }
 
 case "$MODE" in
@@ -143,14 +180,46 @@ case "$MODE" in
     package_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/notive-package.XXXXXX")"
     trap 'rm -rf "$package_temp_dir"' EXIT
     rm -f "$DMG_PATH" "$STABLE_DMG_PATH"
-    /usr/bin/ditto "$APP_BUNDLE" "$package_temp_dir/$APP_NAME.app"
-    ln -s /Applications "$package_temp_dir/Applications"
+    staging_dir="$package_temp_dir/volume"
+    writable_dmg="$package_temp_dir/$APP_NAME-writable.dmg"
+    mkdir -p "$staging_dir/.background"
+    /usr/bin/ditto "$APP_BUNDLE" "$staging_dir/$APP_NAME.app"
+    ln -s /Applications "$staging_dir/Applications"
+    swift "$ROOT_DIR/script/dmg_background.swift" \
+      "$SWIFT_DIR/BrandAssets" \
+      "$staging_dir/.background/background.tiff"
+
+    # Slack space so Finder can write the window layout into the volume.
+    staging_megabytes="$(/usr/bin/du -sm "$staging_dir" | cut -f1)"
     /usr/bin/hdiutil create \
-      -volname "$APP_NAME" \
-      -srcfolder "$package_temp_dir" \
+      -volname "$VOLUME_NAME" \
+      -srcfolder "$staging_dir" \
+      -fs HFS+ \
+      -format UDRW \
+      -size "$((staging_megabytes + 80))m" \
       -ov \
+      "$writable_dmg" >/dev/null
+
+    mount_point="/Volumes/$VOLUME_NAME"
+    if [[ -d "$mount_point" ]]; then
+      /usr/bin/hdiutil detach "$mount_point" -force >/dev/null 2>&1 || true
+    fi
+    /usr/bin/hdiutil attach "$writable_dmg" -noverify -noautoopen >/dev/null
+    /usr/bin/SetFile -a V "$mount_point/.background" 2>/dev/null || true
+    if style_installer_window; then
+      echo "Applied the installer window layout."
+    else
+      echo "Could not apply the installer window layout; shipping the plain disk image." >&2
+    fi
+    sleep 3
+    sync
+    detach_installer_volume
+
+    /usr/bin/hdiutil convert "$writable_dmg" \
       -format UDZO \
-      "$DMG_PATH" >/dev/null
+      -imagekey zlib-level=9 \
+      -ov \
+      -o "$DMG_PATH" >/dev/null
     test -s "$DMG_PATH"
     cp "$DMG_PATH" "$STABLE_DMG_PATH"
     test -s "$STABLE_DMG_PATH"
