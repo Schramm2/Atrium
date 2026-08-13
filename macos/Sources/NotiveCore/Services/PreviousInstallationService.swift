@@ -4,10 +4,20 @@ import Foundation
 public struct PreviousInstallation: Equatable, Sendable {
     public let databaseURL: URL
     public let survey: MeetingDataSurvey
+    /// The meetings in the earlier database that are not already in the active database.
+    ///
+    /// This is populated when the active database is available. Callers that only have a
+    /// survey can omit it and it defaults to the number of meetings in that survey.
+    public let importableMeetingCount: Int
 
-    public init(databaseURL: URL, survey: MeetingDataSurvey) {
+    public init(
+        databaseURL: URL,
+        survey: MeetingDataSurvey,
+        importableMeetingCount: Int? = nil
+    ) {
         self.databaseURL = databaseURL
         self.survey = survey
+        self.importableMeetingCount = importableMeetingCount ?? survey.meetingCount
     }
 
     public var applicationSupportURL: URL {

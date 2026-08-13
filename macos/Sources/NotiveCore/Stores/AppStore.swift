@@ -86,11 +86,24 @@ public final class AppStore {
         self.askAnswerer = askAnswerer
         self.askConfiguration = askConfiguration
         database = try SQLiteDatabase(url: databaseURL)
-        if let previousInstallation,
-           (try? database.hasImportableMeetings(from: previousInstallation.databaseURL)) == false {
-            self.previousInstallation = nil
+        if let previousInstallation {
+            if let importableMeetingCount = try? database.importableMeetingCount(
+                from: previousInstallation.databaseURL
+            ) {
+                self.previousInstallation = importableMeetingCount > 0
+                    ? PreviousInstallation(
+                        databaseURL: previousInstallation.databaseURL,
+                        survey: previousInstallation.survey,
+                        importableMeetingCount: importableMeetingCount
+                    )
+                    : nil
+            } else {
+                // Keep the offer when the source cannot be inspected now so a transient
+                // file-access error does not silently discard the user's restore option.
+                self.previousInstallation = previousInstallation
+            }
         } else {
-            self.previousInstallation = previousInstallation
+            self.previousInstallation = nil
         }
         for folder in [databaseURL.deletingLastPathComponent(), previousInstallation?.applicationSupportURL] {
             guard let folder else { continue }

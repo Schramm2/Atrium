@@ -271,6 +271,39 @@ struct PreviousInstallationTests {
         #expect(store.previousInstallationRestoreError != nil)
     }
 
+    @Test("A restore offer counts only meetings that are still missing")
+    @MainActor
+    func restoreOfferCountsOnlyMissingMeetings() throws {
+        let previous = try InstallationFixture()
+        let current = try InstallationFixture()
+        try previous.insertMeeting(
+            id: "previous-held",
+            title: "Held meeting",
+            createdAt: "2024-02-01T09:00:00.000Z",
+            transcript: "Already here."
+        )
+        try previous.insertMeeting(
+            id: "previous-missing",
+            title: "Missing meeting",
+            createdAt: "2024-02-02T09:00:00.000Z",
+            transcript: "Still to restore."
+        )
+        try current.insertMeeting(
+            id: "current-held",
+            title: "Held meeting",
+            createdAt: "2024-02-01 09:00:00",
+            transcript: "Already here."
+        )
+
+        let store = try AppStore(
+            databaseURL: current.databaseURL,
+            recordingsFolder: { current.recordingsFolder },
+            previousInstallation: previous.installation
+        )
+
+        #expect(store.previousInstallation?.importableMeetingCount == 1)
+    }
+
     @Test("A completed restore is not offered again after startup")
     @MainActor
     func completedRestoreIsNotOfferedAgain() async throws {

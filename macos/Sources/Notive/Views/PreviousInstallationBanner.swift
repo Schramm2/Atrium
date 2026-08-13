@@ -39,7 +39,7 @@ struct PreviousInstallationBanner: View {
     }
 
     private var detail: String {
-        let count = installation.meetingCount
+        let count = installation.importableMeetingCount
         let meetings = count == 1 ? "1 meeting" : "\(count) meetings"
         return "Restore \(meetings) from the earlier installation. Existing meetings stay unchanged."
     }
