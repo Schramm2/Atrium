@@ -7,7 +7,6 @@ import SwiftUI
 struct OnboardingView: View {
     @Bindable var store: AppStore
     @Binding var isComplete: Bool
-    @Environment(\.brandTheme) private var theme
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.firstMotive.rawValue
     @AppStorage("notive.hub.profile-name") private var profileName = ""
@@ -40,21 +39,32 @@ struct OnboardingView: View {
         return "Step \(currentIndex + 1) of \(steps.count) — \(step.caption)"
     }
 
+    private var theme: BrandTheme {
+        BrandTheme(rawValue: themeRaw) ?? .firstMotive
+    }
+
     var body: some View {
         ZStack {
             BrandScreen { Color.clear }
             BrandAtmosphere()
+                .frame(width: 880, height: 620)
                 .clipped()
 
             VStack(spacing: 0) {
                 header
                 Divider()
-                stepBody
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScrollView {
+                    stepBody
+                        .containerRelativeFrame(.vertical)
+                }
+                .scrollIndicators(.hidden)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 Divider()
                 footer
             }
+            .frame(width: 880, height: 620)
         }
+        .environment(\.brandTheme, theme)
         .frame(width: 880, height: 620)
         .interactiveDismissDisabled()
         .task { permissions.refresh() }
@@ -84,22 +94,29 @@ struct OnboardingView: View {
             Spacer()
             HStack(spacing: 7) {
                 ForEach(Array(steps.enumerated()), id: \.element) { index, item in
-                    Capsule()
-                        .fill(
-                            index < currentIndex
-                                ? palette.secondaryAccent
-                                : item == step ? palette.accent : palette.border
-                        )
-                        .frame(width: item == step ? 26 : 8, height: 7)
-                        .onTapGesture {
-                            if index <= currentIndex { step = item }
-                        }
-                        .help(item.label)
+                    Button {
+                        step = item
+                    } label: {
+                        Capsule()
+                            .fill(
+                                index < currentIndex
+                                    ? palette.secondaryAccent
+                                    : item == step ? palette.accent : palette.border
+                            )
+                            .frame(width: item == step ? 26 : 8, height: 7)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(index >= currentIndex)
+                    .help(item.label)
+                    .accessibilityLabel(item.label)
+                    .accessibilityValue(
+                        item == step
+                            ? "Current step"
+                            : index < currentIndex ? "Completed step" : "Upcoming step"
+                    )
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: step)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Step \(currentIndex + 1) of \(steps.count)")
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
@@ -159,7 +176,7 @@ struct OnboardingView: View {
     }
 
     private var workspaceStep: some View {
-        HStack(alignment: .top, spacing: 36) {
+        HStack(alignment: .top, spacing: 28) {
             VStack(alignment: .leading, spacing: 18) {
                 OnboardingEyebrow("Your workspace")
                 OnboardingTitle("Four ways to work, one place")
@@ -206,9 +223,10 @@ struct OnboardingView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 6)
             }
-            .frame(width: 330)
+            .frame(width: 300)
             .frame(maxHeight: .infinity, alignment: .center)
         }
+        .frame(width: 792)
         .padding(.horizontal, 44)
         .padding(.vertical, 32)
         .transition(.opacity)
@@ -355,7 +373,7 @@ struct OnboardingView: View {
                     .padding(.vertical, 4)
                 }
             }
-            .frame(maxWidth: 660)
+            .frame(width: 660)
             .padding(.top, 6)
             Label(
                 "Sharing a meeting to the hub is always a separate, explicit action — never automatic.",
@@ -482,10 +500,6 @@ struct OnboardingView: View {
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            case .access:
-                Text("Permissions are optional and can be changed later.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             case .hub:
                 Text(
                     isHubVerified
@@ -494,7 +508,7 @@ struct OnboardingView: View {
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            default:
+            case .welcome, .workspace, .access, .ready:
                 EmptyView()
             }
             if step.isSkippable, !(step == .earlierData && restoredData != nil) {
@@ -786,6 +800,7 @@ private struct GitHubIdentityCard: View {
 
 // MARK: - Permission state
 
+@MainActor
 @Observable
 private final class OnboardingPermissions {
     var microphone = false
@@ -828,6 +843,7 @@ private struct OnboardingTitle: View {
         Text(text)
             .font(.largeTitle.weight(.semibold))
             .tracking(-0.6)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -842,6 +858,7 @@ private struct OnboardingLead: View {
             .foregroundStyle(.secondary)
             .lineSpacing(3)
             .frame(maxWidth: 540, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -887,6 +904,7 @@ private struct IdentityCard: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(22)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -935,6 +953,7 @@ private struct PermissionCard: View {
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             if granted {
@@ -981,6 +1000,7 @@ private struct HubToggleRow: View {
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             Toggle(title, isOn: $isOn)
@@ -989,8 +1009,6 @@ private struct HubToggleRow: View {
                 .controlSize(.small)
         }
         .padding(.vertical, 11)
-        .contentShape(Rectangle())
-        .onTapGesture { isOn.toggle() }
     }
 }
 
