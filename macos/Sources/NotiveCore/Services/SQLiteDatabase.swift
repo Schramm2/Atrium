@@ -330,6 +330,50 @@ public final class SQLiteDatabase: @unchecked Sendable {
         )
     }
 
+    /// Reports whether another Notive database holds a meeting this database does not hold yet.
+    ///
+    /// A meeting is held when its identifier matches, or when both its title and creation time
+    /// match. This uses the same rule as `importMeetings(from:)` without changing either database.
+    public func hasImportableMeetings(from sourceURL: URL) throws -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw DatabaseError.invalidData("There is no Notive database at \(sourceURL.path).")
+        }
+        try execute("ATTACH DATABASE ? AS previous", values: [.text(sourceURL.path)])
+        defer { try? execute("DETACH DATABASE previous") }
+
+        guard hasTable("meetings", schema: "previous") else {
+            throw DatabaseError.invalidData("That file is not a Notive meeting database.")
+        }
+        let sourceColumns = Set(columns(of: "meetings", schema: "previous"))
+        guard ["id", "title", "created_at", "updated_at"].allSatisfy(sourceColumns.contains) else {
+            throw DatabaseError.invalidData("That file is not a Notive meeting database.")
+        }
+        let candidates = try query(
+            "SELECT id, title, created_at FROM previous.meetings"
+        ) { statement in
+            SourceMeeting(
+                id: self.text(statement, 0),
+                title: self.text(statement, 1),
+                createdAt: self.text(statement, 2),
+                updatedAt: "",
+                folderPath: nil
+            )
+        }
+        let heldIDs = Set(try query("SELECT id FROM main.meetings") { self.text($0, 0) })
+        let heldTitleAndTime = Set(
+            try query("SELECT title, created_at FROM main.meetings") { statement in
+                SourceMeeting.titleAndTimeKey(self.text(statement, 0), self.text(statement, 1))
+            }
+        )
+        return candidates.contains { candidate in
+            !heldIDs.contains(candidate.id)
+                && !heldTitleAndTime.contains(candidate.titleAndTimeKey)
+        }
+    }
+
     /// The tables carried across with each meeting, and the columns each one may hold.
     ///
     /// A database written by an earlier Notive release can be missing a table or a column, so
