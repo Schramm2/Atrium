@@ -11,11 +11,12 @@ struct CompanyHubTests {
 
         #expect(!store.isConnected)
 
-        await store.loadCompanyScreen()
+        await store.loadHomeScreen()
         await store.loadSharedItems()
-        await store.loadPeople()
 
+        #expect(!store.hasSharedContent)
         #expect(store.stats.isEmpty)
+        #expect(store.attention.isEmpty)
         #expect(store.sharedToday.isEmpty)
         #expect(store.sharedItems.isEmpty)
         #expect(store.agents.isEmpty)
@@ -68,6 +69,24 @@ struct CompanyHubTests {
         #expect(store.thread.count == 1)
     }
 
+    @Test("The Home screen loads the local and shared collections it shows")
+    @MainActor
+    func homeScreenReadsPopulateState() async {
+        let store = CompanyHubStore(service: RecordingHubService())
+
+        await store.loadHomeScreen()
+
+        #expect(store.hasSharedContent)
+        #expect(store.stats.count == 1)
+        #expect(store.attention.count == 1)
+        #expect(store.attention.first?.destination == .agents)
+        #expect(store.sharedToday.count == 1)
+        #expect(store.agents.count == 1)
+        #expect(store.people.count == 1)
+        #expect(store.activity.count == 1)
+        #expect(store.errorMessage == nil)
+    }
+
     @Test("Sending a message reloads the thread it was sent to")
     @MainActor
     func sendReloadsThread() async {
@@ -117,6 +136,20 @@ private actor RecordingHubService: CompanyHubProviding {
 
     func loadStats() -> [HubStat] {
         [HubStat(id: "s1", label: "Shared this week", value: "1", delta: "", tone: .neutral)]
+    }
+
+    func loadAttention() -> [HubAttentionItem] {
+        [
+            HubAttentionItem(
+                id: "a1",
+                title: "Revised pricing sheet",
+                detail: "Escalated by an agent",
+                tag: "Due Thu",
+                tone: .warning,
+                symbolName: "bolt.fill",
+                destination: .agents
+            )
+        ]
     }
 
     func loadSharedToday() -> [HubItem] { [Self.item] }
