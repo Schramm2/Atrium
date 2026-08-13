@@ -49,6 +49,42 @@ public struct HubStat: Identifiable, Sendable, Hashable {
     }
 }
 
+/// Where an attention item opens when a person selects it.
+public enum HubAttentionDestination: String, Sendable, Codable {
+    case agents
+    case sharedContext
+    case activity
+}
+
+/// One item on the Home screen that waits for a person to act.
+public struct HubAttentionItem: Identifiable, Sendable, Hashable {
+    public let id: String
+    public let title: String
+    public let detail: String
+    public let tag: String
+    public let tone: HubTone
+    public let symbolName: String
+    public let destination: HubAttentionDestination
+
+    public init(
+        id: String,
+        title: String,
+        detail: String,
+        tag: String,
+        tone: HubTone,
+        symbolName: String,
+        destination: HubAttentionDestination
+    ) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+        self.tag = tag
+        self.tone = tone
+        self.symbolName = symbolName
+        self.destination = destination
+    }
+}
+
 /// An item another person or agent shared to the hub.
 public struct HubItem: Identifiable, Sendable, Hashable {
     public let id: String

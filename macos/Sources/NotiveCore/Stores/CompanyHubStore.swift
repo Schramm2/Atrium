@@ -9,6 +9,7 @@ import Observation
 @Observable
 public final class CompanyHubStore {
     public private(set) var stats: [HubStat] = []
+    public private(set) var attention: [HubAttentionItem] = []
     public private(set) var sharedToday: [HubItem] = []
     public private(set) var sharedItems: [HubItem] = []
     public private(set) var agents: [HubAgent] = []
@@ -49,7 +50,35 @@ public final class CompanyHubStore {
         agents.count { $0.status == .running }
     }
 
+    /// `true` once any shared collection holds something the Home screen can show.
+    public var hasSharedContent: Bool {
+        !stats.isEmpty
+            || !attention.isEmpty
+            || !sharedToday.isEmpty
+            || !agents.isEmpty
+            || !people.isEmpty
+            || !activity.isEmpty
+    }
+
     // MARK: - Reads
+
+    /// Loads every shared collection the Home screen shows beside the local workspace.
+    public func loadHomeScreen() async {
+        await load {
+            async let stats = self.service.loadStats()
+            async let attention = self.service.loadAttention()
+            async let sharedToday = self.service.loadSharedToday()
+            async let agents = self.service.loadAgents()
+            async let people = self.service.loadPeople()
+            async let activity = self.service.loadActivity()
+            self.stats = try await stats
+            self.attention = try await attention
+            self.sharedToday = try await sharedToday
+            self.agents = try await agents
+            self.people = try await people
+            self.activity = try await activity
+        }
+    }
 
     public func loadCompanyScreen() async {
         await load {

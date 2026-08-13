@@ -2,40 +2,30 @@ import NotiveCore
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Capture controls shown beside the Home heading.
 struct HomeCaptureView: View {
     @Bindable var store: AppStore
     @State private var showsAudioImporter = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Capture")
-                    .font(.title2.weight(.semibold))
-                Spacer()
-                BrandStatusLabel(
-                    title: "Processed on this Mac",
-                    systemImage: "lock.fill",
-                    kind: .local
-                )
+        HStack(alignment: .center, spacing: 10) {
+            BrandStatusLabel(
+                title: "On-device by default",
+                systemImage: "lock.fill",
+                kind: .local
+            )
+
+            Button("Import Audio", systemImage: "square.and.arrow.down") {
+                store.resetRecordingError()
+                showsAudioImporter = true
             }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .disabled(store.isImportingAudio || !canImportAudio)
 
-            BrandPanel {
-                HStack(spacing: 20) {
-                    RecordingControlsView(store: store)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Divider()
-
-                    Button("Import Audio", systemImage: "square.and.arrow.down") {
-                        store.resetRecordingError()
-                        showsAudioImporter = true
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(store.isImportingAudio || !canImportAudio)
-                }
-            }
+            RecordingControlsView(store: store)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .fileImporter(
             isPresented: $showsAudioImporter,
             allowedContentTypes: [.audio, .mpeg4Movie],

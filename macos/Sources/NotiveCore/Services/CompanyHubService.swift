@@ -14,6 +14,7 @@ public protocol CompanyHubProviding: Sendable {
     var isConnected: Bool { get }
 
     func loadStats() async throws -> [HubStat]
+    func loadAttention() async throws -> [HubAttentionItem]
     func loadSharedToday() async throws -> [HubItem]
     func loadSharedItems() async throws -> [HubItem]
     func loadAgents() async throws -> [HubAgent]
@@ -47,6 +48,7 @@ public struct DisconnectedCompanyHubService: CompanyHubProviding {
     public var isConnected: Bool { false }
 
     public func loadStats() async throws -> [HubStat] { [] }
+    public func loadAttention() async throws -> [HubAttentionItem] { [] }
     public func loadSharedToday() async throws -> [HubItem] { [] }
     public func loadSharedItems() async throws -> [HubItem] { [] }
     public func loadAgents() async throws -> [HubAgent] { [] }
