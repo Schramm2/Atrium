@@ -330,11 +330,11 @@ public final class SQLiteDatabase: @unchecked Sendable {
         )
     }
 
-    /// Reports whether another Notive database holds a meeting this database does not hold yet.
+    /// Counts the meetings in another Notive database that this database does not hold yet.
     ///
     /// A meeting is held when its identifier matches, or when both its title and creation time
     /// match. This uses the same rule as `importMeetings(from:)` without changing either database.
-    public func hasImportableMeetings(from sourceURL: URL) throws -> Bool {
+    public func importableMeetingCount(from sourceURL: URL) throws -> Int {
         lock.lock()
         defer { lock.unlock() }
 
@@ -368,10 +368,30 @@ public final class SQLiteDatabase: @unchecked Sendable {
                 SourceMeeting.titleAndTimeKey(self.text(statement, 0), self.text(statement, 1))
             }
         )
-        return candidates.contains { candidate in
-            !heldIDs.contains(candidate.id)
-                && !heldTitleAndTime.contains(candidate.titleAndTimeKey)
+        return candidates.reduce(into: 0) { count, candidate in
+            guard !heldIDs.contains(candidate.id),
+                  !heldTitleAndTime.contains(candidate.titleAndTimeKey) else { return }
+            count += 1
         }
+    }
+
+    /// Reports whether another Notive database holds a meeting this database does not hold yet.
+    public func hasImportableMeetings(from sourceURL: URL) throws -> Bool {
+        try importableMeetingCount(from: sourceURL) > 0
+    }
+
+    /// The key used to decide whether two meeting creation timestamps represent the same instant.
+    ///
+    /// Older releases used more than one ISO-8601 representation. Comparing the stored text
+    /// directly would offer an already-restored meeting again after a reinstall.
+    private static func normalizedCreatedAt(_ value: String) -> String {
+        let decoded = DateCoding.decode(value)
+        guard decoded != .distantPast else { return value }
+        return DateCoding.encode(decoded)
+    }
+
+    private static func titleAndTimeKey(_ title: String, _ createdAt: String) -> String {
+        "\(title)\u{1}\(normalizedCreatedAt(createdAt))"
     }
 
     /// The tables carried across with each meeting, and the columns each one may hold.
@@ -433,7 +453,7 @@ public final class SQLiteDatabase: @unchecked Sendable {
         }
 
         static func titleAndTimeKey(_ title: String, _ createdAt: String) -> String {
-            "\(title)\u{1}\(createdAt)"
+            SQLiteDatabase.titleAndTimeKey(title, createdAt)
         }
     }
 

@@ -251,7 +251,7 @@ private struct GeneralSettingsView: View {
             if let store, let installation = store.previousInstallation {
                 Section("Earlier installation") {
                     LabeledContent("Meetings found") {
-                        Text("\(installation.meetingCount)")
+                        Text("\(installation.importableMeetingCount)")
                     }
                     LocalPathRow(title: "Folder", url: installation.applicationSupportURL)
                     HStack {

@@ -642,7 +642,7 @@ private struct EarlierDataCard: View {
             return "\(Self.meetings(restored.importedMeetingCount)) restored"
         }
         guard let installation else { return "No earlier meetings found" }
-        return "\(Self.meetings(installation.meetingCount)) found"
+        return "\(Self.meetings(installation.importableMeetingCount)) found"
     }
 
     private var detail: String {
