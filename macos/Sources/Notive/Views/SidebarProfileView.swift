@@ -6,6 +6,11 @@ struct SidebarProfileView: View {
     @AppStorage("notive.hub.profile-role") private var profileRole = ""
     @AppStorage("notive.hub.github-login") private var githubLogin = ""
     @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.firstMotive.rawValue
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: activeTheme, colorScheme: colorScheme)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -46,7 +51,7 @@ struct SidebarProfileView: View {
             }
         }
         .padding(12)
-        .background(.bar)
+        .background(palette.raisedSurface)
         .fixedSize(horizontal: false, vertical: true)
         .layoutPriority(1)
     }
