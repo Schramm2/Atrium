@@ -19,6 +19,10 @@ struct ContentView: View {
         BrandTheme(rawValue: themeRaw) ?? .firstMotive
     }
 
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
+
     var body: some View {
         NavigationSplitView {
             SidebarView(store: store)
@@ -51,12 +55,14 @@ struct ContentView: View {
         }
         .environment(hub)
         .environment(\.brandTheme, theme)
-        .tint(BrandPalette.palette(for: theme, colorScheme: colorScheme).accent)
+        .tint(palette.accent)
         .preferredColorScheme(
             theme == .firstMotive
                 ? .dark
                 : appearance == "light" ? .light : appearance == "dark" ? .dark : nil
         )
+        .toolbarBackground(palette.raisedSurface, for: .windowToolbar)
+        .modifier(VisibleToolbarBackground())
         .onAppear {
             if !onboardingComplete {
                 didPresentOnboardingThisLaunch = true
@@ -122,6 +128,19 @@ struct ContentView: View {
             SearchEverythingView()
         case .activity:
             ActivityView()
+        }
+    }
+}
+
+/// `.toolbarBackgroundVisibility(_:for:)` needs macOS 15; on macOS 14 the color
+/// set by `.toolbarBackground(_:for:)` already renders opaque, so there is
+/// nothing more to force.
+private struct VisibleToolbarBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 15, *) {
+            content.toolbarBackgroundVisibility(.visible, for: .windowToolbar)
+        } else {
+            content
         }
     }
 }

@@ -51,6 +51,7 @@ struct NotiveApp: App {
             .frame(minWidth: 960, minHeight: 640)
         }
         .defaultSize(width: 1_100, height: 700)
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             CommandGroup(after: .appInfo) {
                 Button(updater.primaryActionTitle) {

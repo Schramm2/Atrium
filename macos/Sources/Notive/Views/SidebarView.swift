@@ -5,16 +5,24 @@ struct SidebarView: View {
     @Bindable var store: AppStore
     @Environment(CompanyHubStore.self) private var hub
     @Environment(\.brandTheme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
     @State private var meetingToDelete: Meeting?
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             identity
             Divider()
+                .overlay(palette.border)
             navigation
             Divider()
+                .overlay(palette.border)
             SidebarProfileView()
         }
+        .background(palette.raisedSurface)
         .confirmationDialog(
             "Delete \(meetingToDelete?.title ?? "this meeting")?",
             isPresented: Binding(
@@ -123,6 +131,8 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .background(palette.raisedSurface)
         .searchable(text: $store.searchText, prompt: "Search meetings")
         .onSubmit(of: .search) { store.search() }
         .onChange(of: store.searchText) { _, value in
