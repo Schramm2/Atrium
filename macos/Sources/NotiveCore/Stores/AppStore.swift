@@ -85,8 +85,13 @@ public final class AppStore {
         self.recordingsFolder = recordingsFolder
         self.askAnswerer = askAnswerer
         self.askConfiguration = askConfiguration
-        self.previousInstallation = previousInstallation
         database = try SQLiteDatabase(url: databaseURL)
+        if let previousInstallation,
+           (try? database.hasImportableMeetings(from: previousInstallation.databaseURL)) == false {
+            self.previousInstallation = nil
+        } else {
+            self.previousInstallation = previousInstallation
+        }
         for folder in [databaseURL.deletingLastPathComponent(), previousInstallation?.applicationSupportURL] {
             guard let folder else { continue }
             try? RecordingPreferenceStore.migrateLegacyPreferences(from: folder)

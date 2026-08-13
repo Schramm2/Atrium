@@ -271,6 +271,30 @@ struct PreviousInstallationTests {
         #expect(store.previousInstallationRestoreError != nil)
     }
 
+    @Test("A completed restore is not offered again after startup")
+    @MainActor
+    func completedRestoreIsNotOfferedAgain() async throws {
+        let previous = try InstallationFixture()
+        let current = try InstallationFixture()
+        _ = try previous.database.createMeeting(title: "Already restored")
+        let installation = previous.installation
+        let store = try AppStore(
+            databaseURL: current.databaseURL,
+            recordingsFolder: { current.recordingsFolder },
+            previousInstallation: installation
+        )
+
+        _ = await store.restorePreviousInstallation()
+        let reopenedStore = try AppStore(
+            databaseURL: current.databaseURL,
+            recordingsFolder: { current.recordingsFolder },
+            previousInstallation: installation
+        )
+
+        #expect(store.previousInstallation == nil)
+        #expect(reopenedStore.previousInstallation == nil)
+    }
+
     @Test("The database in use is never offered as an earlier installation")
     func theCurrentDatabaseIsNotOffered() throws {
         let current = try InstallationFixture()
