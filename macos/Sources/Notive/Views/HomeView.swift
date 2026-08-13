@@ -19,6 +19,8 @@ struct HomeView: View {
                         )
                     }
 
+                    HomeCaptureView(store: store)
+
                     workflowStrip
 
                     if !store.searchResults.isEmpty {
@@ -39,66 +41,24 @@ struct HomeView: View {
 
     private var workflowStrip: some View {
         BrandPanel(padding: 0) {
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 0) {
-                    WorkspaceAction(
-                        title: "Capture",
-                        detail: "Record a meeting",
-                        systemImage: "mic.fill",
-                        emphasized: true
-                    ) {
-                        Task { await store.startRecording() }
-                    }
-                    Divider().padding(.vertical, 16)
-                    WorkspaceAction(
-                        title: "Ask",
-                        detail: "Get cited answers",
-                        systemImage: "bubble.left.and.text.bubble.right"
-                    ) { store.select(.ask) }
-                    Divider().padding(.vertical, 16)
-                    WorkspaceAction(
-                        title: "Dictate",
-                        detail: "Write with your voice",
-                        systemImage: "waveform"
-                    ) { store.select(.dictation) }
-                    Divider().padding(.vertical, 16)
-                    WorkspaceAction(
-                        title: "Review",
-                        detail: "Open meeting notes",
-                        systemImage: "note.text"
-                    ) { store.select(.notes) }
-                }
-
-                VStack(spacing: 0) {
-                    HStack(spacing: 0) {
-                        WorkspaceAction(
-                            title: "Capture",
-                            detail: "Record a meeting",
-                            systemImage: "mic.fill",
-                            emphasized: true
-                        ) { Task { await store.startRecording() } }
-                        Divider().padding(.vertical, 12)
-                        WorkspaceAction(
-                            title: "Ask",
-                            detail: "Get cited answers",
-                            systemImage: "bubble.left.and.text.bubble.right"
-                        ) { store.select(.ask) }
-                    }
-                    Divider()
-                    HStack(spacing: 0) {
-                        WorkspaceAction(
-                            title: "Dictate",
-                            detail: "Write with your voice",
-                            systemImage: "waveform"
-                        ) { store.select(.dictation) }
-                        Divider().padding(.vertical, 12)
-                        WorkspaceAction(
-                            title: "Review",
-                            detail: "Open meeting notes",
-                            systemImage: "note.text"
-                        ) { store.select(.notes) }
-                    }
-                }
+            HStack(spacing: 0) {
+                WorkspaceAction(
+                    title: "Ask",
+                    detail: "Get cited answers",
+                    systemImage: "bubble.left.and.text.bubble.right"
+                ) { store.select(.ask) }
+                Divider().padding(.vertical, 16)
+                WorkspaceAction(
+                    title: "Dictate",
+                    detail: "Write with your voice",
+                    systemImage: "waveform"
+                ) { store.select(.dictation) }
+                Divider().padding(.vertical, 16)
+                WorkspaceAction(
+                    title: "Review",
+                    detail: "Open meeting notes",
+                    systemImage: "note.text"
+                ) { store.select(.notes) }
             }
         }
     }
@@ -207,7 +167,6 @@ private struct WorkspaceAction: View {
     let title: String
     let detail: String
     let systemImage: String
-    var emphasized = false
     let action: () -> Void
 
     var body: some View {
@@ -215,20 +174,19 @@ private struct WorkspaceAction: View {
             HStack(spacing: 12) {
                 Image(systemName: systemImage)
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(emphasized ? palette.onAccent : palette.secondaryAccent)
+                    .foregroundStyle(palette.secondaryAccent)
                     .frame(width: 30)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.headline)
                     Text(detail)
                         .font(.caption)
-                        .foregroundStyle(emphasized ? palette.onAccent.opacity(0.78) : palette.secondaryText)
+                        .foregroundStyle(palette.secondaryText)
                 }
                 Spacer(minLength: 8)
             }
             .padding(.horizontal, 18)
             .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
-            .background(emphasized ? palette.accent : Color.clear)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
