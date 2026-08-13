@@ -22,6 +22,12 @@ struct MeetingDetailView: View {
                 BrandScreen {
                     VStack(spacing: 16) {
                         header(workspace)
+                        if store.activeRecordingMeetingID == meetingID || store.isImportingAudio {
+                            BrandPanel(padding: 12) {
+                                RecordingControlsView(store: store)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
                         if store.playbackMeetingID == meetingID {
                             BrandPanel(padding: 12) {
                                 PlaybackBar(store: store, meeting: workspace.meeting)

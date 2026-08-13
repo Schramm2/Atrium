@@ -21,7 +21,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(store: store, theme: theme)
+            SidebarView(store: store)
                 .navigationSplitViewColumnWidth(min: 240, ideal: 268, max: 320)
         } detail: {
             VStack(spacing: 0) {
