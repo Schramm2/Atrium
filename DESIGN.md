@@ -1,8 +1,215 @@
+---
+version: alpha
+name: Notive
+description: Visual and interaction contract for the Notive macOS workspace, in Ubundi and First Motive themes.
+colors:
+  primary: "#9CB89E"
+  ubundi-accent: "#2F3498"
+  ubundi-on-accent: "#FFFFFF"
+  ubundi-secondary-accent: "#7188BE"
+  ubundi-ai: "#C183E6"
+  ubundi-warning: "#D77A85"
+  ubundi-success: "#4F8F75"
+  ubundi-light-canvas: "#F8F9FC"
+  ubundi-light-surface: "#FFFFFF"
+  ubundi-light-raised: "#F4F5F9"
+  ubundi-light-border: "#E3E3E3"
+  ubundi-light-text: "#121214"
+  ubundi-light-text-secondary: "#616161"
+  ubundi-dark-canvas: "#0E101F"
+  ubundi-dark-surface: "#161829"
+  ubundi-dark-raised: "#1D2033"
+  ubundi-dark-border: "#343645"
+  ubundi-dark-text: "#F3F3F4"
+  ubundi-dark-text-secondary: "#B4B5BB"
+  fm-accent: "#9CB89E"
+  fm-on-accent: "#2A3A2C"
+  fm-secondary-accent: "#7FA9B8"
+  fm-ai: "#9B8FB8"
+  fm-warning: "#D89B9F"
+  fm-success: "#9CB89E"
+  fm-canvas: "#433B47"
+  fm-surface: "#4B444F"
+  fm-raised: "#514A55"
+  fm-border: "#5A525B"
+  fm-text: "#E8E2D7"
+  fm-text-secondary: "#BCB6B1"
+  fm-status-tint: "#52515D"
+typography:
+  page-title:
+    fontFamily: "system-ui"
+    fontSize: "26px"
+    fontWeight: 600
+    letterSpacing: "-0.5px"
+  section-title:
+    fontFamily: "system-ui"
+    fontSize: "13px"
+    fontWeight: 600
+  body:
+    fontFamily: "system-ui"
+    fontSize: "13px"
+    fontWeight: 400
+  support:
+    fontFamily: "system-ui"
+    fontSize: "12px"
+    fontWeight: 400
+  label:
+    fontFamily: "system-ui"
+    fontSize: "11px"
+    fontWeight: 400
+  status:
+    fontFamily: "system-ui"
+    fontSize: "10px"
+    fontWeight: 600
+rounded:
+  control: "8px"
+  compact: "10px"
+  panel: "12px"
+  capsule: "999px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  xxl: "32px"
+  xxxl: "48px"
+components:
+  panel:
+    backgroundColor: "{colors.fm-surface}"
+    textColor: "{colors.fm-text}"
+    rounded: "{rounded.panel}"
+    padding: "20px"
+  button-primary:
+    backgroundColor: "{colors.fm-accent}"
+    textColor: "{colors.fm-on-accent}"
+    typography: "{typography.section-title}"
+    rounded: "{rounded.control}"
+    height: "32px"
+  button-primary-disabled:
+    backgroundColor: "{colors.fm-surface}"
+    textColor: "{colors.fm-text-secondary}"
+    rounded: "{rounded.control}"
+    height: "32px"
+  button-secondary:
+    backgroundColor: "{colors.fm-surface}"
+    textColor: "{colors.fm-text}"
+    typography: "{typography.section-title}"
+    rounded: "{rounded.control}"
+    height: "28px"
+  status-label-local:
+    backgroundColor: "{colors.fm-status-tint}"
+    textColor: "{colors.fm-secondary-accent}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-processing:
+    backgroundColor: "{colors.fm-status-tint}"
+    textColor: "{colors.fm-ai}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-warning:
+    backgroundColor: "{colors.fm-status-tint}"
+    textColor: "{colors.fm-warning}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-success:
+    backgroundColor: "{colors.fm-status-tint}"
+    textColor: "{colors.fm-success}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  screen:
+    backgroundColor: "{colors.fm-canvas}"
+    textColor: "{colors.fm-text}"
+  toolbar:
+    backgroundColor: "{colors.fm-raised}"
+    textColor: "{colors.fm-text}"
+  panel-ubundi-light:
+    backgroundColor: "{colors.ubundi-light-surface}"
+    textColor: "{colors.ubundi-light-text}"
+    rounded: "{rounded.panel}"
+    padding: "20px"
+  panel-ubundi-dark:
+    backgroundColor: "{colors.ubundi-dark-surface}"
+    textColor: "{colors.ubundi-dark-text}"
+    rounded: "{rounded.panel}"
+    padding: "20px"
+  screen-ubundi-light:
+    backgroundColor: "{colors.ubundi-light-canvas}"
+    textColor: "{colors.ubundi-light-text}"
+  screen-ubundi-dark:
+    backgroundColor: "{colors.ubundi-dark-canvas}"
+    textColor: "{colors.ubundi-dark-text}"
+  toolbar-ubundi-light:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-light-text-secondary}"
+  toolbar-ubundi-dark:
+    backgroundColor: "{colors.ubundi-dark-raised}"
+    textColor: "{colors.ubundi-dark-text-secondary}"
+  button-primary-ubundi:
+    backgroundColor: "{colors.ubundi-accent}"
+    textColor: "{colors.ubundi-on-accent}"
+    typography: "{typography.section-title}"
+    rounded: "{rounded.control}"
+    height: "32px"
+  status-label-ubundi-local:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-secondary-accent}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-ubundi-processing:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-ai}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-ubundi-warning:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-warning}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  status-label-ubundi-success:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-success}"
+    typography: "{typography.status}"
+    rounded: "{rounded.capsule}"
+    padding: "6px 10px"
+  divider:
+    backgroundColor: "{colors.fm-border}"
+    height: "1px"
+  divider-ubundi-light:
+    backgroundColor: "{colors.ubundi-light-border}"
+    height: "1px"
+  divider-ubundi-dark:
+    backgroundColor: "{colors.ubundi-dark-border}"
+    height: "1px"
+  sidebar-row:
+    textColor: "{colors.fm-text}"
+    typography: "{typography.body}"
+    rounded: "{rounded.control}"
+    height: "28px"
+  sidebar-row-selected:
+    backgroundColor: "{colors.fm-accent}"
+    textColor: "{colors.fm-on-accent}"
+    rounded: "{rounded.control}"
+    height: "28px"
+  empty-state:
+    backgroundColor: "{colors.fm-surface}"
+    textColor: "{colors.fm-text-secondary}"
+    rounded: "{rounded.panel}"
+    height: "240px"
+---
+
 # Notive Design System
 
 <!-- impeccable:design-schema 1 -->
 
-## Direction
+## Overview
 
 Notive is a **conversation ledger**: a calm native workspace where capture, review, recall, and writing stay visible as equal parts of one local workflow. The interface uses a stable macOS sidebar and a wide work canvas. It avoids marketing-style hero panels, stacked cards, and large unused fields. Brand identity appears through exact color roles, type hierarchy, small line details, and canonical marks.
 
@@ -15,182 +222,224 @@ The workspace has two scopes, and the interface must always make clear which one
 
 Nothing crosses from Workspace to Company Hub without an explicit per-item action by its owner.
 
-## Shared Structure
+### Evidence Sources
 
-- Keep one `NavigationSplitView` shell for both themes.
-- Use a 252–300 point source-list sidebar. Keep native list selection and keyboard behavior.
-- Put global search in the toolbar. Do not repeat search inside page content.
-- Give each destination a compact page header with a title, one factual sentence, and relevant actions.
-- Use the full detail width. Reading surfaces use a 900–1,080 point measure; operational lists and transcripts can extend to 1,280 points.
-- Use 4, 8, 12, 16, 24, 32, and 48 point spacing steps.
-- Use 8 point radii for controls and compact surfaces, 12 points for large sections, and capsules only for status and short primary actions.
-- Use borders and tonal fills before shadows. Shadows are reserved for floating popovers and overlays.
+The tokens above are read from the implementation, not from an external brand file:
+
+| Source | What it establishes |
+| --- | --- |
+| `macos/Sources/Notive/Views/BrandStyle.swift` | `BrandPalette` for both themes, `BrandScreen`, `NotivePageHeader`, `BrandPanel`, `BrandStatusLabel`, `BrandMarkView`, `BrandAtmosphere` |
+| `macos/Sources/Notive/Views/ContentView.swift` | Split-view shell, sidebar width, theme and appearance resolution, error banners |
+| `macos/Sources/Notive/Views/CompanyHub/Components/` | `Hub*` components, tint roles, the shared empty state |
+| `macos/BrandAssets/` | Marks, wordmarks, application icons, the First Motive atmospheric reference |
+| `PRODUCT.md`, `docs/product-vision.md` | Product purpose, the two scopes, the privacy boundary |
+
+`BrandPalette` stores colors as floating-point RGB, and it builds some roles by washing white or ivory over the surface below. The token values above are the exact conversions, composited where the implementation uses a wash, so they can be read and contrast-checked directly. The Elevation and Colors sections give the wash that produces each one. Change `BrandStyle.swift` and this document in the same commit.
+
+Verified with `npx @google/design.md lint --format json DESIGN.md`: 0 errors, 8 warnings, all of them the single contrast finding in Open Questions.
+
+### Surface Map
+
+Notive exposes one product surface: an operational macOS desktop workspace. It has no marketing, documentation, or embedded surface, so marketing treatment applies nowhere in this repository. Three regions carry different density inside that one surface:
+
+| Region | Role | Density |
+| --- | --- | --- |
+| Workspace screens | Capture, recall, and writing on local data | Operational, wide canvas |
+| Company Hub screens | Read what the company shared | Operational, table-led |
+| Settings and Onboarding | One decision at a time | Native form density |
+
+### Voice & Content
+
+- Use one concise heading and one factual support line for each destination. Supporting copy states something the heading does not.
+- Use sentence case for headings, labels, and buttons. Reserve uppercase for short system states such as `SHARED` and `AGENT`.
+- Name the product **Notive**. Use the domain terms in [CONTEXT.md](CONTEXT.md): My Workspace, Company Hub, Meeting, Ask, Local Dictation, voice grouping.
+- An error names what failed and what the user can do. A destructive confirmation names the item and the effect.
+- An empty state says what will appear in that surface, and why it is empty now.
+- Use monospaced digits for timestamps, durations, and counters.
+
+## Colors
+
+Each theme resolves one `BrandPalette` through `BrandPalette.palette(for:colorScheme:)`. First Motive is the default theme. Read colors through the palette rather than repeating raw values in a view.
+
+| Role | Ubundi | First Motive |
+| --- | --- | --- |
+| Accent, primary action, selection | Navy `#2F3498` | Sage `#9CB89E` |
+| Text on accent | White | Deep sage `#2A3A2C` |
+| Information, links, local-scope status | Blue `#7188BE` | Steel `#7FA9B8` |
+| Generated or processing state | Electric `#C183E6` | Lilac `#9B8FB8` |
+| Warning or destructive state | Salmon `#D77A85` | Coral `#D89B9F` |
+| Success, running agent | Green `#4F8F75` | Sage `#9CB89E` |
+
+Ubundi follows the macOS appearance. Light uses a `#F8F9FC` canvas, white surfaces, `#F4F5F9` raised surfaces, and 11% black borders. Dark uses a `#0E101F` canvas, `#161829` surfaces, `#1D2033` raised surfaces, and 13% white borders. Keep Navy and Blue visible in dark; do not wash the whole canvas purple.
+
+First Motive is a dark brand theme. Its aubergine `#433B47` canvas stays dark in every macOS appearance, and `preferredColorScheme` is forced to dark. Surfaces come from white washes over that canvas — 4.5% for `fm-surface` `#4B444F` and 7.5% for `fm-raised` `#514A55` — with a 14% ivory border, `#5A525B`.
+
+An accent color carries meaning. Electric and Lilac mark generated or processing content only. Use no ambient accent without a workflow state behind it.
 
 ## Typography
 
-Use Manrope when it is installed. Fall back to the macOS system family. Use system rounded or monospaced digits only for timing, status codes, and technical metadata.
+Notive uses the macOS system family through the SwiftUI text styles. This keeps the interface consistent with the system, and it lets text follow the user's accessibility text-size setting. The sizes in the front matter are the macOS defaults at the standard size, not fixed values.
 
-- Page title: 30–34 points, semibold, tight leading.
-- Section title: 18–22 points, semibold.
-- Body: 14–16 points, regular.
-- UI label: 12–13 points, semibold.
-- Status label: 11–12 points, semibold. Use uppercase only for short system states.
-- Transcript text: 14–15 points with generous line spacing. Timestamps remain compact and monospaced.
+| Role | Text style | Use |
+| --- | --- | --- |
+| Page title | `.largeTitle.weight(.semibold)` with `-0.5` tracking | The one title in `NotivePageHeader` |
+| Section title | `.headline` | Panel and section headings |
+| Body | `.body` | Transcript text, notes, answers |
+| Support | `.callout` | The page-header support line, secondary detail |
+| Label | `.subheadline` | Row labels and metadata |
+| Status | `.caption.weight(.semibold)` | Status labels, counters, timestamps |
 
-Do not use display typography in repeated cards, the sidebar, settings rows, or transcript controls.
+Give transcript text generous line spacing and keep timestamps compact and monospaced. Keep display typography out of repeated rows, the sidebar, settings rows, and transcript controls.
 
-## Ubundi Theme
+## Layout
 
-Ubundi is open, precise, human, and quietly confident.
+- Keep one `NavigationSplitView` shell for both themes.
+- The sidebar column is 240 points minimum, 268 ideal, 320 maximum. Keep native list selection and keyboard behavior.
+- The window is at least 960 by 640 points and opens at 1,100 by 700.
+- Put global search in the toolbar. Search does not repeat inside page content.
+- Give each destination a compact page header: title, one factual sentence, and the relevant actions.
+- Use the full detail width. Reading surfaces hold a 900–1,080 point measure. Operational lists, transcripts, and two-column screens extend to 1,280–1,360 points.
+- Screen content uses 32 points of padding.
+- Use the `{spacing}` steps. Use `ViewThatFits` to fold a two-column screen into one column before content compresses.
 
-- Navy `#2F3498`: primary actions, selection identity, focus, and key navigation state.
-- Deep navy `#1B1F44`: dark-mode anchor and high-contrast text.
-- Blue `#7188BE`: informational state and secondary emphasis.
-- Electric `#C183E6`: AI or generated-content state only.
-- Salmon `#D77A85`: destructive or error state with a text or icon label.
-- Amber `#F3C57A`: pending or attention state.
-- Light surfaces: white and `#F5F5F5`, with `#DADCE0` borders.
-- Dark surfaces: deep navy-black neutral surfaces. Keep Navy and Blue visible; do not wash the whole canvas purple.
+## Elevation & Depth
 
-Use the canonical Ubundi navy wordmark in identity areas. Do not recolor or distort it.
+Depth comes from borders and tonal fills, not from shadows.
 
-## First Motive Theme
+| Level | Treatment |
+| --- | --- |
+| Canvas | `BrandScreen` paints the theme canvas behind every screen |
+| Panel | `BrandPanel`: surface fill, one-point border, 12-point radius |
+| Raised | Toolbar and sidebar use the raised surface |
+| Floating | Shadows are reserved for popovers, menus, and overlays |
 
-First Motive is grounded, technical, warm, and exact.
+Do not nest a panel inside a panel. Prefer one flat section with a border and a tonal fill.
 
-- Aubergine `#433B47`: canonical main surface.
-- Warm ivory `#E8E2D7`: primary text.
-- Steel `#7FA9B8`: information, navigation markers, and links.
-- Sage `#9CB89E`: the one constructive primary action.
-- Lilac `#9B8FB8`: generated or processing state, never a broad fill.
-- Coral `#D89B9F`: warning or destructive state.
-- Raised surfaces: 4%, 7%, and 10% ivory washes over aubergine.
-- Borders: 10% or 20% ivory.
+## Shapes
 
-First Motive is a dark brand theme. Its canonical aubergine surface remains dark in all macOS appearances. Use the canonical mark and wordmark without recoloring.
+- 8-point radius for controls and small surfaces.
+- 10-point radius for compact rows and chips.
+- 12-point radius for panels and large sections.
+- Capsules for status labels and short primary actions only.
+- The brand mark clips to a 22% corner radius.
 
-## Component Rules
+## Components
+
+Compose screens from `BrandScreen`, `NotivePageHeader`, `BrandPanel`, and `BrandStatusLabel`. Company Hub screens add the `Hub*` components. Use them rather than repeating raw colors and metrics.
 
 ### Sidebar
 
 - Show the Notive mark and active company identity at the top.
 - Keep four primary workspace destinations equal in weight: Home, Ask Notive, Dictation, and Meeting Notes.
-- Put the Company Hub destinations in a second section, labelled `Company Hub` with a `SHARED` marker. The marker states the scope change; do not restate it on every row.
+- Put the Company Hub destinations in a second section, labelled `Company Hub` with a `SHARED` marker. The marker states the scope change; it is not repeated on every row.
 - Order the Company Hub destinations Company, Agents, Shared Context, People, Search, and Activity.
 - Use native list badges for counts that need action, such as running agents and unread activity. Show no badge at zero.
-- Separate saved meetings with a clear section label and compact title/date rows.
-- Keep capture and import actions in a bottom action area. Do not repeat a second theme selector in page content.
-- Replace the crowded segmented theme control with a compact theme menu. Keep appearance control adjacent.
+- Separate saved meetings with a clear section label and compact title and date rows.
+- Keep capture and import actions in a bottom action area, with one theme menu and the appearance control beside it.
 
 ### Page Header
 
-- Use one concise heading and one support line.
-- Align page actions to the trailing edge when space permits; wrap them into an overflow menu before the title becomes compressed.
-- Use a short privacy status label where external-data boundaries matter.
+- One concise heading and one support line.
+- Align page actions to the trailing edge when space permits. Move them into an overflow menu before the title compresses.
+- Use a short privacy status label where an external-data boundary matters.
 
 ### Sections and Lists
 
-- Prefer one flat section with a border and tonal fill over cards nested inside cards.
+- Prefer one flat section over cards inside cards.
 - Use dividers and aligned columns for repeated data.
-- Keep empty states actionable and concise. Include one next action.
-- An empty state must say what will appear in that surface, and why it is empty now. Do not show an unexplained blank surface.
-- Where a capability is not connected, disable the actions that need it and explain the reason in help text. Do not hide the action, and do not let it appear to succeed.
+- Keep empty states concise and actionable, with one next action.
+- Where a capability is not connected, disable the actions that need it and explain the reason in help text. Keep the action visible, and never let it appear to succeed.
 - Use accent edges, icons, or labels only when they encode a real workflow state.
 
 ### Controls
 
-- Use one prominent action per region.
-- Always pair destructive color with a destructive label or system icon.
-- Keep buttons at least 28 points high. Primary workspace actions use 32–36 points.
-- Provide hover, pressed, focus, disabled, loading, selected, warning, and error states.
+- One prominent action per region.
+- Pair a destructive color with a destructive label or system icon.
+- Buttons are at least 28 points high. Primary workspace actions use 32–38 points.
 
-## Screen Contracts
+### Screen Contracts
 
-### Home
+**Home.** A balanced command center. Four equal workflow tiles — Capture, Ask, Dictate, Review Notes — then recent meetings and a compact local-privacy status row. No oversized recording hero.
 
-Home is a balanced command center. Show four equal workflow tiles: Capture, Ask, Dictate, and Review Notes. Follow them with recent meetings and a compact local-privacy status row. Do not use one oversized recording hero.
+**Ask Notive.** Question composer at the top, scope and date limits beside or below it, and the remaining space for a clear empty state or a readable answer with source citations. The local or external evidence boundary is visible before submission.
 
-### Ask Notive
+**Dictation.** Listening state, shortcut, microphone, and on-device processing read as one status surface. The latest result sits in a dedicated reading area with Copy as the clear secondary action.
 
-Keep the question composer at the top. Put scope and date limits beside or directly below it. Use the remaining space for a clear empty state or a readable answer with source citations. Make the local or external evidence boundary visible before submission.
+**Meeting Notes.** A searchable, date-aware meeting list with title, date, transcript and notes status, and one clear open action.
 
-### Dictation
+**Meeting Workspace.** Protect the meeting title from action overflow. Keep Play and Save visible; put Retranscribe, Open Recording, and Delete in an overflow menu. Use a stable content switcher for Transcript, Summary, and Notes. Transcript rows get a narrow timestamp column, an optional speaker label, a readable measure, and calm separators.
 
-Show listening state, shortcut, microphone, and on-device processing as one coherent status surface. Keep the latest result in a dedicated reading area with Copy as the clear secondary action.
+**Company.** The Company Hub landing screen. A stat strip of headline numbers, then two columns: what the team shared today, and an agent summary with the newest activity. Each column links to its full screen. Close with the sharing boundary statement, and show the connection state in the page header.
 
-### Meeting Notes
+**Agents.** A roster of agent cards beside one thread. A card carries the agent name, role, status, one sentence of purpose, and run counts. The thread is company-visible by default and says so beside the agent name. The composer stays at the bottom with one send action.
 
-Use a searchable, date-aware meeting list with title, date, transcript/notes status, and one clear open action. Do not render it as an almost empty raw `List`.
+**Shared Context.** A filter row of All, Meetings, Notes, and Agent output above one table. Each row gives the item, who shared it, its source kind, and when. `Share from my workspace` is the single header action. State that sharing is a per-item choice by its owner and can be withdrawn.
 
-### Meeting Workspace
+**People.** One table of everyone in the shared workspace: name, role, company, focus this week, and status. Mark agents with a short `AGENT` label so people and agents stay distinguishable without color.
 
-Protect the meeting title from action overflow. Keep Play and Save visible; place Retranscribe, Open Recording, and Delete in an overflow menu. Use a stable content switcher for Transcript, Summary, and Notes. Give transcript rows a narrow timestamp column, optional speaker label, readable text measure, and calm separators.
+**Search.** One large search field, then results grouped by source — meetings, shared context, people, and agent runs. The closing line states that search covers the local workspace plus shared items, and that nothing local is exposed to others.
 
-### Company
+**Activity.** One reverse-chronological feed. Each entry has an actor, an action, an optional detail block, and a relative time. Mark unread entries. `Mark all read` is the single header action, disabled when nothing is unread.
 
-Company is the Company Hub landing screen. Lead with a stat strip of headline numbers, then two columns: what the team shared today, and an agent summary with the newest activity. Each column links to its full screen. Close with the sharing boundary statement. Show the connection state in the page header.
+**Settings.** The native Settings scene and toolbar, with consistent section surfaces, row alignment, labels, helper text, and brand-aware tint across all tabs. Appearance previews both themes and explains the fixed dark First Motive surface.
 
-### Agents
+**Onboarding.** The selected brand mark, a short three-step progress indicator, and one permission or workspace decision per step. Permission reasons stay factual, and optional access never looks required.
 
-Use a roster of agent cards beside one thread. A card carries the agent name, role, status, one sentence of purpose, and run counts. The thread is company-visible by default and must say so beside the agent name. Keep the composer at the bottom with one send action.
+### Motion & Interaction
 
-### Shared Context
+- Use 120–220 ms transitions, and only to explain selection, disclosure, progress, or insertion.
+- Respect Reduce Motion. A reduced-motion state change stays as legible as the animated one: the end state, not the transition, carries the meaning.
+- Avoid entrance choreography.
 
-Use a filter row of All, Meetings, Notes, and Agent output above one table. Give each row the item, who shared it, its source kind, and when. Keep `Share from my workspace` as the single header action. State that sharing is a per-item choice by its owner and can be withdrawn.
+### Accessibility & States
 
-### People
+Every data screen covers initial, loading, loaded, empty, and error. A disconnected capability adds a disabled state with a stated reason. Interactive controls cover hover, pressed, focus, selected, and disabled.
 
-Use one table of everyone in the shared workspace: name, role, company, focus this week, and status. Mark agents with a short `AGENT` label so people and agents stay distinguishable without relying on color.
+- Preserve VoiceOver names, values, and actions. Give an icon-only control an accessibility label and hide decoration.
+- Keep visible keyboard focus and native tab order.
+- Meet WCAG AA contrast for normal text. Warm ivory on aubergine and the Ubundi text roles meet it. Steel, Lilac, Sage, Electric, and faint ivory carry too little contrast for small text: use them for icons, borders, and tint fills, and keep the text beside them in a text color.
+- `BrandStatusLabel` currently fails this rule. Its tinted 10-point text measures 2.5:1 to 3.6:1 in both themes. See Open Questions.
+- Never rely on color alone for recording, warning, selection, provider boundary, or completion state. Pair the color with a label or a system icon. This is what keeps the status labels legible today, and it stays required after the contrast fix.
+- Company Hub screens use `HubEmptyState.notConnected(...)` so no surface is blank without an explanation.
 
-### Search
+## Do's and Don'ts
 
-Use one large search field, then results grouped by source — meetings, shared context, people, and agent runs. Say in the closing line that search covers the local workspace plus shared items, and that nothing local is exposed to others.
+**Do**
 
-### Activity
+- Read colors and metrics through `BrandPalette` and the shared `Brand*` components.
+- Give every accent a workflow meaning.
+- Explain an empty surface and a disabled action.
+- Keep native macOS selection, menus, toolbars, and Settings behavior.
+- Check a change in both themes, in light and dark, at the minimum window size, and with the keyboard alone.
 
-Use one reverse-chronological feed. Give each entry an actor, an action, an optional detail block, and a relative time. Mark unread entries and keep `Mark all read` as the single header action, disabled when nothing is unread.
-
-### Settings
-
-Keep the native Settings scene and toolbar. Use consistent section surfaces, row alignment, labels, helper text, and brand-aware tint across all eight tabs. Appearance must preview both company themes and explain First Motive's fixed dark brand surface.
-
-### Onboarding
-
-Use the selected brand mark, a short three-step progress indicator, and one focused permission or workspace decision per step. Keep permission reasons factual. Never make optional access look required.
-
-## Motion and Accessibility
-
-- Use 120–220 ms state transitions only to explain selection, disclosure, progress, or insertion.
-- Respect Reduce Motion and avoid entrance choreography.
-- Preserve VoiceOver names, values, and actions.
-- Use visible keyboard focus and native tab order.
-- Meet WCAG AA contrast for normal text. Do not use First Motive Steel, Lilac, or faint ivory as small body text on aubergine.
-- Do not rely on color alone for recording, warning, selection, provider boundary, or completion state.
-
-## Canonical Assets
-
-The marks, wordmarks, application icons, and the First Motive atmospheric reference are in `macos/BrandAssets/`. `BrandAssets.image(named:)` loads them from the application bundle. Copy new source assets in without modifying the originals.
-
-Use the atmospheric reference only as a restrained onboarding or empty-state texture. It must not reduce operational contrast or become a full-screen decoration.
-
-## Anti-Patterns
+**Don't**
 
 - No large decorative hero card on Home.
-- No card grids for simple settings or transcript rows.
-- No nested cards.
-- No ambient accent color without semantic meaning.
+- No card grids for simple settings or transcript rows, and no nested cards.
 - No fixed narrow content column that leaves most of a large window unused.
 - No title compression caused by many inline actions.
-- No custom replacement for native macOS selection, menus, toolbars, or Settings-window behavior when SwiftUI already provides it.
 - No sample, seeded, or demonstration content in a shipped screen. An unimplemented capability shows an empty state, not invented data.
 - No control that appears to publish, send, or share while the capability behind it does not exist.
 
+## Canonical Assets
+
+The marks, wordmarks, application icons, and the First Motive atmospheric reference are in `macos/BrandAssets/`. `BrandAssets.image(named:)` loads them from the application bundle. Copy new source assets in without modifying the originals. Use the canonical marks without recoloring or distortion.
+
+`BrandAtmosphere` draws the First Motive reference at 34% opacity. Use it only as a restrained onboarding or empty-state texture. It must not reduce operational contrast or become a full-screen decoration.
+
 ## Implementation State
 
-The interface is built in SwiftUI in `macos/Sources/Notive/Views/`. `BrandStyle.swift` holds the palette and the shared `BrandScreen`, `NotivePageHeader`, `BrandPanel`, and `BrandStatusLabel` types. Use them rather than repeating raw colors and metrics.
+The interface is built in SwiftUI in `macos/Sources/Notive/Views/`. [FRONTEND.md](FRONTEND.md) covers how screens, state, and verification work.
 
 **Workspace** — Home, Ask Notive, Dictation, Meeting Notes, the meeting workspace, Settings, and Onboarding are implemented and read local data through `AppStore`.
 
-**Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. No shared workspace exists behind them. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Every Company Hub screen therefore shows its empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled.
+**Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. No shared workspace exists behind them. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Every Company Hub screen therefore shows its empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. To implement it, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`. No screen needs to change.
 
-To implement the Company Hub, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`. No screen needs to change.
+## Open Questions
+
+1. **Manrope.** The earlier contract asked for Manrope with a system fallback. No view requests it, and `macos/BrandAssets/` holds no font file, so the application has always used the system family. Bundling Manrope would also give up the automatic text-size behavior that the SwiftUI text styles provide. Decide whether to bundle the font and set it on the text styles, or to keep the system family and retire Manrope from the brand contract for this product.
+2. **Spacing drift.** The scale is 4, 8, 12, 16, 24, 32, and 48 points, and screens also use 2, 5, 6, 10, 11, 14, 20, and 22. `BrandPanel` pads by 20. Decide whether to add 20 as a token and correct the rest, or to bring the off-scale values onto the scale.
+3. **Radius drift.** 12 points dominates and 8 points is used for controls, as documented. A 10-point radius appears on compact rows and is now recorded above. Decide whether 10 stays as a third step or folds into 8.
+4. **Retired colors.** Amber `#F3C57A` and deep navy `#1B1F44` appeared in the earlier contract but exist in no palette. The Ubundi dark anchor is `#0E101F`. They are removed here; restore them only with a role that a view uses.
+5. **Ubundi success green.** `#4F8F75` is implemented but had no brand definition. Confirm it against the Ubundi brand guideline in Company Media, or replace it.
+6. **Status label contrast.** `npx @google/design.md lint` measures every `BrandStatusLabel` kind below WCAG AA for its 10-point semibold text: First Motive Steel 3.07:1, Lilac 2.60:1, Coral 3.38:1, Sage 3.62:1; Ubundi Blue 3.23:1, Electric 2.52:1, Salmon 2.75:1, Green 3.49:1. The label is always paired with a system icon and a written state, so meaning does not depend on the color, but the text itself is hard to read. The smallest fix is to keep the tint on the icon, capsule fill, and border, and to draw the title in the theme text color. That change touches `BrandStatusLabel` alone. It needs Matthew's decision because it visibly changes every status label in the product.
