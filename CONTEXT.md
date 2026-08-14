@@ -1,6 +1,6 @@
-# Notive
+# Atrium
 
-Notive is a privacy-first, local-first macOS meeting assistant for Ubundi and First Motive. This file gives the domain language and the map of the repository. It does not repeat behavior rules or architecture detail.
+Atrium is a privacy-first, local-first macOS company intelligence workspace for Ubundi and First Motive. This file gives the domain language and the map of the repository. It does not repeat behavior rules or architecture detail.
 
 ## Read first
 
@@ -15,7 +15,7 @@ Notive is a privacy-first, local-first macOS meeting assistant for Ubundi and Fi
 
 Use these terms in code, prose, and labels. The two scopes are the most important distinction in the product.
 
-**My Workspace**: The private, local scope on one person's Mac. It holds meeting capture, transcripts, notes, summaries, Dictation, Ask, and local search. Modeled by `WorkspaceSelection` and `MeetingWorkspace` in `macos/Sources/NotiveCore/Models/`.
+**My Workspace**: The private, local scope on one person's Mac. It holds meeting capture, transcripts, notes, summaries, Dictation, Ask, and local search. Modeled by `WorkspaceSelection` and `MeetingWorkspace` in `macos/Sources/AtriumCore/Models/`.
 _Avoid_: personal workspace, private mode
 
 **Company Hub**: The shared company scope for agents, approved knowledge, people, search, and activity. Content enters only through an explicit owner share action. Modeled by the `Hub*` types in `Models/CompanyHub.swift`.
@@ -32,13 +32,13 @@ _Avoid_: speaker identification, diarization, voice recognition
 
 **Workstream**: The intended unit of persistent company work in Company Hub. It is a vision term. No implementation exists yet.
 
-**Brand theme**: `Ubundi` or `First Motive`, selected through `BrandTheme`. These are theme identities, not separate products or tenants.
+**Brand theme**: `Atrium`, `Ubundi`, or `First Motive`, selected through `BrandTheme`. Atrium is the default theme. These are theme identities, not separate products or tenants.
 
-**Grounding**: The installation-owned company knowledge system that Notive plans to reach through MCP. It is external and unbuilt.
+**Grounding**: The installation-owned company knowledge system that Atrium plans to reach through MCP. It is external and unbuilt.
 
 ## Architecture and boundaries
 
-- `macos/Sources/Notive/` owns scenes and views. `macos/Sources/NotiveCore/` owns data, audio, transcription, retrieval, language services, and updates. The dependency runs one way, from `Notive` to `NotiveCore`.
+- `macos/Sources/Atrium/` owns scenes and views. `macos/Sources/AtriumCore/` owns data, audio, transcription, retrieval, language services, and updates. The dependency runs one way, from `Atrium` to `AtriumCore`.
 - `AppStore` is the main-actor store for My Workspace. `CompanyHubStore` holds Company Hub state and reads through `CompanyHubProviding`. The default `DisconnectedCompanyHubService` returns nothing and throws `CompanyHubUnavailableError`, so every Company Hub screen shows an empty state.
 - Company Hub screens never touch the local database. The local SQLite store is the private workspace store and must not become the shared database.
 - The external Ask confirmation lives in `AppStore`: `AskPhase.confirming` blocks the request until `confirmExternalAsk()` approves that `ExternalAskDestination` for the session.

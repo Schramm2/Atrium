@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Draws the Notive disk image background at 1x and 2x into one multi-representation TIFF.
+// Draws the Atrium disk image background at 1x and 2x into one multi-representation TIFF.
 // usage: swift script/dmg_background.swift <brand-assets-dir> <output.tiff>
 
 import AppKit
@@ -189,7 +189,7 @@ func drawFooter() {
     let centerY = height / 2
     drawLock(originX: 18, centerY: centerY, color: ivory(0.45))
     _ = draw(
-        "Private by design — everything Notive records stays on this Mac.",
+        "Private by design — everything Atrium records stays on this Mac.",
         leftAtX: 36,
         centerY: centerY,
         size: 11,
@@ -213,7 +213,7 @@ func drawBackground() {
     drawHighlight()
     drawWordmark()
     draw(
-        "Drag Notive into Applications to install",
+        "Drag Atrium into Applications to install",
         centeredAtX: windowWidth / 2,
         top: 148,
         size: 14,

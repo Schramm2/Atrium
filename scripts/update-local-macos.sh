@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# Build the current checkout and replace the local Notive app.
+# Build the current checkout and replace the local Atrium app.
 # This is intentionally separate from the GitHub release command. It does
 # not create a tag or publish an artifact.
 
 set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-INSTALL_APP="/Applications/Notive.app"
-STAGED_APP="/Applications/.Notive.app.installing.$$"
-BACKUP_APP="/Applications/.Notive.app.backup.$$"
-BUILD_APP="$ROOT_DIR/dist/.Notive.app"
+INSTALL_APP="/Applications/Atrium.app"
+STAGED_APP="/Applications/.Atrium.app.installing.$$"
+BACKUP_APP="/Applications/.Atrium.app.backup.$$"
+BUILD_APP="$ROOT_DIR/dist/.Atrium.app"
 SUPPORT_DIR="${HOME}/Library/Application Support/Notive"
 RECEIPT_FILE="$SUPPORT_DIR/installed-build.txt"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -30,8 +30,8 @@ for command_name in codesign date ditto git plutil stat swift; do
   require_command "$command_name"
 done
 
-if /usr/bin/pgrep -x Notive >/dev/null 2>&1; then
-  fail "Notive is running. Quit it before updating so an active recording is not interrupted."
+if /usr/bin/pgrep -x Atrium >/dev/null 2>&1; then
+  fail "Atrium is running. Quit it before updating so an active recording is not interrupted."
 fi
 
 COMMIT="$(git -C "$ROOT_DIR" rev-parse HEAD)"
@@ -40,7 +40,7 @@ BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
 VERSION="$(plutil -extract version raw "$ROOT_DIR/macos/version.json")"
 WORKTREE_STATUS="$(git -C "$ROOT_DIR" status --short)"
 
-echo "Notive local updater"
+echo "Atrium local updater"
 echo "  branch:  ${BRANCH:-detached HEAD}"
 echo "  commit:  $COMMIT"
 echo "  version: $VERSION"
@@ -89,7 +89,7 @@ fi
 
 INSTALLED_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$INSTALL_APP/Contents/Info.plist")"
 INSTALLED_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INSTALL_APP/Contents/Info.plist")"
-[[ "$INSTALLED_NAME" == "Notive" ]] || fail "Installed app name is '$INSTALLED_NAME', not 'Notive'."
+[[ "$INSTALLED_NAME" == "Atrium" ]] || fail "Installed app name is '$INSTALLED_NAME', not 'Atrium'."
 [[ "$INSTALLED_VERSION" == "$VERSION" ]] || fail "Installed version is '$INSTALLED_VERSION', expected '$VERSION'."
 
 mkdir -p "$SUPPORT_DIR"
@@ -106,6 +106,6 @@ if [[ -x "$LSREGISTER" ]]; then
 fi
 
 echo
-echo "Installed Notive $VERSION from commit $SHORT_COMMIT."
+echo "Installed Atrium $VERSION from commit $SHORT_COMMIT."
 echo "Receipt: $RECEIPT_FILE"
 echo "Open it with: open -n '$INSTALL_APP'"

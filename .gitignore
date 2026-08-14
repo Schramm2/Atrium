@@ -11,8 +11,8 @@
 # dependencies
 /node_modules
 **/models
-!/macos/Sources/NotiveCore/Models/
-!/macos/Sources/NotiveCore/Models/*.swift
+!/macos/Sources/AtriumCore/Models/
+!/macos/Sources/AtriumCore/Models/*.swift
 /.pnp
 .pnp.*
 .yarn/*

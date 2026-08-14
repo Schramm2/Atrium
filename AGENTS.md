@@ -1,10 +1,10 @@
-# Notive Agent Guide
+# Atrium Agent Guide
 
 ## Product and application ownership
 
-This repository builds **Notive**, a privacy-first, local-first AI meeting assistant for internal use by Ubundi and First Motive. Use `Notive` in prose and user-facing labels. Ubundi and First Motive are theme identities. Keep `ubundi-meet`, `com.ubundi.meet`, and existing GitHub URLs only where data, release, or repository compatibility requires them.
+This repository builds **Atrium**, a privacy-first, local-first company intelligence workspace for internal use by Ubundi and First Motive. Use `Atrium` in prose and user-facing labels. Ubundi and First Motive are theme identities. Keep `ubundi-meet`, `com.ubundi.meet`, and existing GitHub URLs only where data, release, or repository compatibility requires them.
 
-The product is the native Swift 6.1 and SwiftUI macOS application in `macos/`. `Notive` owns scenes and views. `NotiveCore` owns local data, audio, transcription, retrieval, and language services. The retired Tauri, Rust, and Python implementations are available only in Git history.
+The product is the native Swift 6.1 and SwiftUI macOS application in `macos/`. `Atrium` owns scenes and views. `AtriumCore` owns local data, audio, transcription, retrieval, and language services. The retired Tauri, Rust, and Python implementations are available only in Git history.
 
 ## Context routes
 
@@ -19,7 +19,7 @@ The product is the native Swift 6.1 and SwiftUI macOS application in `macos/`. `
 
 ## Boundaries
 
-- Preserve the bundle identifier `com.ubundi.meet`, the active database at `~/Library/Application Support/Notive/`, the additive import from `~/Library/Application Support/com.ubundi.meet/`, and compatible meeting data unless Matthew approves another migration.
+- Preserve the bundle identifier `com.ubundi.meet`, the active database at `~/Library/Application Support/Notive/`, the additive import from `~/Library/Application Support/com.ubundi.meet/`, and compatible meeting data unless Matthew approves another migration. The `Notive` support directory remains for install-base compatibility.
 - Keep recording, transcription, SQLite storage, retrieval, citations, and default answer generation on the Mac. Require the existing confirmation boundary before an external Ask provider receives a question and selected evidence.
 - Use Apple system frameworks and the authenticated GitHub CLI update path before proposing a production dependency.
 - Treat `dist/`, `target/`, `.next/`, Swift `.build/`, and generated migration inventories as derived output. Change their source or generator.

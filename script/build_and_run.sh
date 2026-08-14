@@ -2,7 +2,7 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="Notive"
+APP_NAME="Atrium"
 BUNDLE_ID="com.ubundi.meet"
 MIN_SYSTEM_VERSION="14.0"
 
@@ -16,12 +16,12 @@ APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
-VERSION="${NOTIVE_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/version.json")}"
+VERSION="${ATRIUM_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/version.json")}"
 VOLUME_NAME="$APP_NAME $VERSION"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION-arm64.dmg"
 STABLE_DMG_PATH="$DIST_DIR/$APP_NAME.dmg"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
-CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/notive-swift-module-cache"
+CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/atrium-swift-module-cache"
 export CLANG_MODULE_CACHE_PATH
 
 unregister_development_bundle() {
@@ -92,9 +92,12 @@ touch "$DIST_DIR/.metadata_never_index"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
-cp "$SWIFT_DIR/BrandAssets/Notive.icns" "$APP_RESOURCES/Notive.icns"
-cp "$SWIFT_DIR/BrandAssets/notive-ubundi-icon.png" "$APP_RESOURCES/notive-ubundi-icon.png"
-cp "$SWIFT_DIR/BrandAssets/notive-first-motive-icon.png" "$APP_RESOURCES/notive-first-motive-icon.png"
+cp "$SWIFT_DIR/BrandAssets/Atrium.icns" "$APP_RESOURCES/Atrium.icns"
+cp "$SWIFT_DIR/BrandAssets/atrium-icon.png" "$APP_RESOURCES/atrium-icon.png"
+cp "$SWIFT_DIR/BrandAssets/atrium-mark.png" "$APP_RESOURCES/atrium-mark.png"
+cp "$SWIFT_DIR/BrandAssets/atrium-wordmark.png" "$APP_RESOURCES/atrium-wordmark.png"
+cp "$SWIFT_DIR/BrandAssets/ubundi-icon.png" "$APP_RESOURCES/ubundi-icon.png"
+cp "$SWIFT_DIR/BrandAssets/first-motive-icon.png" "$APP_RESOURCES/first-motive-icon.png"
 cp "$SWIFT_DIR/BrandAssets/ubundi-wordmark.png" "$APP_RESOURCES/ubundi-wordmark.png"
 cp "$SWIFT_DIR/BrandAssets/ubundi-mark.png" "$APP_RESOURCES/ubundi-mark.png"
 cp "$SWIFT_DIR/BrandAssets/first-motive-mark.png" "$APP_RESOURCES/first-motive-mark.png"
@@ -113,7 +116,7 @@ cat >"$INFO_PLIST" <<PLIST
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
   <key>CFBundleIconFile</key>
-  <string>Notive</string>
+  <string>Atrium</string>
   <key>CFBundleIdentifier</key>
   <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
@@ -129,11 +132,11 @@ cat >"$INFO_PLIST" <<PLIST
   <key>LSMinimumSystemVersion</key>
   <string>$MIN_SYSTEM_VERSION</string>
   <key>NSMicrophoneUsageDescription</key>
-  <string>Notive records meeting and dictation audio that you start.</string>
+  <string>Atrium records meeting and dictation audio that you start.</string>
   <key>NSSpeechRecognitionUsageDescription</key>
-  <string>Notive transcribes meeting and dictation audio on this Mac.</string>
+  <string>Atrium transcribes meeting and dictation audio on this Mac.</string>
   <key>NSScreenCaptureUsageDescription</key>
-  <string>Notive captures system audio only while you record a meeting.</string>
+  <string>Atrium captures system audio only while you record a meeting.</string>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
 </dict>
@@ -177,7 +180,7 @@ case "$MODE" in
     exit 1
     ;;
   --package|package)
-    package_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/notive-package.XXXXXX")"
+    package_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/atrium-package.XXXXXX")"
     trap 'rm -rf "$package_temp_dir"' EXIT
     rm -f "$DMG_PATH" "$STABLE_DMG_PATH"
     staging_dir="$package_temp_dir/volume"

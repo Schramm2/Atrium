@@ -1,6 +1,6 @@
-# Build Notive
+# Build Atrium
 
-Notive is a native macOS application. Swift Package Manager builds the application in `macos/`.
+Atrium is a native macOS application. Swift Package Manager builds the application in `macos/`.
 
 ## Requirements
 
@@ -15,19 +15,19 @@ Notive is a native macOS application. Swift Package Manager builds the applicati
 ./script/build_and_run.sh run
 ```
 
-The script builds `macos/`, stages the application as the hidden bundle `dist/.Notive.app`, applies an ad-hoc signature, and opens that exact bundle. Hiding the development bundle prevents Launchpad from presenting it as a second installed copy of Notive.
+The script builds `macos/`, stages the application as the hidden bundle `dist/.Atrium.app`, applies an ad-hoc signature, and opens that exact bundle. Hiding the development bundle prevents Launchpad from presenting it as a second installed copy of Atrium.
 
-The internal build has no Apple Developer ID signature and is not notarized. On the first launch of a downloaded build, try to open Notive once, then open **System Settings → Privacy & Security** and select **Open Anyway**. Only override this warning for a Notive artifact that came from the repository's trusted release process. See [Apple's warning-flow guidance](https://support.apple.com/guide/mac-help/mh40616/mac).
+The internal build has no Apple Developer ID signature and is not notarized. On the first launch of a downloaded build, try to open Atrium once, then open **System Settings → Privacy & Security** and select **Open Anyway**. Only override this warning for an Atrium artifact that came from the repository's trusted release process. See [Apple's warning-flow guidance](https://support.apple.com/guide/mac-help/mh40616/mac).
 
-An ad-hoc signature identifies one exact build. A rebuilt or updated Notive bundle can therefore ask for Microphone, Speech Recognition, Screen Recording, Notifications, and Accessibility again. Open **Notive → Settings → Permissions**, approve the required access, and restart Notive after Screen Recording or Accessibility changes.
+An ad-hoc signature identifies one exact build. A rebuilt or updated Atrium bundle can therefore ask for Microphone, Speech Recognition, Screen Recording, Notifications, and Accessibility again. Open **Atrium → Settings → Permissions**, approve the required access, and restart Atrium after Screen Recording or Accessibility changes.
 
 ## Inspect a running build
 
-The same script starts Notive with an inspection mode attached:
+The same script starts Atrium with an inspection mode attached:
 
 ```bash
-./script/build_and_run.sh --logs       # start Notive and stream its process log
-./script/build_and_run.sh --telemetry  # start Notive and stream the com.ubundi.meet subsystem
+./script/build_and_run.sh --logs       # start Atrium and stream its process log
+./script/build_and_run.sh --telemetry  # start Atrium and stream the com.ubundi.meet subsystem
 ./script/build_and_run.sh --debug      # start the application binary under lldb
 ```
 
@@ -41,15 +41,15 @@ The same script starts Notive with an inspection mode attached:
 
 This creates:
 
-- `dist/.Notive.app`, the hidden staging bundle
-- `dist/Notive-<version>-arm64.dmg`, for first installation
-- `dist/Notive.dmg`, as the stable latest-release asset
+- `dist/.Atrium.app`, the hidden staging bundle
+- `dist/Atrium-<version>-arm64.dmg`, for first installation
+- `dist/Atrium.dmg`, as the stable latest-release asset
 
 The version is read from `macos/version.json`.
 
 ### Installer window
 
-Both disk images mount as the volume `Notive <version>` and open an icon-view window that shows the Notive bundle beside an Applications shortcut. `script/dmg_background.swift` draws the window background from `macos/BrandAssets/` at 1x and 2x. Packaging then mounts a writable image, lets Finder record the window size, icon places, and background, and converts the result to the compressed disk image.
+Both disk images mount as the volume `Atrium <version>` and open an icon-view window that shows the Atrium bundle beside an Applications shortcut. `script/dmg_background.swift` draws the window background from `macos/BrandAssets/` at 1x and 2x. Packaging then mounts a writable image, lets Finder record the window size, icon places, and background, and converts the result to the compressed disk image.
 
 Finder scripting must be available for the layout step. When it is not, packaging reports the plain disk image and the release still completes.
 

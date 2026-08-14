@@ -11,6 +11,7 @@ colors:
   primary: "#663AF3"
   on-primary: "#FFFFFF"
   atrium-secondary-accent: "#B6D9FC"
+  atrium-ai: "#A78BFA"
   atrium-warning: "#E46D4C"
   atrium-success: "#269684"
   atrium-canvas: "#05060F"
@@ -40,7 +41,7 @@ AuthKit renders a midnight product-launch aesthetic: a near-black canvas with fr
 | `https://www.authkit.com/` — AuthKit by WorkOS marketing site | The source style recorded below — palette, type ramp, radii, elevation, and marketing composition |
 | `DESIGN.md` | The existing product contract the Atrium tokens must fit — `BrandPalette` roles, the surface-wash idiom, 8/12-point radii, system typeface, spacing scale |
 
-Verification: the Atrium theme is not yet implemented (the plan is approved, not built), so there are no Atrium screens to compare against yet. The adaptation contract below is verified against the approved plan and the existing `DESIGN.md` contract. Linted with `npx @google/design.md lint --format json docs/rebrand/AuthKitDesign.md` (design.md 0.4.0): 0 errors, 0 warnings, 5 infos (token summary + declared omissions).
+Verification: the Atrium theme is implemented in `macos/Sources/Atrium/Views/BrandStyle.swift`, with its assets staged by `script/build_and_run.sh`. The adaptation contract below is verified against the approved plan and `DESIGN.md`. Linted with `npx @google/design.md lint --format json docs/rebrand/AuthKitDesign.md` (design.md 0.4.0): 0 errors, 0 warnings, 5 infos (token summary + declared omissions).
 
 ### Atrium Adaptation (approved scope)
 
@@ -69,9 +70,9 @@ The approved plan ports these AuthKit values into the Atrium theme. Front-matter
 - Spacing and layout: the 4px base, 120px section gaps, 1200px page max-width. Atrium keeps its spacing scale and window contract.
 - Elevation: inset-glow shadow stacks, halos, and drop shadows. Atrium depth stays borders and tonal fills; shadows stay reserved for popovers, menus, and overlays.
 - Gradients: the Skywash headline gradient, conic spotlight halo, and fading hairline dividers. Atrium has no gradient or atmosphere layer — `BrandAtmosphere` stays First Motive-only.
-- The marketing composition: hero wordmark, floating auth-form cards, light/dark toggle demo, design-tool customization scene. Marketing surfaces are out of scope; Atrium exposes the same single operational macOS surface as Notive.
+- The marketing composition: hero wordmark, floating auth-form cards, light/dark toggle demo, design-tool customization scene. Marketing surfaces are out of scope; Atrium exposes the same single operational macOS surface as the existing product.
 
-**Functional colors.** AuthKit reserves violet for the sole CTA, but the existing contract gives Atrium a generated/processing (`ai`) role that must read apart from the primary action. The plan derives a luminous violet for it — a functional color like Ubundi's success green, not an AuthKit value. Its exact hex is an open question below. Warning and success map from AuthKit's Ember and Teal, and the existing accent-means-meaning rule applies unchanged.
+**Functional colors.** AuthKit reserves violet for the sole CTA, but the existing contract gives Atrium a generated/processing (`ai`) role that must read apart from the primary action. Atrium uses `#A78BFA` for that functional color, like Ubundi's success green, not as another primary action. Warning and success map from AuthKit's Ember and Teal, and the existing accent-means-meaning rule applies unchanged.
 
 **Source-record note.** The AuthKit record below carries one internal inconsistency — the frosted-surface opacity appears as 0.03 on glass cards and 0.08 in the surface-layer token. It has no product consequence because Atrium derives its own 0.05/0.09 washes, but it stays unresolved in the reference. See Open Questions.
 
@@ -562,6 +563,4 @@ The system uses three gradient layers stacked vertically: (1) Skywash linear gra
 
 ## Open Questions
 
-1. **Exact `atrium-ai` value.** The plan derives a luminous violet for the generated/processing role (`#A78BFA`-class) because AuthKit reserves violet for the sole CTA. It is a functional color like Ubundi's success green. Confirm the exact hex — the proposed value reads at ≈ 7.4:1 on `#05060F` (AA) — before Phase 3 tokenizes it into `DESIGN.md`. It is documented in Markdown only and stays out of the front matter until confirmed.
-2. **Atrium status-label tint.** The existing contract's `BrandStatusLabel` uses a tint role (`fm-status-tint` for First Motive), and the approved plan maps none for Atrium. Candidates are the Luminous Fill wash `rgba(199,211,234,0.12)` composited over the surface, or reuse of the border/raised values. Decide during Phase 3.
-3. **AuthKit source-record inconsistency.** The frosted-surface opacity appears as 0.03 on glass cards and 0.08 in the surface-layer token (see Source — Components and Source — Surfaces). It has no product consequence — Atrium derives its own 0.05/0.09 washes — but the reference record stays unresolved.
+1. **AuthKit source-record inconsistency.** The frosted-surface opacity appears as 0.03 on glass cards and 0.08 in the surface-layer token (see Source — Components and Source — Surfaces). It has no product consequence — Atrium derives its own 0.05/0.09 washes — but the reference record stays unresolved.
