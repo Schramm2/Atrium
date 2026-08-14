@@ -82,7 +82,7 @@ struct OnboardingView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             BrandMarkView(size: 36)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Notive")
@@ -92,7 +92,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            HStack(spacing: 7) {
+            HStack(spacing: 8) {
                 ForEach(Array(steps.enumerated()), id: \.element) { index, item in
                     Button {
                         step = item
@@ -176,8 +176,8 @@ struct OnboardingView: View {
     }
 
     private var workspaceStep: some View {
-        HStack(alignment: .top, spacing: 28) {
-            VStack(alignment: .leading, spacing: 18) {
+        HStack(alignment: .top, spacing: 32) {
+            VStack(alignment: .leading, spacing: 16) {
                 OnboardingEyebrow("Your workspace")
                 OnboardingTitle("Four ways to work, one place")
                 OnboardingLead(
@@ -192,9 +192,9 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .background(palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(palette.border, lineWidth: 1)
                 }
             }
@@ -239,7 +239,7 @@ struct OnboardingView: View {
             OnboardingLead(
                 "Notive asks for access only when a feature needs it. Grant what you like now — everything can wait until later in Settings."
             )
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 PermissionCard(
                     icon: "mic",
                     title: "Microphone",
@@ -395,9 +395,9 @@ struct OnboardingView: View {
                 .font(.system(size: 30, weight: .semibold))
                 .foregroundStyle(palette.accent)
                 .frame(width: 64, height: 64)
-                .background(palette.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 18))
+                .background(palette.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 12))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 18)
+                    RoundedRectangle(cornerRadius: 12)
                         .stroke(palette.border, lineWidth: 1)
                 }
                 .accessibilityHidden(true)
@@ -407,9 +407,9 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 480)
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 ForEach(Array(summaryChipRows.enumerated()), id: \.offset) { row in
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         ForEach(row.element, id: \.label) { chip in
                             Label(chip.label, systemImage: "checkmark")
                                 .font(.caption.weight(.semibold))
@@ -484,7 +484,7 @@ struct OnboardingView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             if currentIndex > 0 {
                 Button("Back") {
                     step = steps[currentIndex - 1]
@@ -599,13 +599,13 @@ private struct EarlierDataCard: View {
     let restore: () async -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             Image(systemName: restored == nil ? "clock.arrow.circlepath" : "checkmark")
                 .foregroundStyle(restored == nil ? palette.secondaryAccent : palette.accent)
                 .frame(width: 38, height: 38)
-                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(palette.border, lineWidth: 1)
                 }
                 .accessibilityHidden(true)
@@ -698,13 +698,13 @@ private struct GitHubIdentityCard: View {
     let recheck: () async -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             Image(systemName: iconName)
                 .foregroundStyle(iconColor)
                 .frame(width: 38, height: 38)
-                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(palette.border, lineWidth: 1)
                 }
                 .accessibilityHidden(true)
@@ -890,7 +890,7 @@ private struct IdentityCard: View {
                         }
                     }
                     .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     Text(title)
                         .font(.headline)
                     Spacer()
@@ -937,13 +937,13 @@ private struct PermissionCard: View {
     @State private var isRequesting = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             Image(systemName: icon)
                 .foregroundStyle(granted ? palette.accent : palette.secondaryAccent)
                 .frame(width: 38, height: 38)
-                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(palette.border, lineWidth: 1)
                 }
                 .accessibilityHidden(true)

@@ -63,17 +63,16 @@ typography:
     fontWeight: 600
 rounded:
   control: "8px"
-  compact: "10px"
   panel: "12px"
   capsule: "999px"
 spacing:
-  xs: "4px"
   sm: "8px"
   md: "12px"
   lg: "16px"
-  xl: "24px"
-  xxl: "32px"
-  xxxl: "48px"
+  xl: "20px"
+  xxl: "24px"
+  xxxl: "32px"
+  xxxxl: "48px"
 components:
   panel:
     backgroundColor: "{colors.fm-surface}"
@@ -97,30 +96,18 @@ components:
     typography: "{typography.section-title}"
     rounded: "{rounded.control}"
     height: "28px"
-  status-label-local:
+  status-label:
     backgroundColor: "{colors.fm-status-tint}"
-    textColor: "{colors.fm-secondary-accent}"
+    textColor: "{colors.fm-text}"
     typography: "{typography.status}"
     rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-processing:
-    backgroundColor: "{colors.fm-status-tint}"
-    textColor: "{colors.fm-ai}"
+    padding: "8px 12px"
+  status-label-ubundi:
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-light-text}"
     typography: "{typography.status}"
     rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-warning:
-    backgroundColor: "{colors.fm-status-tint}"
-    textColor: "{colors.fm-warning}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-success:
-    backgroundColor: "{colors.fm-status-tint}"
-    textColor: "{colors.fm-success}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
+    padding: "8px 12px"
   screen:
     backgroundColor: "{colors.fm-canvas}"
     textColor: "{colors.fm-text}"
@@ -155,30 +142,6 @@ components:
     typography: "{typography.section-title}"
     rounded: "{rounded.control}"
     height: "32px"
-  status-label-ubundi-local:
-    backgroundColor: "{colors.ubundi-light-raised}"
-    textColor: "{colors.ubundi-secondary-accent}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-ubundi-processing:
-    backgroundColor: "{colors.ubundi-light-raised}"
-    textColor: "{colors.ubundi-ai}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-ubundi-warning:
-    backgroundColor: "{colors.ubundi-light-raised}"
-    textColor: "{colors.ubundi-warning}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
-  status-label-ubundi-success:
-    backgroundColor: "{colors.ubundi-light-raised}"
-    textColor: "{colors.ubundi-success}"
-    typography: "{typography.status}"
-    rounded: "{rounded.capsule}"
-    padding: "6px 10px"
   divider:
     backgroundColor: "{colors.fm-border}"
     height: "1px"
@@ -236,7 +199,9 @@ The tokens above are read from the implementation, not from an external brand fi
 
 `BrandPalette` stores colors as floating-point RGB, and it builds some roles by washing white or ivory over the surface below. The token values above are the exact conversions, composited where the implementation uses a wash, so they can be read and contrast-checked directly. The Elevation and Colors sections give the wash that produces each one. Change `BrandStyle.swift` and this document in the same commit.
 
-Verified with `npx @google/design.md lint --format json DESIGN.md`: 0 errors, 8 warnings, all of them the single contrast finding in Open Questions.
+Verified with `npx @google/design.md lint --format json DESIGN.md`: 0 errors, 0 contrast findings, 8 accepted warnings.
+
+The eight warnings all read `orphaned-tokens` for the semantic state colors — the secondary accent, AI, warning, and success roles in both themes. They are accepted rather than fixed. Those colors reach the interface as an icon color, a 13% capsule fill, and a 24% border, and the component schema has slots for a background and a text color only. Giving them a component entry would either misstate them as text colors or invent a token the code does not have.
 
 ### Surface Map
 
@@ -276,9 +241,19 @@ First Motive is a dark brand theme. Its aubergine `#433B47` canvas stays dark in
 
 An accent color carries meaning. Electric and Lilac mark generated or processing content only. Use no ambient accent without a workflow state behind it.
 
+### Colors outside the brand palette
+
+The Ubundi brand guideline names six core colors: Navy, Blue, Grey, Electric, Salmon, and Amber. It has no green, so Ubundi success green `#4F8F75` is a **functional color**: it carries the success and running states, which must read apart from the primary action (Navy), information (Blue), generated content (Electric), and warning (Salmon). First Motive needs no equivalent, because its Sage accent already serves both roles. This is the only functional color in the product, and it is the one token that still needs brand sign-off.
+
+Ubundi Amber `#F3C57A` and deep navy `#1B1F44` are brand colors with no role in this interface. Notive's semantic roles are all assigned, and First Motive has no amber, so an attention role cannot exist in both themes without inventing a color. They stay in the Ubundi brand guideline for marketing surfaces and out of `BrandPalette`.
+
+The Ubundi light surfaces are navy-tinted neutrals — canvas `#F8F9FC` and raised `#F4F5F9` — rather than the brand's flat `#F5F5F5`. The tint keeps the theme coherent under a navy accent. The First Motive surfaces land within one step of the brand elevation ramp, `#4b434e` and `#504954`, which confirms the wash values.
+
 ## Typography
 
-Notive uses the macOS system family through the SwiftUI text styles. This keeps the interface consistent with the system, and it lets text follow the user's accessibility text-size setting. The sizes in the front matter are the macOS defaults at the standard size, not fixed values.
+Notive uses the macOS system family through the SwiftUI text styles. The sizes in the front matter are the macOS defaults at the standard text size, not fixed values.
+
+The Ubundi and First Motive brand guidelines both specify Manrope for brand surfaces, and both write it with a system fallback. Notive uses the fallback deliberately. The system family is the native choice for an operational macOS workspace, it follows the user's accessibility text-size setting without extra work, and the product ships no font file today. Marketing and web surfaces keep Manrope; this product does not. Revisit only with a licensed font in `macos/BrandAssets/`, applied through `Font.custom(_:relativeTo:)` so text scaling survives.
 
 | Role | Text style | Use |
 | --- | --- | --- |
@@ -300,7 +275,9 @@ Give transcript text generous line spacing and keep timestamps compact and monos
 - Give each destination a compact page header: title, one factual sentence, and the relevant actions.
 - Use the full detail width. Reading surfaces hold a 900–1,080 point measure. Operational lists, transcripts, and two-column screens extend to 1,280–1,360 points.
 - Screen content uses 32 points of padding.
-- Use the `{spacing}` steps. Use `ViewThatFits` to fold a two-column screen into one column before content compresses.
+- Use the `{spacing}` steps for layout: 8, 12, 16, 20, 24, 32, and 48 points. `BrandPanel` pads by 20.
+- Values of 1 to 6 points are optical adjustments inside one component, such as an icon-to-label gap or a two-line label. They are not layout steps, and they never set the distance between sections.
+- Use `ViewThatFits` to fold a two-column screen into one column before content compresses.
 
 ## Elevation & Depth
 
@@ -317,11 +294,12 @@ Do not nest a panel inside a panel. Prefer one flat section with a border and a 
 
 ## Shapes
 
-- 8-point radius for controls and small surfaces.
-- 10-point radius for compact rows and chips.
-- 12-point radius for panels and large sections.
+The shape language has two radii and one capsule. A third step reads as noise at this scale.
+
+- 8-point radius for controls, chips, avatars, and compact rows.
+- 12-point radius for panels, large sections, and overlays.
 - Capsules for status labels and short primary actions only.
-- The brand mark clips to a 22% corner radius.
+- The brand mark clips to a 22% corner radius, which scales with the mark.
 
 ## Components
 
@@ -398,7 +376,7 @@ Every data screen covers initial, loading, loaded, empty, and error. A disconnec
 - Preserve VoiceOver names, values, and actions. Give an icon-only control an accessibility label and hide decoration.
 - Keep visible keyboard focus and native tab order.
 - Meet WCAG AA contrast for normal text. Warm ivory on aubergine and the Ubundi text roles meet it. Steel, Lilac, Sage, Electric, and faint ivory carry too little contrast for small text: use them for icons, borders, and tint fills, and keep the text beside them in a text color.
-- `BrandStatusLabel` currently fails this rule. Its tinted 10-point text measures 2.5:1 to 3.6:1 in both themes. See Open Questions.
+- `BrandStatusLabel` follows this rule: the tint stays on the icon, the capsule fill, and the border, and the title uses the theme text color.
 - Never rely on color alone for recording, warning, selection, provider boundary, or completion state. Pair the color with a label or a system icon. This is what keeps the status labels legible today, and it stays required after the contrast fix.
 - Company Hub screens use `HubEmptyState.notConnected(...)` so no surface is blank without an explanation.
 
@@ -435,11 +413,17 @@ The interface is built in SwiftUI in `macos/Sources/Notive/Views/`. [FRONTEND.md
 
 **Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. No shared workspace exists behind them. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Every Company Hub screen therefore shows its empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. To implement it, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`. No screen needs to change.
 
+## Decisions
+
+These were the open questions in the previous revision. Each is answered, and the answer is applied in this document and in the code.
+
+1. **Typeface — system family, not Manrope.** Both brand guidelines specify Manrope, and both write it with a system fallback. No Manrope file exists in `macos/BrandAssets/`, in the Company Media brand folders, or on a build machine, so the earlier rule could never take effect. The system family is also the correct native choice here and scales with the accessibility text size for free. See Typography.
+2. **Spacing — a single scale of 8, 12, 16, 20, 24, 32, and 48 points.** 20 joins the scale because `BrandPanel` pads by it. Values of 1 to 6 points are optical adjustments inside a component and are not layout steps. The off-scale layout gaps were corrected: 10 to 12, 11 to 12, 13 to 12, 14 to 16, 18 to 16, 22 to 24, and 28 and 30 to 32, across 27 view files.
+3. **Radius — two steps, 8 and 12 points, plus the capsule.** The stray 5, 7, 9, and 10-point radii fold into 8; 14 and 18 fold into 12. Seven view files changed.
+4. **Amber and deep navy stay out of the product palette.** Both are real Ubundi brand colors, and neither has a role here. Every semantic role is assigned, and First Motive has no amber, so a theme-symmetric attention role would need an invented color. They remain brand colors for Ubundi marketing surfaces.
+5. **Ubundi success green stays, as a functional color.** The Ubundi brand names six colors and none is green, while success and running must stay distinct from the primary action, information, generated content, and warning. It is recorded under Colors as the product's one functional color. This is the single item that still wants brand sign-off.
+6. **Status label contrast — fixed in `BrandStatusLabel`.** The tint now carries the state on the icon, the capsule fill, and the border, and the title uses the theme text color. Ivory on the First Motive tint now measures 6.05:1, and Ubundi text on its raised surface 17.17:1 in light and 14.49:1 in dark, against 2.52:1 to 3.62:1 before. The capsule padding moved to 12 by 8 points to match the spacing scale.
+
 ## Open Questions
 
-1. **Manrope.** The earlier contract asked for Manrope with a system fallback. No view requests it, and `macos/BrandAssets/` holds no font file, so the application has always used the system family. Bundling Manrope would also give up the automatic text-size behavior that the SwiftUI text styles provide. Decide whether to bundle the font and set it on the text styles, or to keep the system family and retire Manrope from the brand contract for this product.
-2. **Spacing drift.** The scale is 4, 8, 12, 16, 24, 32, and 48 points, and screens also use 2, 5, 6, 10, 11, 14, 20, and 22. `BrandPanel` pads by 20. Decide whether to add 20 as a token and correct the rest, or to bring the off-scale values onto the scale.
-3. **Radius drift.** 12 points dominates and 8 points is used for controls, as documented. A 10-point radius appears on compact rows and is now recorded above. Decide whether 10 stays as a third step or folds into 8.
-4. **Retired colors.** Amber `#F3C57A` and deep navy `#1B1F44` appeared in the earlier contract but exist in no palette. The Ubundi dark anchor is `#0E101F`. They are removed here; restore them only with a role that a view uses.
-5. **Ubundi success green.** `#4F8F75` is implemented but had no brand definition. Confirm it against the Ubundi brand guideline in Company Media, or replace it.
-6. **Status label contrast.** `npx @google/design.md lint` measures every `BrandStatusLabel` kind below WCAG AA for its 10-point semibold text: First Motive Steel 3.07:1, Lilac 2.60:1, Coral 3.38:1, Sage 3.62:1; Ubundi Blue 3.23:1, Electric 2.52:1, Salmon 2.75:1, Green 3.49:1. The label is always paired with a system icon and a written state, so meaning does not depend on the color, but the text itself is hard to read. The smallest fix is to keep the tint on the icon, capsule fill, and border, and to draw the title in the theme text color. That change touches `BrandStatusLabel` alone. It needs Matthew's decision because it visibly changes every status label in the product.
+None. Raise a new one here rather than leaving a durable design decision in a commit message.

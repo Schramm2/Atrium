@@ -13,7 +13,7 @@ struct HomeWorkflowTiles: View {
             Button {
                 store.select(action.id)
             } label: {
-                HStack(spacing: 11) {
+                HStack(spacing: 12) {
                     Image(systemName: action.systemImage)
                         .font(.system(size: 18, weight: .medium))
                         .foregroundStyle(palette.secondaryAccent)

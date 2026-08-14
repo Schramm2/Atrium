@@ -10,7 +10,7 @@ struct PeopleView: View {
     var body: some View {
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "People",
                         detail: "Everyone across Ubundi and First Motive, with what they work on now."

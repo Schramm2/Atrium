@@ -8,7 +8,7 @@ struct ActivityRow: View {
     let event: HubActivityEvent
 
     var body: some View {
-        HStack(alignment: .top, spacing: 13) {
+        HStack(alignment: .top, spacing: 12) {
             Circle()
                 .fill(event.tint.color(palette))
                 .frame(width: 8, height: 8)

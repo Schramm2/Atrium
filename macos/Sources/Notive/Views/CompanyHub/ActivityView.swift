@@ -8,7 +8,7 @@ struct ActivityView: View {
     var body: some View {
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "Activity",
                         detail: "Everything that happened in the shared workspace, newest first."

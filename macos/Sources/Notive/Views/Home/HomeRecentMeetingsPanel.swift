@@ -29,7 +29,7 @@ struct HomeRecentMeetingsPanel: View {
             } else {
                 HubRowPanel(items: meetings) { meeting in
                     HubRowButton(action: { store.select(.meeting(meeting.id)) }) {
-                        HStack(spacing: 13) {
+                        HStack(spacing: 12) {
                             Image(systemName: "text.bubble")
                                 .font(.body)
                                 .foregroundStyle(.tint)

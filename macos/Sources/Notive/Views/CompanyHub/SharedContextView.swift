@@ -12,7 +12,7 @@ struct SharedContextView: View {
 
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "Shared Context",
                         detail: "Meetings, notes, and agent output the team chose to share — the company's working memory."

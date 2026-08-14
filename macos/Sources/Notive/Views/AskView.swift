@@ -14,7 +14,7 @@ struct AskView: View {
     var body: some View {
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "Ask Notive",
                         detail: "Find answers from your meeting transcripts, with citations."
@@ -41,7 +41,7 @@ struct AskView: View {
 
     private var composer: some View {
         BrandPanel {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 16) {
                 TextField(
                     "What decisions did we make about the launch?",
                     text: $question,
@@ -116,7 +116,7 @@ struct AskView: View {
             BrandPanel { workingView(label: "Searching your transcripts…") }
         case let .confirming(provider):
             BrandPanel {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 16) {
                     BrandStatusLabel(
                         title: "Leaves this Mac",
                         systemImage: "network.badge.shield.half.filled",
@@ -247,9 +247,9 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: 0) {
             if let answer = store.askAnswer {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 16) {
                         ForEach(answer.claims) { claim in
-                            VStack(alignment: .leading, spacing: 7) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 Text(claim.text)
                                     .textSelection(.enabled)
                                 HStack(spacing: 8) {

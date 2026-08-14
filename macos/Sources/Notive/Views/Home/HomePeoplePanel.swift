@@ -22,7 +22,7 @@ struct HomePeoplePanel: View {
 
             HubRowPanel(items: people) { person in
                 HubRowButton(action: { store.select(.people) }) {
-                    HStack(spacing: 11) {
+                    HStack(spacing: 12) {
                         HubAvatar(initials: person.initials, tint: person.tint, size: 28)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(person.name)

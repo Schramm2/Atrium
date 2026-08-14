@@ -12,8 +12,8 @@ struct AgentRosterCard: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 10) {
-                    HubAvatar(initials: agent.initials, tint: agent.tint, size: 34, cornerRadius: 9)
+                HStack(spacing: 12) {
+                    HubAvatar(initials: agent.initials, tint: agent.tint, size: 34, cornerRadius: 8)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(agent.name)
                             .font(.subheadline.weight(.semibold))

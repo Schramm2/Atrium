@@ -8,7 +8,7 @@ struct SearchResultGroup: View {
     let group: HubSearchGroup
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(group.label.uppercased())
                     .font(.caption.weight(.heavy))
