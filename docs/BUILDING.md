@@ -21,6 +21,18 @@ The internal build has no Apple Developer ID signature and is not notarized. On 
 
 An ad-hoc signature identifies one exact build. A rebuilt or updated Notive bundle can therefore ask for Microphone, Speech Recognition, Screen Recording, Notifications, and Accessibility again. Open **Notive → Settings → Permissions**, approve the required access, and restart Notive after Screen Recording or Accessibility changes.
 
+## Inspect a running build
+
+The same script starts Notive with an inspection mode attached:
+
+```bash
+./script/build_and_run.sh --logs       # start Notive and stream its process log
+./script/build_and_run.sh --telemetry  # start Notive and stream the com.ubundi.meet subsystem
+./script/build_and_run.sh --debug      # start the application binary under lldb
+```
+
+`--telemetry` shows the records that `DiagnosticLogger` writes, which is the shortest route to a failed store, service, or permission operation. `--debug` runs the binary directly, so it has no bundle resources.
+
 ## Build release artifacts
 
 ```bash

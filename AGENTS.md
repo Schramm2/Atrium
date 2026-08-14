@@ -8,10 +8,14 @@ The product is the native Swift 6.1 and SwiftUI macOS application in `macos/`. `
 
 ## Context routes
 
+- Read [CONTEXT.md](CONTEXT.md) before you name code, artifacts, or user-facing text, or when you need the repository map.
 - For component ownership, dependency flow, local data, providers, and distribution boundaries, read [docs/architecture.md](docs/architecture.md).
-- For setup, running, packaging, tests, and permissions, read [docs/BUILDING.md](docs/BUILDING.md).
+- For screen placement, state ownership, interface states, and interface verification, read [FRONTEND.md](FRONTEND.md).
+- For themes, layout, typography, and user-facing copy, read [DESIGN.md](DESIGN.md).
+- For the two scopes, the privacy invariant, and unbuilt functionality, read [docs/product-vision.md](docs/product-vision.md).
+- For setup, running, runtime inspection, packaging, tests, and permissions, read [docs/BUILDING.md](docs/BUILDING.md).
 - Before changing packaging, versions, application updates, or GitHub release behavior, read [docs/RELEASING.md](docs/RELEASING.md) and the accepted records in [docs/decisions/](docs/decisions/).
-- Use a repo-local skill in `.agents/skills/` when its description matches the task. Harness adapters in `.claude/skills/` route to the same skills.
+- Use a repo-local skill in `.agents/skills/` when its description matches the task. Harness adapters in `.claude/skills/` route to the same skills. Some skill packages are checkout-local and are absent from a fresh clone.
 
 ## Boundaries
 

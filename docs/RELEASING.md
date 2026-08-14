@@ -4,6 +4,8 @@
 
 Notive uses private GitHub Releases. A maintainer cuts a release locally with `scripts/release.sh`; there is no release workflow. CI builds and tests pushes to `main`.
 
+To install the current checkout on this Mac without publishing anything, use [Local macOS updates](LOCAL_MACOS_UPDATES.md) instead.
+
 The version lives in `macos/version.json`. The release script keeps it equal to the `vX.Y.Z` tag, the application bundle version, and the version shown in the UI.
 
 The release is Apple Silicon only. It uses ad-hoc macOS signing and is not notarized. macOS can show a Gatekeeper warning on first installation. A rebuilt or updated application can also require users to approve privacy access again in **Notive → Settings → Permissions**.
