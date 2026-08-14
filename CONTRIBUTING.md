@@ -1,6 +1,6 @@
-# Contribute to Notive
+# Contribute to Atrium
 
-Notive is an internal macOS product for Ubundi and First Motive.
+Atrium is an internal macOS product for Ubundi and First Motive.
 
 ## Workflow
 

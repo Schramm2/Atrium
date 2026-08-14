@@ -3,13 +3,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "Notive",
+    name: "Atrium",
     platforms: [
         .macOS(.v14),
     ],
     products: [
-        .executable(name: "Notive", targets: ["Notive"]),
-        .library(name: "NotiveCore", targets: ["NotiveCore"]),
+        .executable(name: "Atrium", targets: ["Atrium"]),
+        .library(name: "AtriumCore", targets: ["AtriumCore"]),
     ],
     dependencies: [],
     targets: [
@@ -18,9 +18,9 @@ let package = Package(
             pkgConfig: "sqlite3"
         ),
         .target(
-            name: "NotiveCore",
+            name: "AtriumCore",
             dependencies: ["CSQLite"],
-            path: "Sources/NotiveCore",
+            path: "Sources/AtriumCore",
             linkerSettings: [
                 .linkedFramework("AVFoundation"),
                 .linkedFramework("AudioToolbox"),
@@ -33,23 +33,23 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "Notive",
-            dependencies: ["NotiveCore"],
-            path: "Sources/Notive",
+            name: "Atrium",
+            dependencies: ["AtriumCore"],
+            path: "Sources/Atrium",
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("SwiftUI"),
             ]
         ),
         .testTarget(
-            name: "NotiveCoreTests",
-            dependencies: ["NotiveCore"],
-            path: "Tests/NotiveCoreTests"
+            name: "AtriumCoreTests",
+            dependencies: ["AtriumCore"],
+            path: "Tests/AtriumCoreTests"
         ),
         .testTarget(
-            name: "NotiveTests",
-            dependencies: ["Notive"],
-            path: "Tests/NotiveTests"
+            name: "AtriumTests",
+            dependencies: ["Atrium"],
+            path: "Tests/AtriumTests"
         ),
     ]
 )

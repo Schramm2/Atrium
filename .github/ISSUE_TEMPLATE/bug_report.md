@@ -22,7 +22,7 @@ assignees: ''
 
 ## Environment
 - macOS version:
-- Notive version:
+- Atrium version:
 - Mac model and chip:
 - Microphone or audio device, if relevant:
 
