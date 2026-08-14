@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-Portions of Notive are adapted from Handy:
+Portions of Atrium are adapted from Handy:
 https://github.com/cjpais/Handy
 
 MIT License

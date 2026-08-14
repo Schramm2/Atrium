@@ -24,6 +24,11 @@ This project uses stable semantic versions in the form `X.Y.Z`.
 
 ## Unreleased
 
+### Changed
+
+- Rebranded the application, Swift targets, bundles, release assets, and user-facing copy to Atrium. The Atrium theme is now the default; the existing Ubundi and First Motive themes remain available.
+- Existing local data, preference keys, keychain service, recordings path, and `Schramm2/notive` repository remain compatible. Existing installations update manually once to the Atrium bundle.
+
 ### Added
 
 - Onboarding, the workspace, and Settings can restore non-duplicate meetings and available recordings from an earlier Notive installation.

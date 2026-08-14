@@ -1,10 +1,10 @@
 # Handy Attribution
 
-Notive Local Dictation includes work adapted from [Handy](https://github.com/cjpais/Handy), copyright © 2025 CJ Pais. Handy is licensed under the MIT License.
+Atrium Local Dictation includes work adapted from [Handy](https://github.com/cjpais/Handy), copyright © 2025 CJ Pais. Handy is licensed under the MIT License.
 
 The adapted work was reviewed from Handy commit [`e449f69c9f2abc4299333b952b9728323a76952d`](https://github.com/cjpais/Handy/tree/e449f69c9f2abc4299333b952b9728323a76952d). Source comments identify the adapted clipboard, paste, and shortcut designs.
 
-This attribution applies to adapted software work only. Notive keeps its own product identity. It does not use Handy names, logos, icons, or other brand assets.
+This attribution applies to adapted software work only. Atrium keeps its own product identity. It does not use Handy names, logos, icons, or other brand assets.
 
 Speech models are separate works with their own licenses. Check the license for each model before you distribute the model or a package that contains it.
 

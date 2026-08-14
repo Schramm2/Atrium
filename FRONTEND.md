@@ -1,18 +1,18 @@
-# Notive interface
+# Atrium interface
 
-How the SwiftUI interface in `macos/Sources/Notive/` is built and verified. [DESIGN.md](DESIGN.md) owns how it must look and feel. [docs/architecture.md](docs/architecture.md) owns the whole system. [AGENTS.md](AGENTS.md) owns commands and done criteria.
+How the SwiftUI interface in `macos/Sources/Atrium/` is built and verified. [DESIGN.md](DESIGN.md) owns how it must look and feel. [docs/architecture.md](docs/architecture.md) owns the whole system. [AGENTS.md](AGENTS.md) owns commands and done criteria.
 
 ## Topology
 
-`NotiveApp` declares three scenes and owns every long-lived object:
+`AtriumApp` declares three scenes and owns every long-lived object:
 
 | Scene | Root view | Purpose |
 | --- | --- | --- |
-| `WindowGroup("Notive", id: "workspace")` | `ContentView` | The workspace window |
+| `WindowGroup("Atrium", id: "workspace")` | `ContentView` | The workspace window |
 | `Settings` | `SettingsView` | Preferences, providers, permissions |
 | `MenuBarExtra` | `MenuBarView` | Recording control and Ask from the menu bar |
 
-`AppStore` is created in `NotiveApp.init()` and lives for the process. A failed initializer shows `ContentUnavailableView` in place of the workspace, so the application opens without local data. `UpdaterService` is created beside it. `CompanyHubStore` is created in `ContentView` and passed down through `.environment(hub)`.
+`AppStore` is created in `AtriumApp.init()` and lives for the process. A failed initializer shows `ContentUnavailableView` in place of the workspace, so the application opens without local data. `UpdaterService` is created beside it. `CompanyHubStore` is created in `ContentView` and passed down through `.environment(hub)`.
 
 `ContentView` holds one `NavigationSplitView`. `SidebarView` writes `store.selection`, and the `detail` switch over `WorkspaceSelection` selects the screen. Menu commands and the menu bar reach the same screens through `store.select(_:)`.
 
@@ -20,19 +20,19 @@ How the SwiftUI interface in `macos/Sources/Notive/` is built and verified. [DES
 
 | Layer | Location | May depend on | Leaves elsewhere |
 | --- | --- | --- | --- |
-| View | `Sources/Notive/Views/` | Store state, semantic store actions, `BrandStyle` | Database access, audio, transcription, network calls |
-| Store | `Sources/NotiveCore/Stores/` | Models and service types | SwiftUI types and presentation state |
-| Service | `Sources/NotiveCore/Services/` | System frameworks, SQLite, transport | Presentation state |
-| Support | `Sources/Notive/Support/` | AppKit and system events | A second copy of store state |
+| View | `Sources/Atrium/Views/` | Store state, semantic store actions, `BrandStyle` | Database access, audio, transcription, network calls |
+| Store | `Sources/AtriumCore/Stores/` | Models and service types | SwiftUI types and presentation state |
+| Service | `Sources/AtriumCore/Services/` | System frameworks, SQLite, transport | Presentation state |
+| Support | `Sources/Atrium/Support/` | AppKit and system events | A second copy of store state |
 
-The dependency runs one way, from `Notive` to `NotiveCore`. A view reaches data through a store. Company Hub views read `CompanyHubStore` only, and they stay away from the local database.
+The dependency runs one way, from `Atrium` to `AtriumCore`. A view reaches data through a store. Company Hub views read `CompanyHubStore` only, and they stay away from the local database.
 
 ## Feature map
 
 | Feature | Source root | Selection | Store | Service boundary |
 | --- | --- | --- | --- | --- |
 | Home | `Views/Home/` | `.home` | `AppStore` and `CompanyHubStore` | Both |
-| Ask Notive | `Views/AskView.swift` | `.ask` | `AppStore` | `LanguageProviderService`, `SQLiteDatabase` |
+| Ask Atrium | `Views/AskView.swift` | `.ask` | `AppStore` | `LanguageProviderService`, `SQLiteDatabase` |
 | Dictation | `Views/DictationView.swift` | `.dictation` | `AppStore` | `SpeechTranscriptionService` |
 | Meeting notes | `Views/MeetingNotesView.swift` | `.notes` | `AppStore` | `SQLiteDatabase` |
 | Meeting workspace | `Views/MeetingDetailView.swift` | `.meeting(id)` | `AppStore` | Audio, speech, summary, database |
@@ -64,10 +64,10 @@ Long operations hold their task on the store and compare an operation identifier
 
 ## Add a screen
 
-1. Add the case to `WorkspaceSelection` in `NotiveCore/Models/`.
+1. Add the case to `WorkspaceSelection` in `AtriumCore/Models/`.
 2. Add the semantic action and published state to `AppStore` or `CompanyHubStore`. Keep transport and persistence in a service.
 3. Add the row to `SidebarView` and the case to the `detail` switch in `ContentView`.
-4. Compose the screen from `BrandScreen`, `NotivePageHeader`, and `BrandPanel`. Company Hub screens also use the `Hub*` components.
+4. Compose the screen from `BrandScreen`, `AtriumPageHeader`, and `BrandPanel`. Company Hub screens also use the `Hub*` components.
 5. Handle the empty, loading, error, and disabled states the feature can reach.
 6. Add a `CommandMenu` item when the screen needs a keyboard route.
 7. Add tests for the store or service behavior in `macos/Tests/`.
@@ -82,9 +82,9 @@ Long operations hold their task on the store and compare an operation identifier
 
 Every screen that reads data covers initial, loading, loaded, empty, and error. Company Hub screens use `HubEmptyState.notConnected(...)` so a blank surface always explains itself, and they disable `Share to hub`, agent messages, and `Mark all read` while `isConnected` is `false`.
 
-`ContentView` shows recoverable errors as an `ErrorBanner` above the detail column, one for each store. Permission-denied is a state of its own: recording, dictation, and system audio depend on Microphone, Speech Recognition, Screen Recording, and Accessibility access, and the screen sends the user to **Notive → Settings → Permissions**.
+`ContentView` shows recoverable errors as an `ErrorBanner` above the detail column, one for each store. Permission-denied is a state of its own: recording, dictation, and system audio depend on Microphone, Speech Recognition, Screen Recording, and Accessibility access, and the screen sends the user to **Atrium → Settings → Permissions**.
 
-Keep native list selection, focus order, and keyboard operation. Give an icon-only control an `accessibilityLabel`, and hide decoration with `accessibilityHidden(true)`. Both themes support the system light and dark appearance.
+Keep native list selection, focus order, and keyboard operation. Give an icon-only control an `accessibilityLabel`, and hide decoration with `accessibilityHidden(true)`. Atrium and First Motive are dark-only themes; Ubundi supports the system light and dark appearance.
 
 ## Performance and lifecycle
 
@@ -97,4 +97,4 @@ Keep native list selection, focus order, and keyboard operation. Give an icon-on
 
 Run the checks in [AGENTS.md](AGENTS.md). Store and service behavior is covered by `macos/Tests/`; SwiftUI views have no automated coverage, so exercise a changed screen in the running application with `./script/build_and_run.sh run`.
 
-Check the screen in both themes and in light and dark appearance, at the minimum window size, with the keyboard alone, and in its empty and error states. Read `./script/build_and_run.sh --logs` while you exercise the change. Run `./script/build_and_run.sh --verify` when the change touches bundle resources, signing, permissions, or startup.
+Check the screen in all three themes and in both macOS appearances where the theme permits it, at the minimum window size, with the keyboard alone, and in its empty and error states. Read `./script/build_and_run.sh --logs` while you exercise the change. Run `./script/build_and_run.sh --verify` when the change touches bundle resources, signing, permissions, or startup.
