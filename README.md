@@ -19,7 +19,7 @@ From the repository root:
 ./script/build_and_run.sh run
 ```
 
-The script builds the release package, creates `dist/Notive.app`, applies an ad-hoc signature, and opens the application.
+The script builds the release package, stages the hidden bundle `dist/.Notive.app`, applies an ad-hoc signature, and opens the application.
 
 ## Test
 
@@ -38,7 +38,7 @@ This creates the versioned and stable internal DMGs in `dist/`. See [Build Notiv
 
 ## Architecture
 
-The `Notive` target owns native scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, and language services. See [System architecture](docs/architecture.md) and the accepted records in [docs/decisions](docs/decisions/).
+The `Notive` target owns native scenes and views. The `NotiveCore` target owns local data, audio, transcription, retrieval, and language services. See [System architecture](docs/architecture.md) and the accepted records in [docs/decisions](docs/decisions/). [Interface](FRONTEND.md) covers how screens and state are built, and [Design](DESIGN.md) covers how they must look.
 
 Notive is growing from a private meeting assistant into a private company intelligence workspace that connects conversations, shared knowledge, people, and agents. See [Product vision](docs/product-vision.md) for the product model, privacy boundary, and planned Grounding integration.
 
