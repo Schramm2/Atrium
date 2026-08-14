@@ -43,7 +43,7 @@ struct SidebarView: View {
     }
 
     private var identity: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             BrandMarkView(size: 34)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Notive")

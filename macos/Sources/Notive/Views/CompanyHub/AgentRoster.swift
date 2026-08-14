@@ -9,7 +9,7 @@ struct AgentRoster: View {
         @Bindable var hub = hub
 
         ScrollView {
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 ForEach(hub.agents) { agent in
                     AgentRosterCard(
                         agent: agent,

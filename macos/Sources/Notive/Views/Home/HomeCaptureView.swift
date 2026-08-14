@@ -8,7 +8,7 @@ struct HomeCaptureView: View {
     @State private var showsAudioImporter = false
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 12) {
             BrandStatusLabel(
                 title: "On-device by default",
                 systemImage: "lock.fill",

@@ -10,7 +10,7 @@ struct LatestActivityPanel: View {
 
     var body: some View {
         BrandPanel(padding: 16) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Latest activity".uppercased())
                     .font(.caption2.weight(.bold))
                     .tracking(0.4)
@@ -22,7 +22,7 @@ struct LatestActivityPanel: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(hub.activity.prefix(3)) { event in
-                        HStack(alignment: .top, spacing: 9) {
+                        HStack(alignment: .top, spacing: 8) {
                             Circle()
                                 .fill(event.tint.color(palette))
                                 .frame(width: 7, height: 7)

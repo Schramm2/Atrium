@@ -80,7 +80,7 @@ struct ContentView: View {
         } isTargeted: { isAudioDropTargeted = $0 }
         .overlay {
             if isAudioDropTargeted {
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [8]))
                     .padding(12)
                     .allowsHitTesting(false)

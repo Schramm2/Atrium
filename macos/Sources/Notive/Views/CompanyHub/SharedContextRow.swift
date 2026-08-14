@@ -9,7 +9,7 @@ struct SharedContextRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 11) {
+            HStack(spacing: 12) {
                 Image(systemName: item.kind.symbolName)
                     .foregroundStyle(item.tint.color(palette))
                 VStack(alignment: .leading, spacing: 2) {

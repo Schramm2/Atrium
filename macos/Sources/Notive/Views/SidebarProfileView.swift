@@ -18,7 +18,7 @@ struct SidebarProfileView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 avatar
 
                 VStack(alignment: .leading, spacing: 1) {

@@ -25,7 +25,7 @@ struct AgentThread: View {
     }
 
     private func header(_ agent: HubAgent) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             HubAvatar(initials: agent.initials, tint: agent.tint, size: 28, cornerRadius: 8)
             VStack(alignment: .leading, spacing: 1) {
                 Text(agent.name)
@@ -52,7 +52,7 @@ struct AgentThread: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
-                VStack(spacing: 14) {
+                VStack(spacing: 16) {
                     ForEach(hub.thread) { message in
                         AgentChatBubble(message: message)
                     }
@@ -65,7 +65,7 @@ struct AgentThread: View {
     }
 
     private func composer(_ agent: HubAgent) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             TextField(
                 "Message \(agent.name)",
                 text: $draft,
@@ -74,9 +74,9 @@ struct AgentThread: View {
             .textFieldStyle(.plain)
             .padding(.horizontal, 12)
             .frame(height: 36)
-            .background(palette.raisedSurface, in: RoundedRectangle(cornerRadius: 9))
+            .background(palette.raisedSurface, in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 9).stroke(palette.border, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8).stroke(palette.border, lineWidth: 1)
             }
             .onSubmit(send)
             .disabled(!hub.isConnected)

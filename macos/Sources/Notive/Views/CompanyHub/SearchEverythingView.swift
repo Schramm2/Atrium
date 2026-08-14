@@ -13,7 +13,7 @@ struct SearchEverythingView: View {
 
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "Search everything",
                         detail: "One search across your meetings, the shared hub, people, and agent runs."
@@ -60,7 +60,7 @@ struct SearchEverythingView: View {
     }
 
     private func field(query: Binding<String>) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.tertiary)
             TextField("Search everything", text: query)
@@ -74,7 +74,7 @@ struct SearchEverythingView: View {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .overlay {
-                    RoundedRectangle(cornerRadius: 5).stroke(palette.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 8).stroke(palette.border, lineWidth: 1)
                 }
                 .accessibilityHidden(true)
         }

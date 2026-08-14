@@ -18,7 +18,7 @@ struct HomeAttentionPanel: View {
 
             HubRowPanel(items: hub.attention) { item in
                 HubRowButton(action: { open(item) }) {
-                    HStack(spacing: 13) {
+                    HStack(spacing: 12) {
                         Image(systemName: item.symbolName)
                             .font(.body)
                             .foregroundStyle(item.tone.color(palette))

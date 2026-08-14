@@ -11,7 +11,7 @@ struct SharedTodayRow: View {
                 initials: item.sharedByInitials,
                 tint: .secondaryAccent,
                 size: 28,
-                cornerRadius: 7
+                cornerRadius: 8
             )
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)

@@ -4,6 +4,24 @@ All notable changes to Notive are recorded in this file.
 
 This project uses stable semantic versions in the form `X.Y.Z`.
 
+## 0.9.1
+
+### Fixed
+
+- Status labels now meet WCAG AA. The state tint stays on the icon, the capsule fill, and the border, and the title uses the theme text color.
+
+### Changed
+
+- Layout spacing follows one scale of 8, 12, 16, 20, 24, 32, and 48 points. Values of 1 to 6 points are optical adjustments inside a component.
+- Corner radii use two steps: 8 points for controls, chips, avatars, and compact rows, and 12 points for panels, sections, and overlays.
+- `DESIGN.md` records the palette, typography, spacing, shapes, and components as machine-readable tokens read from `BrandStyle.swift`.
+
+### Added
+
+- `FRONTEND.md` describes interface topology, layer boundaries, state ownership, the recipe for a new screen, and interface verification.
+- `CONTEXT.md` is tracked, so the domain language and repository map reach every clone.
+- `docs/architecture.md` gains a codemap, the important runtime flows, and architectural invariants with the test that proves each one.
+
 ## Unreleased
 
 ### Added

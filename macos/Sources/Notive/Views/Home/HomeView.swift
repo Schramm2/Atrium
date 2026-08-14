@@ -9,7 +9,7 @@ struct HomeView: View {
     var body: some View {
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     HomeGreetingHeader(store: store)
 
                     HomeWorkflowStrip(store: store)
@@ -19,13 +19,13 @@ struct HomeView: View {
                     }
 
                     ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .top, spacing: 22) {
+                        HStack(alignment: .top, spacing: 24) {
                             workspaceColumn
                                 .frame(maxWidth: .infinity)
                             companyColumn
                                 .frame(width: 380)
                         }
-                        VStack(alignment: .leading, spacing: 22) {
+                        VStack(alignment: .leading, spacing: 24) {
                             workspaceColumn
                             companyColumn
                         }

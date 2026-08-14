@@ -9,7 +9,7 @@ struct PersonRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 11) {
+            HStack(spacing: 12) {
                 HubAvatar(initials: person.initials, tint: person.tint, size: 30)
                 Text(person.name)
                     .font(.subheadline.weight(.semibold))

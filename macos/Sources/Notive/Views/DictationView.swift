@@ -24,13 +24,13 @@ struct DictationView: View {
 
                     BrandPanel {
                         ViewThatFits(in: .horizontal) {
-                            HStack(alignment: .center, spacing: 30) {
+                            HStack(alignment: .center, spacing: 32) {
                                 dictationAction
                                 Divider().frame(minHeight: 160)
                                 setupValues
                                     .frame(maxWidth: 430)
                             }
-                            VStack(alignment: .leading, spacing: 22) {
+                            VStack(alignment: .leading, spacing: 24) {
                                 dictationAction
                                 Divider()
                                 setupValues
@@ -82,7 +82,7 @@ struct DictationView: View {
     }
 
     private var dictationAction: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             Image(systemName: store.isDictating ? "waveform.circle.fill" : "mic.circle.fill")
                 .font(.system(size: 48))
                 .foregroundStyle(.tint)

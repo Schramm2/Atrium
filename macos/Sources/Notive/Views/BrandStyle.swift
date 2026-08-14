@@ -170,18 +170,29 @@ struct BrandStatusLabel: View {
     let kind: Kind
 
     var body: some View {
-        Label(title, systemImage: systemImage)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(color.opacity(0.13), in: Capsule())
-            .overlay { Capsule().stroke(color.opacity(0.24), lineWidth: 1) }
+        // The tint carries the state on the icon, fill, and border. The title uses the
+        // theme text color, because tinted caption text does not reach WCAG AA on either
+        // theme surface.
+        Label {
+            Text(title)
+                .foregroundStyle(palette.text)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(color)
+        }
+        .font(.caption.weight(.semibold))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(color.opacity(0.13), in: Capsule())
+        .overlay { Capsule().stroke(color.opacity(0.24), lineWidth: 1) }
+    }
+
+    private var palette: BrandPalette {
+        BrandPalette.palette(for: theme, colorScheme: colorScheme)
     }
 
     private var color: Color {
-        let palette = BrandPalette.palette(for: theme, colorScheme: colorScheme)
-        return switch kind {
+        switch kind {
         case .local: palette.secondaryAccent
         case .processing: palette.ai
         case .warning: palette.warning

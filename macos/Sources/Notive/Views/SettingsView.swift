@@ -357,7 +357,7 @@ private struct ThemeChoice: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 BrandMarkView(size: 36)
                     .environment(\.brandTheme, theme)
                 VStack(alignment: .leading, spacing: 2) {
@@ -373,9 +373,9 @@ private struct ThemeChoice: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity)
-            .background(.quaternary.opacity(isSelected ? 0.75 : 0.3), in: RoundedRectangle(cornerRadius: 10))
+            .background(.quaternary.opacity(isSelected ? 0.75 : 0.3), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 8)
                     .stroke(isSelected ? palette.accent : Color.secondary.opacity(0.2), lineWidth: 1)
             }
         }
@@ -731,7 +731,7 @@ private extension AIProvider {
 
 private struct AboutSettingsView: View {
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             BrandMarkView(size: 74)
             Text("Notive")
                 .font(.largeTitle.weight(.semibold))

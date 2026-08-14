@@ -7,7 +7,7 @@ struct MeetingNotesView: View {
     var body: some View {
         BrandScreen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     NotivePageHeader(
                         "Meeting Notes",
                         detail: "Open a saved conversation to review its transcript, summary, and working notes."
@@ -40,7 +40,7 @@ struct MeetingNotesView: View {
                                                 Text(meeting.title)
                                                     .font(.headline)
                                                     .lineLimit(1)
-                                                HStack(spacing: 10) {
+                                                HStack(spacing: 12) {
                                                     Text(meeting.createdAt, format: .dateTime.weekday(.abbreviated).month(.wide).day().year())
                                                 }
                                                 .font(.caption)

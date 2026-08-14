@@ -229,7 +229,7 @@ private struct PlaybackBar: View {
     let meeting: Meeting
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Button(store.isPlaying ? "Pause" : "Play", systemImage: store.isPlaying ? "pause.fill" : "play.fill") {
                 store.togglePlayback(for: meeting)
             }
@@ -286,7 +286,7 @@ private struct TranscriptView: View {
                         .padding(.trailing, 8)
                     }
                     List(segments) { segment in
-                    HStack(alignment: .top, spacing: 14) {
+                    HStack(alignment: .top, spacing: 16) {
                         Button(Self.timeLabel(segment.audioStartTime)) {
                             if let time = segment.audioStartTime {
                                 store.play(meeting, at: time)

@@ -12,7 +12,7 @@ struct RecordingControlsView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
         case .recording:
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Button("Pause", systemImage: "pause.fill", action: store.pauseRecording)
                     Button("Stop", systemImage: "stop.fill", action: stopRecording)
