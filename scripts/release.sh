@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Cut a Notive release from a maintainer Mac. This is the only supported release
+# Cut an Atrium release from a maintainer Mac. This is the only supported release
 # path: it updates the application version, commits and pushes that change, builds
 # the disk images, and creates the private GitHub Release and tag.
 
@@ -42,8 +42,8 @@ done
 
 TAG="v$VERSION"
 VERSION_FILE="$ROOT_DIR/macos/version.json"
-VERSIONED_DMG="$ROOT_DIR/dist/Notive-$VERSION-arm64.dmg"
-STABLE_DMG="$ROOT_DIR/dist/Notive.dmg"
+VERSIONED_DMG="$ROOT_DIR/dist/Atrium-$VERSION-arm64.dmg"
+STABLE_DMG="$ROOT_DIR/dist/Atrium.dmg"
 
 command -v gh >/dev/null 2>&1 || fail "GitHub CLI is required."
 gh auth status >/dev/null 2>&1 || fail "Sign in first with 'gh auth login'."
@@ -75,7 +75,7 @@ if [[ "$CURRENT_BRANCH" != "main" && "$FORCE" -ne 1 ]]; then
 fi
 
 CURRENT_VERSION="$(plutil -extract version raw "$VERSION_FILE")"
-echo "Preparing Notive $TAG from ${CURRENT_BRANCH:-detached HEAD}."
+echo "Preparing Atrium $TAG from ${CURRENT_BRANCH:-detached HEAD}."
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "Dry run: the version file, Git history, tag, and release will not change."
@@ -91,11 +91,11 @@ else
 fi
 
 echo "Building the release disk images."
-NOTIVE_BUILD_VERSION="$VERSION" "$ROOT_DIR/script/build_and_run.sh" --package
+ATRIUM_BUILD_VERSION="$VERSION" "$ROOT_DIR/script/build_and_run.sh" --package
 
 [[ -s "$VERSIONED_DMG" ]] || fail "Expected $VERSIONED_DMG."
 [[ -s "$STABLE_DMG" ]] || fail "Expected $STABLE_DMG."
-codesign --verify --deep --strict "$ROOT_DIR/dist/.Notive.app"
+codesign --verify --deep --strict "$ROOT_DIR/dist/.Atrium.app"
 hdiutil verify "$VERSIONED_DMG" >/dev/null
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -109,7 +109,7 @@ gh release create "$TAG" \
   "$STABLE_DMG" \
   --repo Schramm2/notive \
   --target "$CURRENT_BRANCH" \
-  --title "Notive $TAG" \
+  --title "Atrium $TAG" \
   --generate-notes
 
-echo "Released Notive $TAG."
+echo "Released Atrium $TAG."

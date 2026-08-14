@@ -8,19 +8,19 @@ adaptive
 
 ## Users
 
-Notive serves Ubundi and First Motive team members who capture meetings, dictate text, review transcripts, keep notes, and recall past conversation evidence on a Mac. The primary workspace must give meeting capture, notes, saved meetings, Local Dictation, and Ask Notive equal structural importance.
+Atrium serves Ubundi and First Motive team members who start with company context, work with agents, capture meetings when useful, review results, and keep private work on a Mac. The primary workspace must give Company Hub, My Workspace, Local Dictation, and Ask Atrium clear structural importance.
 
 ## Product Purpose
 
-Notive is a privacy-first, local-first native macOS meeting assistant. It records microphone and system audio, transcribes speech on the Mac, keeps meeting evidence in a local workspace, supports direct notes and summaries, and lets users ask evidence-backed questions across saved meetings. Success means that users can move between capture, review, recall, and writing without losing context or control of their data.
+Atrium is a privacy-first, local-first native macOS company intelligence workspace. It connects company context, agents, approved shared knowledge, and private local work. Meeting capture, transcription, notes, summaries, Local Dictation, and evidence-backed Ask remain local capabilities that support the wider company operating loop. Success means that users can move between shared context and private work without losing control of their data.
 
 ## Positioning
 
-Notive keeps recording, transcription, storage, retrieval, citation construction, and default answer generation on the Mac. External AI use is optional, named, and confirmed before meeting evidence leaves the device.
+Atrium keeps recording, transcription, storage, retrieval, citation construction, and default answer generation on the Mac. External AI use is optional, named, and confirmed before meeting evidence leaves the device.
 
 ## Operating Context
 
-Notive is an internal desktop workspace used during and after meetings. It supports live capture, imported audio, timed transcripts, meeting-scoped speaker aliases, summaries, Markdown notes, evidence citations, playback, global Local Dictation, native notifications, and a menu-bar control surface. It reads and writes the local database under `~/Library/Application Support/Notive/`, can restore data from the earlier `~/Library/Application Support/com.ubundi.meet/` folder, and stores recordings locally.
+Atrium is an internal desktop workspace used during and after meetings. It supports live capture, imported audio, timed transcripts, meeting-scoped speaker aliases, summaries, Markdown notes, evidence citations, playback, global Local Dictation, native notifications, and a menu-bar control surface. It reads and writes the local database under `~/Library/Application Support/Notive/`, can restore data from the earlier `~/Library/Application Support/com.ubundi.meet/` folder, and stores recordings locally.
 
 ## Capabilities and Constraints
 
@@ -28,12 +28,12 @@ Notive is an internal desktop workspace used during and after meetings. It suppo
 - Preserve bundle identifier `com.ubundi.meet` and the existing database and recording contracts.
 - Use Apple frameworks and the authenticated GitHub CLI release path before adding production dependencies.
 - Preserve all current workflows, states, permissions, accessibility labels, keyboard operation, and system light/dark appearance behavior.
-- The interface has two brand themes, Ubundi and First Motive, but one shared information architecture and interaction model.
+- The interface has three brand themes — Atrium, Ubundi, and First Motive — with one shared information architecture and interaction model. Atrium is the default and is dark-only; Ubundi and First Motive keep their existing behavior.
 - Do not infer speaker identity or send meeting evidence externally without explicit user action.
 
 ## Brand Commitments
 
-The product name is **Notive**. Ubundi and First Motive remain distinct selectable theme identities. Use the canonical company-media brand assets and the contracts in:
+The product name is **Atrium**. Atrium, Ubundi, and First Motive are selectable theme identities, not separate products or tenants. Use the canonical company-media brand assets and the contracts in:
 
 - `/Users/matthew-schramm-ubundi/Workspace.nosync/Work/Company Media:Assets/Ubundi/01_Brand/Guideline-Reference/DESIGN.md`
 - `/Users/matthew-schramm-ubundi/Workspace.nosync/Work/Company Media:Assets/First Motive/01_Brand/Guideline-Reference/DESIGN.md`
