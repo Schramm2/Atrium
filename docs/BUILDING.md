@@ -44,6 +44,7 @@ This creates:
 - `dist/.Atrium.app`, the hidden staging bundle
 - `dist/Atrium-<version>-arm64.dmg`, for first installation
 - `dist/Atrium.dmg`, as the stable latest-release asset
+- `dist/Notive-<version>-arm64.dmg`, as the update-only asset for installations that predate the Atrium rebrand
 
 The version is read from `macos/version.json`.
 

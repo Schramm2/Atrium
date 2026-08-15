@@ -53,8 +53,8 @@ The script:
 
 1. Validates the stable semantic version, branch, clean worktree, GitHub authentication, and release collision.
 2. Updates `macos/version.json`, commits `chore: release vX.Y.Z`, and pushes `main`.
-3. Builds and verifies `Atrium.app`, `Atrium-X.Y.Z-arm64.dmg`, and `Atrium.dmg`.
-4. Creates the private GitHub Release and `vX.Y.Z` tag with both DMGs.
+3. Builds and verifies `Atrium.app`, `Atrium-X.Y.Z-arm64.dmg`, `Atrium.dmg`, and the `Notive-X.Y.Z-arm64.dmg` compatibility asset.
+4. Creates the private GitHub Release and `vX.Y.Z` tag with all three DMGs.
 
 After release, check CI on the version commit. Install the DMG on a test Mac. From the prior version, run **Atrium → Check for Updates…** and confirm the download, replacement, relaunch, and displayed version.
 
@@ -64,7 +64,7 @@ Never move or replace a published tag. Correct a faulty release with a later pat
 
 Atrium runs an automatic release check at launch when the preference is enabled. Users can also check from Settings or the application menu.
 
-The updater uses `gh release view` to compare the latest tag with the bundle version. When a user installs an update, it uses `gh release download`, mounts the versioned DMG, stages and verifies the application, replaces `/Applications/Atrium.app`, and relaunches. A failed install restores the prior application.
+The updater uses `gh release view` to compare the latest tag with the bundle version. When a user installs an update, it uses `gh release download`, mounts the versioned DMG, stages and verifies the application, replaces the running installation, and relaunches. Atrium installations use `/Applications/Atrium.app` and Atrium-named assets. Installations that predate the rebrand remain at `/Applications/Notive.app` and use the versioned Notive compatibility asset. A failed install restores the prior application.
 
 If a check fails, confirm:
 
