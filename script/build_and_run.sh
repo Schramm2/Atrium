@@ -20,6 +20,7 @@ VERSION="${ATRIUM_BUILD_VERSION:-$(plutil -extract version raw "$SWIFT_DIR/versi
 VOLUME_NAME="$APP_NAME $VERSION"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION-arm64.dmg"
 STABLE_DMG_PATH="$DIST_DIR/$APP_NAME.dmg"
+LEGACY_DMG_PATH="$DIST_DIR/Notive-$VERSION-arm64.dmg"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/atrium-swift-module-cache"
 export CLANG_MODULE_CACHE_PATH
@@ -182,7 +183,7 @@ case "$MODE" in
   --package|package)
     package_temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/atrium-package.XXXXXX")"
     trap 'rm -rf "$package_temp_dir"' EXIT
-    rm -f "$DMG_PATH" "$STABLE_DMG_PATH"
+    rm -f "$DMG_PATH" "$STABLE_DMG_PATH" "$LEGACY_DMG_PATH"
     staging_dir="$package_temp_dir/volume"
     writable_dmg="$package_temp_dir/$APP_NAME-writable.dmg"
     mkdir -p "$staging_dir/.background"
@@ -226,8 +227,21 @@ case "$MODE" in
     test -s "$DMG_PATH"
     cp "$DMG_PATH" "$STABLE_DMG_PATH"
     test -s "$STABLE_DMG_PATH"
+
+    legacy_staging_dir="$package_temp_dir/legacy-volume"
+    mkdir -p "$legacy_staging_dir"
+    /usr/bin/ditto "$APP_BUNDLE" "$legacy_staging_dir/Notive.app"
+    /usr/bin/hdiutil create \
+      -volname "Atrium Legacy Update $VERSION" \
+      -srcfolder "$legacy_staging_dir" \
+      -fs HFS+ \
+      -format UDZO \
+      -ov \
+      "$LEGACY_DMG_PATH" >/dev/null
+    test -s "$LEGACY_DMG_PATH"
+
     rm -rf "$package_temp_dir"
     trap - EXIT
-    echo "Created $DMG_PATH and $STABLE_DMG_PATH."
+    echo "Created $DMG_PATH, $STABLE_DMG_PATH, and $LEGACY_DMG_PATH."
     ;;
 esac

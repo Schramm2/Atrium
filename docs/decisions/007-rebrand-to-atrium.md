@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted; updater transition superseded by ADR-008
 
 ## Date
 

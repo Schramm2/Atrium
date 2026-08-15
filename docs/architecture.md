@@ -56,7 +56,7 @@ Ollama on a loopback address stays local. OpenAI, Anthropic, Groq, OpenRouter, r
 
 ### Updates and distribution
 
-Swift Package Manager builds the native application. A maintainer runs `scripts/release.sh` to update the version, commit and push it, create the Apple Silicon DMGs, and publish the private GitHub Release and tag. Installed applications use an authenticated GitHub CLI session to find and download the newest release. The updater stages and verifies the ad-hoc code-signed application before it replaces `/Applications/Atrium.app`, and it restores the prior copy when installation fails.
+Swift Package Manager builds the native application. A maintainer runs `scripts/release.sh` to update the version, commit and push it, create the Apple Silicon DMGs, and publish the private GitHub Release and tag. Installed applications use an authenticated GitHub CLI session to find and download the newest release. The updater stages and verifies the ad-hoc code-signed application before it replaces the running Atrium or legacy Notive installation, and it restores the prior copy when installation fails.
 
 The internal distribution model is not Developer ID signed or notarized. macOS can show a Gatekeeper warning on first installation. GitHub authentication restricts access to the release but does not provide a separate application-update signature.
 
@@ -85,7 +85,7 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 
 **Send evidence outside the Mac.** Ask retrieves bounded FTS5 evidence locally. When the selected provider is external, `askPhase` becomes `.confirming` and the request stops. Nothing leaves the Mac until `confirmExternalAsk()` approves that `ExternalAskDestination` for the session. The local fallback needs no confirmation.
 
-**Install an update.** `UpdaterService` compares the newest tag from `gh release view` with the bundle version, downloads the versioned disk image, mounts it, verifies the ad-hoc signature, replaces `/Applications/Atrium.app`, and relaunches. A failed install restores the prior application. An active recording, transcription, dictation, or import blocks installation.
+**Install an update.** `UpdaterService` compares the newest tag from `gh release view` with the bundle version, downloads the versioned disk image for the running Atrium or legacy Notive bundle path, mounts it, verifies the ad-hoc signature, replaces that installation, and relaunches. A failed install restores the prior application. An active recording, transcription, dictation, or import blocks installation.
 
 ## Invariants and verification
 
@@ -97,7 +97,7 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 | Import from the earlier installation adds only what is missing and never changes the source | A restore must not damage or duplicate existing meeting data | `PreviousInstallationTests` |
 | Deleting a meeting cascades through its local records | Evidence must not outlive the meeting a user removed | `SQLiteDatabaseTests` |
 | Only a newer stable release is offered, and active work blocks installation | An update must not interrupt a recording, transcription, dictation, or import | `GitHubReleaseUpdaterTests`, `UpdaterServiceTests` |
-| The updater replaces `/Applications/Atrium.app` only after it verifies the staged bundle, and it restores the prior application on failure | An interrupted update must leave a working installation | Manual check in [RELEASING.md](RELEASING.md) |
+| The updater replaces the running Atrium or legacy Notive installation only after it verifies the staged bundle, and it restores the prior application on failure | An interrupted update must leave a working installation | Manual check in [RELEASING.md](RELEASING.md) |
 
 The `Atrium` target depends on `AtriumCore`, and no dependency runs the other way. `macos/Package.swift` enforces it. Run the checks in [AGENTS.md](../AGENTS.md) for a change that touches any row above.
 

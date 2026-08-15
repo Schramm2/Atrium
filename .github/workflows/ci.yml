@@ -33,4 +33,5 @@ jobs:
           VERSION="$(plutil -extract version raw macos/version.json)"
           codesign --verify --deep --strict dist/.Atrium.app
           hdiutil verify "dist/Atrium-$VERSION-arm64.dmg"
+          hdiutil verify "dist/Notive-$VERSION-arm64.dmg"
           test -s "dist/Atrium.dmg"
