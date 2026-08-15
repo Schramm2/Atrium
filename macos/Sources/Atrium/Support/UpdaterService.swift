@@ -164,7 +164,7 @@ final class UpdaterService {
     private func relaunch() {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/sh")
-        process.arguments = ["-c", "sleep 1; open '/Applications/Atrium.app'"]
+        process.arguments = ["-c", "sleep 1; open '\(updater.installationTarget)'"]
         try? process.run()
         NSApp.terminate(nil)
     }

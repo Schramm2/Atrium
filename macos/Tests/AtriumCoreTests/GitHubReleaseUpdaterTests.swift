@@ -4,10 +4,15 @@ import Testing
 
 @Suite("GitHub release updater")
 struct GitHubReleaseUpdaterTests {
-    @Test("Updates target the Atrium application bundle")
+    @Test("Updates follow the installed application bundle")
     func applicationTarget() {
-        #expect(GitHubReleaseUpdater.appName == "Atrium.app")
-        #expect(GitHubReleaseUpdater.appTarget == "/Applications/Atrium.app")
+        let atrium = GitHubReleaseUpdater(run: unusedRun)
+        let legacy = GitHubReleaseUpdater(legacyInstallation: true, run: unusedRun)
+
+        #expect(atrium.installationTarget == "/Applications/Atrium.app")
+        #expect(atrium.diskImageName(version: "0.9.3") == "Atrium-0.9.3-arm64.dmg")
+        #expect(legacy.installationTarget == "/Applications/Notive.app")
+        #expect(legacy.diskImageName(version: "0.9.3") == "Notive-0.9.3-arm64.dmg")
     }
 
     @Test("Latest release tags are parsed")
@@ -48,6 +53,10 @@ struct GitHubReleaseUpdaterTests {
         #expect(!GitHubReleaseUpdater.isValidVersion("v0.6.0"))
         #expect(!GitHubReleaseUpdater.isValidVersion("0.6.0-rc.1"))
         #expect(!GitHubReleaseUpdater.isValidVersion("../etc"))
+    }
+
+    private var unusedRun: GitHubReleaseUpdater.Run {
+        { _ in .init(exitCode: 1, standardOutput: "", standardError: "unused") }
     }
 
     private func updater(tag: String?) -> GitHubReleaseUpdater {
