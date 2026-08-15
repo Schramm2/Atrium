@@ -36,17 +36,31 @@ public struct GitHubReleaseUpdater: Sendable {
 
     public static let appName = "Atrium.app"
     public static let appTarget = "/Applications/Atrium.app"
+    public static let legacyAppName = "Notive.app"
+    public static let legacyAppTarget = "/Applications/Notive.app"
 
     public let repository: String
+    public let installationTarget: String
+    private let installationName: String
     private let run: Run
 
-    public init(repository: String = "Schramm2/notive", run: @escaping Run) {
+    public init(
+        repository: String = "Schramm2/notive",
+        legacyInstallation: Bool = false,
+        run: @escaping Run
+    ) {
         self.repository = repository
+        installationName = legacyInstallation ? Self.legacyAppName : Self.appName
+        installationTarget = legacyInstallation ? Self.legacyAppTarget : Self.appTarget
         self.run = run
     }
 
     public static func live(repository: String = "Schramm2/notive") -> Self {
-        Self(repository: repository, run: execute)
+        Self(
+            repository: repository,
+            legacyInstallation: Bundle.main.bundleURL.lastPathComponent == legacyAppName,
+            run: execute
+        )
     }
 
     public func latestVersion() -> String? {
@@ -77,11 +91,15 @@ public struct GitHubReleaseUpdater: Sendable {
         let fileManager = FileManager.default
         let temporaryDirectory = fileManager.temporaryDirectory
             .appending(path: "atrium-update-\(version)-\(UUID().uuidString)")
-        let diskImage = temporaryDirectory.appending(path: "Atrium-\(version)-arm64.dmg")
+        let diskImage = temporaryDirectory.appending(path: diskImageName(version: version))
         let mountDirectory = temporaryDirectory.appending(path: "mount")
         let installIdentifier = UUID().uuidString
-        let stagedApp = "/Applications/.Atrium.app.installing.\(installIdentifier)"
-        let backupApp = "/Applications/.Atrium.app.backup.\(installIdentifier)"
+        let hiddenTarget = installationTarget.replacingOccurrences(
+            of: "/Applications/",
+            with: "/Applications/."
+        )
+        let stagedApp = "\(hiddenTarget).installing.\(installIdentifier)"
+        let backupApp = "\(hiddenTarget).backup.\(installIdentifier)"
 
         try fileManager.createDirectory(at: mountDirectory, withIntermediateDirectories: true)
         defer {
@@ -106,7 +124,7 @@ public struct GitHubReleaseUpdater: Sendable {
         ])
         guard mount.succeeded else { throw UpdateError.mountFailed(Self.reason(mount)) }
 
-        let sourceApp = mountDirectory.appending(path: Self.appName)
+        let sourceApp = mountDirectory.appending(path: installationName)
         guard fileManager.fileExists(atPath: sourceApp.path) else {
             throw UpdateError.appNotFound
         }
@@ -118,27 +136,31 @@ public struct GitHubReleaseUpdater: Sendable {
             throw UpdateError.installFailed(Self.reason(stagedVerification))
         }
 
-        let targetExists = fileManager.fileExists(atPath: Self.appTarget)
+        let targetExists = fileManager.fileExists(atPath: installationTarget)
         if targetExists {
-            let backup = run(["mv", Self.appTarget, backupApp])
+            let backup = run(["mv", installationTarget, backupApp])
             guard backup.succeeded else { throw UpdateError.installFailed(Self.reason(backup)) }
         }
 
-        let install = run(["mv", stagedApp, Self.appTarget])
+        let install = run(["mv", stagedApp, installationTarget])
         guard install.succeeded else {
-            if targetExists { _ = run(["mv", backupApp, Self.appTarget]) }
+            if targetExists { _ = run(["mv", backupApp, installationTarget]) }
             throw UpdateError.installFailed(Self.reason(install))
         }
 
-        let verification = run(["codesign", "--verify", "--deep", "--strict", Self.appTarget])
+        let verification = run(["codesign", "--verify", "--deep", "--strict", installationTarget])
         guard verification.succeeded else {
-            _ = run(["rm", "-rf", Self.appTarget])
-            if targetExists { _ = run(["mv", backupApp, Self.appTarget]) }
+            _ = run(["rm", "-rf", installationTarget])
+            if targetExists { _ = run(["mv", backupApp, installationTarget]) }
             throw UpdateError.installFailed(Self.reason(verification))
         }
 
         if targetExists { _ = run(["rm", "-rf", backupApp]) }
-        _ = run(["xattr", "-dr", "com.apple.quarantine", Self.appTarget])
+        _ = run(["xattr", "-dr", "com.apple.quarantine", installationTarget])
+    }
+
+    func diskImageName(version: String) -> String {
+        "\(installationName.dropLast(4))-\(version)-arm64.dmg"
     }
 
     public static func isValidVersion(_ version: String) -> Bool {

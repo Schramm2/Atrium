@@ -44,6 +44,7 @@ TAG="v$VERSION"
 VERSION_FILE="$ROOT_DIR/macos/version.json"
 VERSIONED_DMG="$ROOT_DIR/dist/Atrium-$VERSION-arm64.dmg"
 STABLE_DMG="$ROOT_DIR/dist/Atrium.dmg"
+LEGACY_DMG="$ROOT_DIR/dist/Notive-$VERSION-arm64.dmg"
 
 command -v gh >/dev/null 2>&1 || fail "GitHub CLI is required."
 gh auth status >/dev/null 2>&1 || fail "Sign in first with 'gh auth login'."
@@ -95,11 +96,13 @@ ATRIUM_BUILD_VERSION="$VERSION" "$ROOT_DIR/script/build_and_run.sh" --package
 
 [[ -s "$VERSIONED_DMG" ]] || fail "Expected $VERSIONED_DMG."
 [[ -s "$STABLE_DMG" ]] || fail "Expected $STABLE_DMG."
+[[ -s "$LEGACY_DMG" ]] || fail "Expected $LEGACY_DMG."
 codesign --verify --deep --strict "$ROOT_DIR/dist/.Atrium.app"
 hdiutil verify "$VERSIONED_DMG" >/dev/null
+hdiutil verify "$LEGACY_DMG" >/dev/null
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
-  echo "Dry run complete. Would create $TAG with $VERSIONED_DMG and $STABLE_DMG."
+  echo "Dry run complete. Would create $TAG with $VERSIONED_DMG, $STABLE_DMG, and $LEGACY_DMG."
   exit 0
 fi
 
@@ -107,6 +110,7 @@ echo "Creating GitHub Release $TAG."
 gh release create "$TAG" \
   "$VERSIONED_DMG" \
   "$STABLE_DMG" \
+  "$LEGACY_DMG" \
   --repo Schramm2/notive \
   --target "$CURRENT_BRANCH" \
   --title "Atrium $TAG" \
