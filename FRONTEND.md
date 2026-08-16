@@ -36,7 +36,7 @@ The dependency runs one way, from `Atrium` to `AtriumCore`. A view reaches data 
 | Dictation | `Views/DictationView.swift` | `.dictation` | `AppStore` | `SpeechTranscriptionService` |
 | Meeting notes | `Views/MeetingNotesView.swift` | `.notes` | `AppStore` | `SQLiteDatabase` |
 | Meeting workspace | `Views/MeetingDetailView.swift` | `.meeting(id)` | `AppStore` | Audio, speech, summary, database |
-| Company Hub | `Views/CompanyHub/` | `.company`, `.agents`, `.sharedContext`, `.people`, `.search`, `.activity` | `CompanyHubStore` | `CompanyHubProviding` |
+| Company Hub | `Views/CompanyHub/` | `.company`, `.agents`, `.github`, `.sharedContext`, `.people`, `.search`, `.activity` | `CompanyHubStore`, `GitHubRepositoryStore` | `CompanyHubProviding`, `GitHubRepositoryService` |
 | Onboarding, settings, updates | `Views/OnboardingView.swift`, `Views/SettingsView.swift`, `Support/UpdaterService.swift` | Scene-level | `AppStore`, `UpdaterService` | Permissions, GitHub CLI |
 
 ## State ownership
@@ -47,7 +47,7 @@ The dependency runs one way, from `Atrium` to `AtriumCore`. A view reaches data 
 
 View-local state stays in the view: a draft question, a selection set, a sheet flag. User preferences that survive relaunch use `@AppStorage`, such as `ubundi-meet-brand-theme`, `notive.appearance`, and `notive.onboarding.complete`. Meetings, transcripts, notes, and summaries survive relaunch in SQLite.
 
-A representative flow:
+Representative flows:
 
 ```text
 User selects Ask
@@ -58,6 +58,22 @@ User selects Ask
   → store.confirmExternalAsk() sends the question and evidence
   → askAnswer holds claims with cited evidence
   → AskView renders claims and citations
+```
+
+```mermaid
+flowchart TD
+    Open["User opens GitHub"] --> Load["GitHubRepositoryStore.load()"]
+    Load --> Snapshot["Parallel snapshot reads"]
+    Snapshot --> Attention["Attention"]
+    Snapshot --> Inbox["Unread notifications"]
+    Snapshot --> Delivery["Recent delivery"]
+    Snapshot --> Repositories["Repository health"]
+    Attention --> Screen["Render available sections"]
+    Inbox --> Screen
+    Delivery --> Screen
+    Repositories --> Screen
+    Snapshot -->|"One read fails"| Note["Section error note"]
+    Note --> Screen
 ```
 
 Long operations hold their task on the store and compare an operation identifier before they publish a result, so a cancelled or superseded run writes nothing: `cancelAsk()`, `cancelSummary()`, `cancelRetranscription()`, `cancelDictation()`, `cancelRecording()`, and `cancelImport()`. A view that starts its own task cancels it in `onDisappear`, as `AskView` does.
@@ -80,7 +96,7 @@ Long operations hold their task on the store and compare an operation identifier
 
 ## Interface states
 
-Every screen that reads data covers initial, loading, loaded, empty, and error. Company Hub screens use `HubEmptyState.notConnected(...)` so a blank surface always explains itself, and they disable `Share to hub`, agent messages, and `Mark all read` while `isConnected` is `false`.
+Every screen that reads data covers initial, loading, loaded, empty, and error. Disconnected Company Hub screens use `HubEmptyState.notConnected(...)` so a blank surface always explains itself, and they disable `Share to hub`, agent messages, and `Mark all read` while `isConnected` is `false`. GitHub is the connected-system exception: it reads repository, pull request, issue, unread notification, release, and workflow metadata through the authenticated `gh` session checked during onboarding. Dashboard snapshots stay in memory, while `gh` can cache repository detail for five minutes. Independent sections keep successful results visible when one read fails. It refreshes stale or partial data when the app becomes active, retries failed loads on revisit, and cancels its `gh` process when the view task is cancelled. Personal favourite repository identifiers persist in local preferences.
 
 `ContentView` shows recoverable errors as an `ErrorBanner` above the detail column, one for each store. Permission-denied is a state of its own: recording, dictation, and system audio depend on Microphone, Speech Recognition, Screen Recording, and Accessibility access, and the screen sends the user to **Atrium → Settings → Permissions**.
 

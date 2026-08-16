@@ -24,11 +24,42 @@ SwiftUI provides the workspace window, Settings scene, menu-bar controls, onboar
 
 ### Company Hub
 
-The sidebar has a second section, `Company Hub`, with the Company, Agents, Shared Context, People, Search, and Activity screens in `Sources/Atrium/Views/CompanyHub/`. This is the shared scope across Ubundi and First Motive. The workspace scope stays local and is unchanged.
+The sidebar has a second section, `Company Hub`, with the Company, Agents, GitHub, Shared Context, People, Search, and Activity screens in `Sources/Atrium/Views/CompanyHub/`. This is the shared scope across Ubundi and First Motive. The workspace scope stays local and is unchanged.
 
 The [product vision](product-vision.md) defines Company Hub as part of a private company intelligence workspace. Meetings can become shared company memory through an explicit owner action. People and agents can then use that approved context, while private workspace data stays on its owner's Mac. Sensitive personal content is local-only and must not enter Company Hub, Grounding, agent context, remote logs, analytics, or caches.
 
-The screens are built. The shared workspace behind them is not. `CompanyHubStore` holds their state and reads through the `CompanyHubProviding` protocol. The default `DisconnectedCompanyHubService` returns nothing for reads and `CompanyHubUnavailableError` for writes, so every screen shows an empty state that explains it, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. No Company Hub screen reads or writes the local database, and nothing leaves the Mac.
+The screens are built. The shared workspace behind them is not. `CompanyHubStore` holds shared-workspace state and reads through the `CompanyHubProviding` protocol. The default `DisconnectedCompanyHubService` returns nothing for reads and `CompanyHubUnavailableError` for writes, so every screen shows an empty state that explains it, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. No Company Hub screen reads or writes the local database. The GitHub screen is a direct connected-system view: `GitHubRepositoryStore` reads current repository, pull request, issue, notification, release, and workflow metadata through the authenticated `gh` CLI session. Dashboard snapshots stay in process memory, and `gh` can cache repository-detail responses for five minutes. `GitHubCommandExecutor` bridges `Process` to Swift concurrency and terminates the command on task cancellation. Independent dashboard reads can fail without removing successful sections. The store refreshes stale data when Atrium becomes active and stores only personal favourite repository identifiers in local preferences. It does not use the disconnected shared provider or send My Workspace content.
+
+```mermaid
+flowchart LR
+    View["GitHub SwiftUI screens"] --> Store["GitHubRepositoryStore<br/>main actor"]
+    Store --> Service["GitHubRepositoryService<br/>parallel read-only queries"]
+    Service --> Executor["GitHubCommandExecutor<br/>cancellable Process bridge"]
+    Executor --> CLI["Authenticated gh session"]
+    CLI --> GitHub["GitHub REST and Search APIs"]
+    Store -->|"Favourite identifiers only"| Defaults["UserDefaults"]
+    Store -.->|"Snapshots in process memory"| View
+    Store -.-> Boundary["Boundary: no My Workspace SQLite access"]
+```
+
+```mermaid
+sequenceDiagram
+    participant V as GitHub screen
+    participant S as Repository store
+    participant R as Repository service
+    participant G as gh processes
+    V->>S: load()
+    S->>R: loadSnapshot()
+    par Independent sections
+        R->>G: repositories
+        R->>G: attention searches
+        R->>G: recent delivery
+        R->>G: unread notifications
+    end
+    G-->>R: successes and section failures
+    R-->>S: partial snapshot
+    S-->>V: render successful sections and error notes
+```
 
 To implement the Company Hub, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore` in `ContentView`. The shared scope also needs an authenticated backend and persistent shared database for accounts, memberships, shared items, agent threads and runs, permissions, activity, and unread state. The local SQLite database remains the private workspace store and must not become the shared database. The [product vision](product-vision.md#functionality-still-to-implement) lists the implementation gaps and proposed system responsibilities.
 
@@ -68,12 +99,12 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 | Screens | `Sources/Atrium/Views/` | Rendering and semantic user actions. See [FRONTEND.md](../FRONTEND.md) |
 | macOS integration | `Sources/Atrium/Support/` | Global shortcut, application icon, version, update service |
 | Workspace state | `Sources/AtriumCore/Stores/AppStore.swift` | The single source of truth for My Workspace |
-| Company Hub state | `Sources/AtriumCore/Stores/CompanyHubStore.swift` | Shared-scope state read through `CompanyHubProviding` |
+| Company Hub state | `Sources/AtriumCore/Stores/CompanyHubStore.swift`, `GitHubRepositoryStore.swift` | Shared-scope state, current GitHub work, and local favourite identifiers |
 | Domain types | `Sources/AtriumCore/Models/` | `Meeting`, `Ask`, `Recording`, `WorkspaceSelection`, `CompanyHub`, `AIConfiguration` |
 | Capture and speech | `Sources/AtriumCore/Services/Audio*`, `*Capture*`, `Speech*`, `VoiceClusterService` | Recording, import, mixing, playback, transcription, voice grouping |
 | Local storage and retrieval | `Sources/AtriumCore/Services/SQLiteDatabase.swift` | Schema, migrations, FTS5 search, Ask evidence, database paths |
 | Language services | `Sources/AtriumCore/Services/LanguageProviderService.swift`, `LocalIntelligenceService.swift` | Provider selection, the external boundary, the local fallback |
-| Updates and identity | `Sources/AtriumCore/Services/GitHubReleaseUpdater.swift`, `GitHubIdentityService.swift` | Release checks, download, install, GitHub session |
+| GitHub | `Sources/AtriumCore/Services/GitHubReleaseUpdater.swift`, `GitHubIdentityService.swift`, `GitHubRepositoryService.swift` | Release checks, download, install, identity, and company repository reads through the GitHub CLI |
 | Diagnostics | `Sources/AtriumCore/Support/DiagnosticLogger.swift` | The `com.ubundi.meet` log subsystem |
 | Build, package, release | `script/`, `scripts/` | Development builds, disk images, the release path |
 

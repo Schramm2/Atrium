@@ -84,6 +84,10 @@ struct AtriumApp: App {
                     store?.select(.agents)
                 }
 
+                Button("GitHub") {
+                    store?.select(.github)
+                }
+
                 Button("Shared Context") {
                     store?.select(.sharedContext)
                 }

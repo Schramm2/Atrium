@@ -182,7 +182,7 @@ The interface mode is **Operate**. Fast scanning, reliable state, keyboard acces
 The workspace has two scopes, and the interface must always make clear which one the user looks at:
 
 - **Workspace** is private and local. Home, Ask Atrium, Dictation, Meeting Notes, and the meeting workspace read only this Mac.
-- **Company Hub** is shared across Ubundi and First Motive. Company, Agents, Shared Context, People, Search, and Activity show only what an owner chose to share.
+- **Company Hub** is shared across Ubundi and First Motive. Company, Agents, GitHub, Shared Context, People, Search, and Activity show approved company context or source-system data available to the signed-in user.
 
 Nothing crosses from Workspace to Company Hub without an explicit per-item action by its owner.
 
@@ -311,7 +311,7 @@ Compose screens from `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, and `Brand
 - Show the Atrium mark and active company identity at the top.
 - Keep four primary workspace destinations equal in weight: Home, Ask Atrium, Dictation, and Meeting Notes.
 - Put the Company Hub destinations in a second section, labelled `Company Hub` with a `SHARED` marker. The marker states the scope change; it is not repeated on every row.
-- Order the Company Hub destinations Company, Agents, Shared Context, People, Search, and Activity.
+- Order the Company Hub destinations Company, Agents, GitHub, Shared Context, People, Search, and Activity.
 - Use native list badges for counts that need action, such as running agents and unread activity. Show no badge at zero.
 - Separate saved meetings with a clear section label and compact title and date rows.
 - Keep capture and import actions in a bottom action area, with one theme menu and the appearance control beside it.
@@ -351,6 +351,8 @@ Compose screens from `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, and `Brand
 **Company.** The Company Hub landing screen. A stat strip of headline numbers, then two columns: what the team shared today, and an agent summary with the newest activity. Each column links to its full screen. Close with the sharing boundary statement, and show the connection state in the page header.
 
 **Agents.** A roster of agent cards beside one thread. A card carries the agent name, role, status, one sentence of purpose, and run counts. The thread is company-visible by default and says so beside the agent name. The composer stays at the bottom with one send action.
+
+**GitHub.** Lead with a newest-first `Needs your attention` list for review requests, requested changes, merge-ready pull requests, assigned issues, failed checks, and stale pull requests; show 12 items before a Show all control. Show unread GitHub notifications as a read-only inbox, then a local Favourites list, the five most recent merged pull requests with author and labels plus a Show all control, and a searchable native repository-health table for Ubundi and First Motive. Keep successful sections visible when one read fails, with an error note beside the affected section. The header shows data freshness. A favourite is a personal shortcut stored on this Mac. Selecting a repository opens read-only pull request, issue, release, and default-branch workflow details; context menus copy its URL or clone command, or open GitHub. Read through the authenticated GitHub CLI session and explain that GitHub content stays on the Mac.
 
 **Shared Context.** A filter row of All, Meetings, Notes, and Agent output above one table. Each row gives the item, who shared it, its source kind, and when. `Share from my workspace` is the single header action. State that sharing is a per-item choice by its owner and can be withdrawn.
 
@@ -412,7 +414,7 @@ The interface is built in SwiftUI in `macos/Sources/Atrium/Views/`. [FRONTEND.md
 
 **Workspace** — Home, Ask Atrium, Dictation, Meeting Notes, the meeting workspace, Settings, and Onboarding are implemented and read local data through `AppStore`.
 
-**Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. No shared workspace exists behind them. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Every Company Hub screen therefore shows its empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. To implement it, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`. No screen needs to change.
+**Company Hub** — the screens in `Views/CompanyHub/` are complete and meet the contracts above. GitHub reads current Ubundi and First Motive repository metadata through the authenticated `gh` session. Dashboard snapshots stay in memory, and `gh` can cache repository detail for five minutes. No shared workspace exists behind the other screens. `CompanyHubStore` holds their state and reads through `CompanyHubProviding`; the default `DisconnectedCompanyHubService` returns nothing and reports `CompanyHubUnavailableError` for writes. Those screens show their empty state, and `Share to hub`, agent messaging, and `Mark all read` stay disabled. To implement them, provide a `CompanyHubProviding` conformance and pass it to `CompanyHubStore`.
 
 ## Decisions
 

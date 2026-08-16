@@ -4,6 +4,7 @@ import SwiftUI
 struct SidebarView: View {
     @Bindable var store: AppStore
     @Environment(CompanyHubStore.self) private var hub
+    @Environment(GitHubRepositoryStore.self) private var github
     @Environment(\.brandTheme) private var theme
     @Environment(\.colorScheme) private var colorScheme
     @State private var meetingToDelete: Meeting?
@@ -85,6 +86,9 @@ struct SidebarView: View {
                 Label("Agents", systemImage: "bolt.fill")
                     .badge(hub.runningAgentCount)
                     .tag(WorkspaceSelection.agents)
+                Label("GitHub", systemImage: "shippingbox")
+                    .badge(github.attention.count)
+                    .tag(WorkspaceSelection.github)
                 Label("Shared Context", systemImage: "square.stack.3d.up")
                     .tag(WorkspaceSelection.sharedContext)
                 Label("People", systemImage: "person.2")
