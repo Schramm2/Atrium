@@ -8,6 +8,7 @@ public enum WorkspaceSelection: Hashable, Sendable {
     case meeting(String)
     case company
     case agents
+    case github
     case sharedContext
     case people
     case search

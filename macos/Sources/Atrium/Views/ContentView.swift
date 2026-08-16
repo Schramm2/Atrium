@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var dismissedPreviousInstallationNotice = false
     /// No shared workspace is connected yet, so this holds the disconnected provider.
     @State private var hub = CompanyHubStore()
+    @State private var github = GitHubRepositoryStore()
 
     private var theme: BrandTheme {
         BrandTheme(rawValue: themeRaw) ?? .ubundi
@@ -54,6 +55,7 @@ struct ContentView: View {
             }
         }
         .environment(hub)
+        .environment(github)
         .environment(\.brandTheme, theme)
         .tint(palette.accent)
         .preferredColorScheme(
@@ -123,6 +125,8 @@ struct ContentView: View {
             CompanyDashboardView(store: store)
         case .agents:
             AgentsView()
+        case .github:
+            GitHubRepositoriesView()
         case .sharedContext:
             SharedContextView()
         case .people:

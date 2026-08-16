@@ -39,7 +39,7 @@ _Avoid_: speaker identification, diarization, voice recognition
 ## Architecture and boundaries
 
 - `macos/Sources/Atrium/` owns scenes and views. `macos/Sources/AtriumCore/` owns data, audio, transcription, retrieval, language services, and updates. The dependency runs one way, from `Atrium` to `AtriumCore`.
-- `AppStore` is the main-actor store for My Workspace. `CompanyHubStore` holds Company Hub state and reads through `CompanyHubProviding`. The default `DisconnectedCompanyHubService` returns nothing and throws `CompanyHubUnavailableError`, so every Company Hub screen shows an empty state.
+- `AppStore` is the main-actor store for My Workspace. `CompanyHubStore` holds shared Company Hub state and reads through `CompanyHubProviding`. The default `DisconnectedCompanyHubService` returns nothing and throws `CompanyHubUnavailableError`, so those shared screens show an empty state. `GitHubRepositoryStore` is the connected-system exception and reads repository, pull request, issue, unread notification, release, and workflow metadata through the authenticated `gh` session. Dashboard snapshots stay in memory, `gh` can cache repository detail for five minutes, and personal favourite repository identifiers stay in local preferences.
 - Company Hub screens never touch the local database. The local SQLite store is the private workspace store and must not become the shared database.
 - The external Ask confirmation lives in `AppStore`: `AskPhase.confirming` blocks the request until `confirmExternalAsk()` approves that `ExternalAskDestination` for the session.
 - The package declares no production Swift package dependencies. `CSQLite` is a system library.

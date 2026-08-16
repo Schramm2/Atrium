@@ -312,7 +312,7 @@ Employees should be able to assemble approved, reusable context packs for workst
 
 The native My Workspace features are implemented and use local data.
 
-The Company Hub interface and its service contract are implemented. The default service is disconnected, so its reads are empty and its writes fail safely. No Company Hub screen currently sends local data to a shared service.
+The Company Hub interface and its service contract are implemented. The default shared service is disconnected, so its reads are empty and its writes fail safely. The GitHub screen separately reads current Ubundi and First Motive repository, pull request, issue, unread notification, release, and workflow metadata through the authenticated `gh` session. Dashboard snapshots stay in process memory, and `gh` can cache repository detail for five minutes. It presents personal attention, a read-only notifications inbox, recent delivery, repository health, and read-only repository detail. Personal favourite repository identifiers stay in local preferences. No Company Hub screen sends My Workspace data to a shared service.
 
 Grounding already has company-source ingestion, cited retrieval, user identity, and per-user access controls in its proof of concept. Its MCP service and the Atrium integration are not implemented.
 
