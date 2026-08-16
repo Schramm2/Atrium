@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted; updater transition superseded by ADR-008
+Accepted; updater transition superseded by ADR-008; theme and repository decisions superseded by ADR-009
 
 ## Date
 

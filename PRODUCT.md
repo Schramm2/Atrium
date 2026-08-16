@@ -28,12 +28,12 @@ Atrium is an internal desktop workspace used during and after meetings. It suppo
 - Preserve bundle identifier `com.ubundi.meet` and the existing database and recording contracts.
 - Use Apple frameworks and the authenticated GitHub CLI release path before adding production dependencies.
 - Preserve all current workflows, states, permissions, accessibility labels, keyboard operation, and system light/dark appearance behavior.
-- The interface has three brand themes — Atrium, Ubundi, and First Motive — with one shared information architecture and interaction model. Atrium is the default and is dark-only; Ubundi and First Motive keep their existing behavior.
+- The interface has two brand themes — Ubundi and First Motive — with one shared information architecture and interaction model. Ubundi is the default.
 - Do not infer speaker identity or send meeting evidence externally without explicit user action.
 
 ## Brand Commitments
 
-The product name is **Atrium**. Atrium, Ubundi, and First Motive are selectable theme identities, not separate products or tenants. Use the canonical company-media brand assets and the contracts in:
+The product name is **Atrium**. Ubundi and First Motive are selectable theme identities, not separate products or tenants. Use the canonical company-media brand assets and the contracts in:
 
 - `/Users/matthew-schramm-ubundi/Workspace.nosync/Work/Company Media:Assets/Ubundi/01_Brand/Guideline-Reference/DESIGN.md`
 - `/Users/matthew-schramm-ubundi/Workspace.nosync/Work/Company Media:Assets/First Motive/01_Brand/Guideline-Reference/DESIGN.md`

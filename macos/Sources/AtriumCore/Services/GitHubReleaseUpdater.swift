@@ -45,7 +45,7 @@ public struct GitHubReleaseUpdater: Sendable {
     private let run: Run
 
     public init(
-        repository: String = "Schramm2/notive",
+        repository: String = "Schramm2/Atrium",
         legacyInstallation: Bool = false,
         run: @escaping Run
     ) {
@@ -55,7 +55,7 @@ public struct GitHubReleaseUpdater: Sendable {
         self.run = run
     }
 
-    public static func live(repository: String = "Schramm2/notive") -> Self {
+    public static func live(repository: String = "Schramm2/Atrium") -> Self {
         Self(
             repository: repository,
             legacyInstallation: Bundle.main.bundleURL.lastPathComponent == legacyAppName,

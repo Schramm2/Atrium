@@ -3,15 +3,8 @@ import Testing
 
 @Suite("Brand themes")
 struct BrandThemeTests {
-    @Test("Atrium is the first theme and default selection value")
-    func atriumIsFirst() {
-        #expect(BrandTheme.allCases.first == .atrium)
-        #expect(BrandTheme.atrium.rawValue == "atrium")
-        #expect(BrandTheme.atrium.title == "Atrium")
-    }
-
-    @Test("All brand themes remain selectable")
+    @Test("Only company themes are selectable")
     func allThemesArePresent() {
-        #expect(BrandTheme.allCases == [.atrium, .ubundi, .firstMotive])
+        #expect(BrandTheme.allCases == [.ubundi, .firstMotive])
     }
 }

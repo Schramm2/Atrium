@@ -26,8 +26,8 @@ This project uses stable semantic versions in the form `X.Y.Z`.
 
 ### Changed
 
-- Rebranded the application, Swift targets, bundles, release assets, and user-facing copy to Atrium. The Atrium theme is now the default; the existing Ubundi and First Motive themes remain available.
-- Existing local data, preference keys, keychain service, recordings path, and `Schramm2/notive` repository remain compatible. Existing installations update manually once to the Atrium bundle.
+- Rebranded the application, Swift targets, bundles, release assets, and user-facing copy to Atrium. Ubundi and First Motive remain the two interface themes.
+- Renamed the GitHub repository to `Schramm2/Atrium`. Existing local data, preference keys, keychain service, and recordings path remain compatible.
 
 ### Added
 

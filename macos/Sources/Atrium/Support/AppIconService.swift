@@ -5,7 +5,6 @@ import AtriumCore
 enum AppIconService {
     static func apply(_ theme: BrandTheme) {
         let filename = switch theme {
-        case .atrium: "atrium-icon"
         case .ubundi: "ubundi-icon"
         case .firstMotive: "first-motive-icon"
         }

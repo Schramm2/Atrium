@@ -1,9 +1,10 @@
 ---
 version: alpha
 name: Atrium
-description: Visual and interaction contract for the Atrium macOS workspace, in Atrium, Ubundi, and First Motive themes. Atrium is the default dark-only theme.
+description: Visual and interaction contract for the Atrium macOS workspace in Ubundi and First Motive themes. Ubundi is the default theme.
 colors:
-  primary: "#663AF3"
+  primary: "#2F3498"
+  on-primary: "#FFFFFF"
   ubundi-accent: "#2F3498"
   ubundi-on-accent: "#FFFFFF"
   ubundi-secondary-accent: "#7188BE"
@@ -35,18 +36,6 @@ colors:
   fm-text: "#E8E2D7"
   fm-text-secondary: "#BCB6B1"
   fm-status-tint: "#52515D"
-  atrium-accent: "#663AF3"
-  atrium-on-accent: "#FFFFFF"
-  atrium-secondary-accent: "#B6D9FC"
-  atrium-ai: "#A78BFA"
-  atrium-warning: "#E46D4C"
-  atrium-success: "#269684"
-  atrium-canvas: "#05060F"
-  atrium-surface: "#0E101B"
-  atrium-raised-surface: "#151924"
-  atrium-border: "#1B1F2B"
-  atrium-text: "#D1E4FA"
-  atrium-text-secondary: "#9DA7BA"
 typography:
   page-title:
     fontFamily: "system-ui"
@@ -87,30 +76,30 @@ spacing:
   xxxxl: "48px"
 components:
   panel:
-    backgroundColor: "{colors.atrium-surface}"
-    textColor: "{colors.atrium-text}"
+    backgroundColor: "{colors.ubundi-light-surface}"
+    textColor: "{colors.ubundi-light-text}"
     rounded: "{rounded.panel}"
     padding: "20px"
   button-primary:
-    backgroundColor: "{colors.atrium-accent}"
-    textColor: "{colors.atrium-on-accent}"
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
     typography: "{typography.section-title}"
     rounded: "{rounded.control}"
     height: "32px"
   button-primary-disabled:
-    backgroundColor: "{colors.atrium-surface}"
-    textColor: "{colors.atrium-text-secondary}"
+    backgroundColor: "{colors.ubundi-light-surface}"
+    textColor: "{colors.ubundi-light-text-secondary}"
     rounded: "{rounded.control}"
     height: "32px"
   button-secondary:
-    backgroundColor: "{colors.atrium-surface}"
-    textColor: "{colors.atrium-text}"
+    backgroundColor: "{colors.ubundi-light-surface}"
+    textColor: "{colors.ubundi-light-text}"
     typography: "{typography.section-title}"
     rounded: "{rounded.control}"
     height: "28px"
   status-label:
-    backgroundColor: "{colors.atrium-raised-surface}"
-    textColor: "{colors.atrium-text}"
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-light-text}"
     typography: "{typography.status}"
     rounded: "{rounded.capsule}"
     padding: "8px 12px"
@@ -121,11 +110,11 @@ components:
     rounded: "{rounded.capsule}"
     padding: "8px 12px"
   screen:
-    backgroundColor: "{colors.atrium-canvas}"
-    textColor: "{colors.atrium-text}"
+    backgroundColor: "{colors.ubundi-light-canvas}"
+    textColor: "{colors.ubundi-light-text}"
   toolbar:
-    backgroundColor: "{colors.atrium-raised-surface}"
-    textColor: "{colors.atrium-text}"
+    backgroundColor: "{colors.ubundi-light-raised}"
+    textColor: "{colors.ubundi-light-text-secondary}"
   panel-ubundi-light:
     backgroundColor: "{colors.ubundi-light-surface}"
     textColor: "{colors.ubundi-light-text}"
@@ -155,7 +144,7 @@ components:
     rounded: "{rounded.control}"
     height: "32px"
   divider:
-    backgroundColor: "{colors.atrium-border}"
+    backgroundColor: "{colors.ubundi-light-border}"
     height: "1px"
   divider-ubundi-light:
     backgroundColor: "{colors.ubundi-light-border}"
@@ -164,18 +153,18 @@ components:
     backgroundColor: "{colors.ubundi-dark-border}"
     height: "1px"
   sidebar-row:
-    textColor: "{colors.atrium-text}"
+    textColor: "{colors.ubundi-light-text}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     height: "28px"
   sidebar-row-selected:
-    backgroundColor: "{colors.atrium-accent}"
-    textColor: "{colors.atrium-on-accent}"
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
     rounded: "{rounded.control}"
     height: "28px"
   empty-state:
-    backgroundColor: "{colors.atrium-surface}"
-    textColor: "{colors.atrium-text-secondary}"
+    backgroundColor: "{colors.ubundi-light-surface}"
+    textColor: "{colors.ubundi-light-text-secondary}"
     rounded: "{rounded.panel}"
     height: "240px"
 ---
@@ -203,7 +192,7 @@ The tokens above are read from the implementation, not from an external brand fi
 
 | Source | What it establishes |
 | --- | --- |
-| `macos/Sources/Atrium/Views/BrandStyle.swift` | `BrandPalette` for three themes, `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, `BrandStatusLabel`, `BrandMarkView`, `BrandAtmosphere` |
+| `macos/Sources/Atrium/Views/BrandStyle.swift` | `BrandPalette` for two themes, `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, `BrandStatusLabel`, `BrandMarkView`, `BrandAtmosphere` |
 | `macos/Sources/Atrium/Views/ContentView.swift` | Split-view shell, sidebar width, theme and appearance resolution, error banners |
 | `macos/Sources/Atrium/Views/CompanyHub/Components/` | `Hub*` components, tint roles, the shared empty state |
 | `macos/BrandAssets/` | Marks, wordmarks, application icons, the First Motive atmospheric reference |
@@ -211,9 +200,9 @@ The tokens above are read from the implementation, not from an external brand fi
 
 `BrandPalette` stores colors as floating-point RGB, and it builds some roles by washing white or ivory over the surface below. The token values above are the exact conversions, composited where the implementation uses a wash, so they can be read and contrast-checked directly. The Elevation and Colors sections give the wash that produces each one. Change `BrandStyle.swift` and this document in the same commit.
 
-Verified with `npx @google/design.md lint --format json DESIGN.md`: 0 errors, 0 contrast findings, 21 accepted warnings.
+Verified with `npx @google/design.md lint --format json DESIGN.md`: 0 errors, 0 contrast findings, 17 accepted warnings.
 
-The 21 warnings read `orphaned-tokens` for semantic state colors and preserved suffixed theme tokens that are not component slots. They are accepted rather than fixed. Those colors reach the interface as icon colors, capsule fills, and borders, while the component schema has slots for a background and a text color only. Giving every state color a component entry would either misstate it as text or invent a token the code does not have.
+The 17 warnings read `orphaned-tokens` for semantic state colors and preserved suffixed theme tokens that are not component slots. They are accepted rather than fixed. Those colors reach the interface as icon colors, capsule fills, and borders, while the component schema has slots for a background and a text color only. Giving every state color a component entry would either misstate it as text or invent a token the code does not have.
 
 ### Surface Map
 
@@ -236,30 +225,28 @@ Atrium exposes one product surface: an operational macOS desktop workspace. It h
 
 ## Colors
 
-Each theme resolves one `BrandPalette` through `BrandPalette.palette(for:colorScheme:)`. Atrium is the default theme. Read colors through the palette rather than repeating raw values in a view.
+Each theme resolves one `BrandPalette` through `BrandPalette.palette(for:colorScheme:)`. Ubundi is the default theme. Read colors through the palette rather than repeating raw values in a view.
 
-| Role | Atrium | Ubundi | First Motive |
-| --- | --- | --- | --- |
-| Accent, primary action, selection | Void Violet `#663AF3` | Navy `#2F3498` | Sage `#9CB89E` |
-| Text on accent | White | White | Deep sage `#2A3A2C` |
-| Information, links, local-scope status | Blueprint Blue `#B6D9FC` | Blue `#7188BE` | Steel `#7FA9B8` |
-| Generated or processing state | Luminous violet `#A78BFA` | Electric `#C183E6` | Lilac `#9B8FB8` |
-| Warning or destructive state | Ember Glow `#E46D4C` | Salmon `#D77A85` | Coral `#D89B9F` |
-| Success, running agent | Deep Teal `#269684` | Green `#4F8F75` | Sage `#9CB89E` |
+| Role | Ubundi | First Motive |
+| --- | --- | --- |
+| Accent, primary action, selection | Navy `#2F3498` | Sage `#9CB89E` |
+| Text on accent | White | Deep sage `#2A3A2C` |
+| Information, links, local-scope status | Blue `#7188BE` | Steel `#7FA9B8` |
+| Generated or processing state | Electric `#C183E6` | Lilac `#9B8FB8` |
+| Warning or destructive state | Salmon `#D77A85` | Coral `#D89B9F` |
+| Success, running agent | Green `#4F8F75` | Sage `#9CB89E` |
 
 Ubundi follows the macOS appearance. Light uses a `#F8F9FC` canvas, white surfaces, `#F4F5F9` raised surfaces, and 11% black borders. Dark uses a `#0E101F` canvas, `#161829` surfaces, `#1D2033` raised surfaces, and 13% white borders. Keep Navy and Blue visible in dark; do not wash the whole canvas purple.
 
 First Motive is a dark brand theme. Its aubergine `#433B47` canvas stays dark in every macOS appearance, and `preferredColorScheme` is forced to dark. Surfaces come from white washes over that canvas — 4.5% for `fm-surface` `#4B444F` and 7.5% for `fm-raised` `#514A55` — with a 14% ivory border, `#5A525B`.
 
-Atrium is also dark-only. Its Midnight Canvas is `#05060F`, its frost wash uses `#BAD6F7` at 5% for the `atrium-surface` composited value `#0E101B` and 9% for the `atrium-raised-surface` composited value `#151924`, and its Glass Edge uses `#BAD7F7` at 12% for `#1B1F2B`. Atrium has no atmosphere layer. Its violet primary action is `#663AF3`, while `#A78BFA` is a separate functional AI color so generated or processing content does not look like a primary action.
-
-An accent color carries meaning. Electric, Lilac, and Atrium's luminous violet mark generated or processing content only. Use no ambient accent without a workflow state behind it.
+An accent color carries meaning. Electric and Lilac mark generated or processing content only. Use no ambient accent without a workflow state behind it.
 
 ### Colors outside the brand palette
 
-The Ubundi brand guideline names six core colors: Navy, Blue, Grey, Electric, Salmon, and Amber. It has no green, so Ubundi success green `#4F8F75` is a **functional color**: it carries the success and running states, which must read apart from the primary action (Navy), information (Blue), generated content (Electric), and warning (Salmon). First Motive needs no equivalent, because its Sage accent already serves both roles. Atrium's Deep Teal and luminous AI violet are functional colors: they carry success and processing states without changing the primary action. These roles are defined by product function, not by an additional brand palette family.
+The Ubundi brand guideline names six core colors: Navy, Blue, Grey, Electric, Salmon, and Amber. It has no green, so Ubundi success green `#4F8F75` is a **functional color**: it carries the success and running states, which must read apart from the primary action (Navy), information (Blue), generated content (Electric), and warning (Salmon). First Motive needs no equivalent, because its Sage accent already serves both roles. These roles are defined by product function, not by an additional brand palette family.
 
-Ubundi Amber `#F3C57A` and deep navy `#1B1F44` are brand colors with no role in this interface. Atrium's semantic roles are all assigned, and neither First Motive nor Atrium has an amber role, so an attention role cannot exist in all three themes without inventing a color. They stay in the Ubundi brand guideline for marketing surfaces and out of `BrandPalette`.
+Ubundi Amber `#F3C57A` and deep navy `#1B1F44` are brand colors with no role in this interface. First Motive has no amber role, so a shared attention role would require an invented color. They stay in the Ubundi brand guideline for marketing surfaces and out of `BrandPalette`.
 
 The Ubundi light surfaces are navy-tinted neutrals — canvas `#F8F9FC` and raised `#F4F5F9` — rather than the brand's flat `#F5F5F5`. The tint keeps the theme coherent under a navy accent. The First Motive surfaces land within one step of the brand elevation ramp, `#4b434e` and `#504954`, which confirms the wash values.
 
@@ -282,7 +269,7 @@ Give transcript text generous line spacing and keep timestamps compact and monos
 
 ## Layout
 
-- Keep one `NavigationSplitView` shell for all three themes.
+- Keep one `NavigationSplitView` shell for both themes.
 - The sidebar column is 240 points minimum, 268 ideal, 320 maximum. Keep native list selection and keyboard behavior.
 - The window is at least 960 by 640 points and opens at 1,100 by 700.
 - Put global search in the toolbar. Search does not repeat inside page content.
@@ -373,7 +360,7 @@ Compose screens from `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, and `Brand
 
 **Activity.** One reverse-chronological feed. Each entry has an actor, an action, an optional detail block, and a relative time. Mark unread entries. `Mark all read` is the single header action, disabled when nothing is unread.
 
-**Settings.** The native Settings scene and toolbar, with consistent section surfaces, row alignment, labels, helper text, and brand-aware tint across all tabs. Appearance previews Atrium, Ubundi, and First Motive and explains the fixed dark surfaces.
+**Settings.** The native Settings scene and toolbar, with consistent section surfaces, row alignment, labels, helper text, and brand-aware tint across all tabs. Appearance previews Ubundi and First Motive and explains the fixed dark surface.
 
 **Onboarding.** The selected brand mark, a short three-step progress indicator, and one permission or workspace decision per step. Permission reasons stay factual, and optional access never looks required.
 
@@ -389,7 +376,7 @@ Every data screen covers initial, loading, loaded, empty, and error. A disconnec
 
 - Preserve VoiceOver names, values, and actions. Give an icon-only control an accessibility label and hide decoration.
 - Keep visible keyboard focus and native tab order.
-- Meet WCAG AA contrast for normal text. Warm ivory on aubergine and the Ubundi text roles meet it. Atrium `#D1E4FA` on `#05060F` measures about 15.6:1, and `#9DA7BA` on the same canvas measures about 8.3:1. On Atrium's composited surface and raised surface, the primary text measures about 14.6:1 and 13.5:1. Steel, Lilac, Sage, Electric, and faint ivory carry too little contrast for small text: use them for icons, borders, and tint fills, and keep the text beside them in a text color.
+- Meet WCAG AA contrast for normal text. Warm ivory on aubergine and the Ubundi text roles meet it. Steel, Lilac, Sage, Electric, and faint ivory carry too little contrast for small text: use them for icons, borders, and tint fills, and keep the text beside them in a text color.
 - `BrandStatusLabel` follows this rule: the tint stays on the icon, the capsule fill, and the border, and the title uses the theme text color.
 - Never rely on color alone for recording, warning, selection, provider boundary, or completion state. Pair the color with a label or a system icon. This is what keeps the status labels legible today, and it stays required after the contrast fix.
 - Company Hub screens use `HubEmptyState.notConnected(...)` so no surface is blank without an explanation.
@@ -402,7 +389,7 @@ Every data screen covers initial, loading, loaded, empty, and error. A disconnec
 - Give every accent a workflow meaning.
 - Explain an empty surface and a disabled action.
 - Keep native macOS selection, menus, toolbars, and Settings behavior.
-- Check a change in all three themes, in both macOS appearances where the theme permits it, at the minimum window size, and with the keyboard alone.
+- Check a change in both themes, in both macOS appearances where the theme permits it, at the minimum window size, and with the keyboard alone.
 
 **Don't**
 
@@ -417,7 +404,7 @@ Every data screen covers initial, loading, loaded, empty, and error. A disconnec
 
 The marks, wordmarks, application icons, and the First Motive atmospheric reference are in `macos/BrandAssets/`. `BrandAssets.image(named:)` loads them from the application bundle. Copy new source assets in without modifying the originals. Use the canonical marks without recoloring or distortion.
 
-`BrandAtmosphere` draws the First Motive reference at 34% opacity. Use it only as a restrained onboarding or empty-state texture. Atrium does not use an atmosphere layer. Neither treatment may reduce operational contrast or become a full-screen decoration.
+`BrandAtmosphere` draws the First Motive reference at 34% opacity. Use it only as a restrained onboarding or empty-state texture. It must not reduce operational contrast or become a full-screen decoration.
 
 ## Implementation State
 
@@ -437,7 +424,6 @@ These were the open questions in the previous revision. Each is answered, and th
 4. **Amber and deep navy stay out of the product palette.** Both are real Ubundi brand colors, and neither has a role here. Every semantic role is assigned, and First Motive has no amber, so a theme-symmetric attention role would need an invented color. They remain brand colors for Ubundi marketing surfaces.
 5. **Ubundi success green stays, as a functional color.** The Ubundi brand names six colors and none is green, while success and running must stay distinct from the primary action, information, generated content, and warning. It is recorded under Colors as the product's one functional color. This is the single item that still wants brand sign-off.
 6. **Status label contrast — fixed in `BrandStatusLabel`.** The tint now carries the state on the icon, the capsule fill, and the border, and the title uses the theme text color. Ivory on the First Motive tint now measures 6.05:1, and Ubundi text on its raised surface 17.17:1 in light and 14.49:1 in dark, against 2.52:1 to 3.62:1 before. The capsule padding moved to 12 by 8 points to match the spacing scale.
-7. **Atrium adaptation — colors and borders only.** Atrium adapts the AuthKit midnight palette, text ramp, and hairline glass-border language into the existing 8/12-point geometry, system typeface, and spacing scale. It stays dark-only, uses no gradients, shadows, new fonts, pill geometry, or per-theme component fork, and keeps the existing product surface. The `#A78BFA` AI violet and the `#151924` status tint are functional choices, not new `BrandPalette` roles. See [AuthKitDesign.md](docs/rebrand/AuthKitDesign.md).
 
 ## Open Questions
 

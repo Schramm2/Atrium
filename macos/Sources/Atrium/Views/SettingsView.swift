@@ -9,12 +9,12 @@ import UserNotifications
 struct SettingsView: View {
     let store: AppStore?
     let updater: UpdaterService
-    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.atrium.rawValue
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.ubundi.rawValue
     @AppStorage("notive.appearance") private var appearance = "system"
     @Environment(\.colorScheme) private var colorScheme
 
     private var theme: BrandTheme {
-        BrandTheme(rawValue: themeRaw) ?? .atrium
+        BrandTheme(rawValue: themeRaw) ?? .ubundi
     }
 
     var body: some View {
@@ -299,18 +299,18 @@ private struct GeneralSettingsView: View {
 }
 
 private struct AppearanceSettingsView: View {
-    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.atrium.rawValue
-    @AppStorage("notive.app-icon") private var iconRaw = BrandTheme.atrium.rawValue
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.ubundi.rawValue
+    @AppStorage("notive.app-icon") private var iconRaw = BrandTheme.ubundi.rawValue
     @AppStorage("notive.appearance") private var appearance = "system"
 
     private var selectedTheme: BrandTheme {
-        BrandTheme(rawValue: themeRaw) ?? .atrium
+        BrandTheme(rawValue: themeRaw) ?? .ubundi
     }
 
     private var appearanceExplanation: String {
         switch selectedTheme {
-        case .atrium, .firstMotive:
-            "Atrium and First Motive always use their dark surface."
+        case .firstMotive:
+            "First Motive always uses its dark surface."
         case .ubundi:
             "Ubundi follows your macOS light or dark appearance and uses navy accents."
         }
@@ -349,11 +349,17 @@ private struct AppearanceSettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: iconRaw) { _, value in
-                    AppIconService.apply(BrandTheme(rawValue: value) ?? .atrium)
+                    AppIconService.apply(BrandTheme(rawValue: value) ?? .ubundi)
                 }
             }
         }
         .formStyle(.grouped)
+        .onAppear {
+            if BrandTheme(rawValue: iconRaw) == nil {
+                iconRaw = BrandTheme.ubundi.rawValue
+                AppIconService.apply(.ubundi)
+            }
+        }
     }
 }
 

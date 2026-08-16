@@ -31,7 +31,7 @@ struct GitHubReleaseUpdaterTests {
             return
         }
         #expect(version == "0.6.0")
-        #expect(releaseURL.absoluteString == "https://github.com/Schramm2/notive/releases/tag/v0.6.0")
+        #expect(releaseURL.absoluteString == "https://github.com/Schramm2/Atrium/releases/tag/v0.6.0")
         #expect(updater(tag: "v0.5.0").check(currentVersion: "0.5.0") == .upToDate)
         #expect(updater(tag: "v0.4.9").check(currentVersion: "0.5.0") == .upToDate)
         #expect(updater(tag: nil).check(currentVersion: "0.5.0") == .unknown)

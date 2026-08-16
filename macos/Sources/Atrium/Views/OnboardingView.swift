@@ -8,7 +8,7 @@ struct OnboardingView: View {
     @Bindable var store: AppStore
     @Binding var isComplete: Bool
     @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.atrium.rawValue
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.ubundi.rawValue
     @AppStorage("notive.hub.profile-name") private var profileName = ""
     @AppStorage("notive.hub.profile-role") private var profileRole = ""
     @AppStorage("notive.hub.appear-in-people") private var appearInPeople = true
@@ -40,7 +40,7 @@ struct OnboardingView: View {
     }
 
     private var theme: BrandTheme {
-        BrandTheme(rawValue: themeRaw) ?? .atrium
+        BrandTheme(rawValue: themeRaw) ?? .ubundi
     }
 
     var body: some View {
@@ -160,14 +160,6 @@ struct OnboardingView: View {
                     isSelected: theme == .firstMotive
                 ) {
                     themeRaw = BrandTheme.firstMotive.rawValue
-                }
-                IdentityCard(
-                    markName: "atrium-mark",
-                    title: "Atrium",
-                    detail: "Midnight, frosted, focused. Dark workspace with violet identity.",
-                    isSelected: theme == .atrium
-                ) {
-                    themeRaw = BrandTheme.atrium.rawValue
                 }
             }
             .frame(maxWidth: 640)
