@@ -84,7 +84,7 @@ Every screen that reads data covers initial, loading, loaded, empty, and error. 
 
 `ContentView` shows recoverable errors as an `ErrorBanner` above the detail column, one for each store. Permission-denied is a state of its own: recording, dictation, and system audio depend on Microphone, Speech Recognition, Screen Recording, and Accessibility access, and the screen sends the user to **Atrium → Settings → Permissions**.
 
-Keep native list selection, focus order, and keyboard operation. Give an icon-only control an `accessibilityLabel`, and hide decoration with `accessibilityHidden(true)`. Atrium and First Motive are dark-only themes; Ubundi supports the system light and dark appearance.
+Keep native list selection, focus order, and keyboard operation. Give an icon-only control an `accessibilityLabel`, and hide decoration with `accessibilityHidden(true)`. First Motive is dark-only; Ubundi supports the system light and dark appearance.
 
 ## Performance and lifecycle
 
@@ -97,4 +97,4 @@ Keep native list selection, focus order, and keyboard operation. Give an icon-on
 
 Run the checks in [AGENTS.md](AGENTS.md). Store and service behavior is covered by `macos/Tests/`; SwiftUI views have no automated coverage, so exercise a changed screen in the running application with `./script/build_and_run.sh run`.
 
-Check the screen in all three themes and in both macOS appearances where the theme permits it, at the minimum window size, with the keyboard alone, and in its empty and error states. Read `./script/build_and_run.sh --logs` while you exercise the change. Run `./script/build_and_run.sh --verify` when the change touches bundle resources, signing, permissions, or startup.
+Check the screen in both themes and in both macOS appearances where the theme permits it, at the minimum window size, with the keyboard alone, and in its empty and error states. Read `./script/build_and_run.sh --logs` while you exercise the change. Run `./script/build_and_run.sh --verify` when the change touches bundle resources, signing, permissions, or startup.

@@ -9,7 +9,7 @@ Atrium brings company context, agents, approved shared knowledge, and private lo
 - macOS 14 or later
 - Xcode with the macOS SDK
 - Swift 6.1 or later
-- GitHub CLI, authenticated with access to `Schramm2/notive`, for release updates
+- GitHub CLI, authenticated with access to `Schramm2/Atrium`, for release updates
 
 ## Run
 

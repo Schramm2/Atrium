@@ -5,7 +5,7 @@ struct SidebarProfileView: View {
     @AppStorage("notive.hub.profile-name") private var profileName = ""
     @AppStorage("notive.hub.profile-role") private var profileRole = ""
     @AppStorage("notive.hub.github-login") private var githubLogin = ""
-    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.atrium.rawValue
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.ubundi.rawValue
     @Environment(\.colorScheme) private var colorScheme
 
     private var palette: BrandPalette {
@@ -76,12 +76,12 @@ struct SidebarProfileView: View {
     }
 
     private var activeTheme: BrandTheme {
-        BrandTheme(rawValue: themeRaw) ?? .atrium
+        BrandTheme(rawValue: themeRaw) ?? .ubundi
     }
 
     private var nextTheme: BrandTheme {
         guard let index = BrandTheme.allCases.firstIndex(of: activeTheme) else {
-            return .atrium
+            return .ubundi
         }
         return BrandTheme.allCases[(index + 1) % BrandTheme.allCases.count]
     }

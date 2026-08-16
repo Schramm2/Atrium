@@ -18,23 +18,6 @@ struct BrandPalette {
 
     static func palette(for theme: BrandTheme, colorScheme: ColorScheme) -> BrandPalette {
         switch theme {
-        case .atrium:
-            let frost = Color(red: 0.729, green: 0.839, blue: 0.969)
-            let glassEdge = Color(red: 0.729, green: 0.843, blue: 0.969)
-            return BrandPalette(
-                accent: Color(red: 0.4, green: 0.227, blue: 0.953),
-                secondaryAccent: Color(red: 0.714, green: 0.851, blue: 0.988),
-                ai: Color(red: 0.655, green: 0.545, blue: 0.98),
-                warning: Color(red: 0.894, green: 0.427, blue: 0.298),
-                success: Color(red: 0.149, green: 0.588, blue: 0.518),
-                detailBackground: Color(red: 0.02, green: 0.024, blue: 0.059),
-                surface: frost.opacity(0.05),
-                raisedSurface: frost.opacity(0.09),
-                border: glassEdge.opacity(0.12),
-                text: Color(red: 0.82, green: 0.894, blue: 0.98),
-                secondaryText: Color(red: 0.616, green: 0.655, blue: 0.729),
-                onAccent: .white
-            )
         case .ubundi:
             let isDark = colorScheme == .dark
             return BrandPalette(
@@ -78,20 +61,19 @@ struct BrandPalette {
 }
 
 struct BrandThemeKey: EnvironmentKey {
-    static let defaultValue = BrandTheme.atrium
+    static let defaultValue = BrandTheme.ubundi
 }
 
 extension BrandTheme {
     var isDarkOnly: Bool {
         switch self {
-        case .atrium, .firstMotive: true
+        case .firstMotive: true
         case .ubundi: false
         }
     }
 
     var markAssetName: String {
         switch self {
-        case .atrium: "atrium-mark"
         case .ubundi: "ubundi-mark"
         case .firstMotive: "first-motive-mark"
         }
@@ -99,7 +81,6 @@ extension BrandTheme {
 
     var appearanceDetailLabel: String {
         switch self {
-        case .atrium: "Dark · Midnight"
         case .ubundi: "Light + Dark"
         case .firstMotive: "Dark · Purple"
         }
@@ -281,7 +262,7 @@ struct BrandAtmosphere: View {
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
             }
-        case .atrium, .ubundi:
+        case .ubundi:
             EmptyView()
         }
     }

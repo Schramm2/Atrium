@@ -15,7 +15,7 @@ The release is Apple Silicon only. It uses ad-hoc macOS signing and is not notar
 The maintainer Mac needs:
 
 - Xcode with Swift 6.1 or later.
-- GitHub CLI authenticated with release access to `Schramm2/notive`.
+- GitHub CLI authenticated with release access to `Schramm2/Atrium`.
 - A clean `main` worktree with all intended changes pushed.
 
 Installed Macs also need GitHub CLI authenticated with read access to the repository. Atrium uses that session to check and download private releases.
@@ -70,7 +70,7 @@ If a check fails, confirm:
 
 ```bash
 gh auth status
-gh release view --repo Schramm2/notive
+gh release view --repo Schramm2/Atrium
 ```
 
 The updater does not use a separate Sparkle signature. Access depends on GitHub authentication, HTTPS, the private release boundary, and verification of the packaged app's ad-hoc code signature.

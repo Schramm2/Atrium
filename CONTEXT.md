@@ -32,7 +32,7 @@ _Avoid_: speaker identification, diarization, voice recognition
 
 **Workstream**: The intended unit of persistent company work in Company Hub. It is a vision term. No implementation exists yet.
 
-**Brand theme**: `Atrium`, `Ubundi`, or `First Motive`, selected through `BrandTheme`. Atrium is the default theme. These are theme identities, not separate products or tenants.
+**Brand theme**: `Ubundi` or `First Motive`, selected through `BrandTheme`. Ubundi is the default theme. These are theme identities, not separate products or tenants.
 
 **Grounding**: The installation-owned company knowledge system that Atrium plans to reach through MCP. It is external and unbuilt.
 

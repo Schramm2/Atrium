@@ -49,7 +49,7 @@ LEGACY_DMG="$ROOT_DIR/dist/Notive-$VERSION-arm64.dmg"
 command -v gh >/dev/null 2>&1 || fail "GitHub CLI is required."
 gh auth status >/dev/null 2>&1 || fail "Sign in first with 'gh auth login'."
 
-if gh release view "$TAG" --repo Schramm2/notive >/dev/null 2>&1; then
+if gh release view "$TAG" --repo Schramm2/Atrium >/dev/null 2>&1; then
   fail "GitHub Release $TAG already exists."
 fi
 
@@ -111,7 +111,7 @@ gh release create "$TAG" \
   "$VERSIONED_DMG" \
   "$STABLE_DMG" \
   "$LEGACY_DMG" \
-  --repo Schramm2/notive \
+  --repo Schramm2/Atrium \
   --target "$CURRENT_BRANCH" \
   --title "Atrium $TAG" \
   --generate-notes

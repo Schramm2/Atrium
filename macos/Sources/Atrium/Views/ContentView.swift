@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @Bindable var store: AppStore
     @Bindable var updater: UpdaterService
-    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.atrium.rawValue
+    @AppStorage("ubundi-meet-brand-theme") private var themeRaw = BrandTheme.ubundi.rawValue
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("notive.onboarding.complete") private var onboardingComplete = false
     @AppStorage("notive.appearance") private var appearance = "system"
@@ -16,7 +16,7 @@ struct ContentView: View {
     @State private var hub = CompanyHubStore()
 
     private var theme: BrandTheme {
-        BrandTheme(rawValue: themeRaw) ?? .atrium
+        BrandTheme(rawValue: themeRaw) ?? .ubundi
     }
 
     private var palette: BrandPalette {
@@ -64,6 +64,9 @@ struct ContentView: View {
         .toolbarBackground(palette.raisedSurface, for: .windowToolbar)
         .modifier(VisibleToolbarBackground())
         .onAppear {
+            if BrandTheme(rawValue: themeRaw) == nil {
+                themeRaw = BrandTheme.ubundi.rawValue
+            }
             if !onboardingComplete {
                 didPresentOnboardingThisLaunch = true
             }

@@ -15,7 +15,6 @@ public enum WorkspaceSelection: Hashable, Sendable {
 }
 
 public enum BrandTheme: String, CaseIterable, Identifiable, Sendable {
-    case atrium
     case ubundi
     case firstMotive = "first-motive"
 
@@ -23,7 +22,6 @@ public enum BrandTheme: String, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .atrium: "Atrium"
         case .ubundi: "Ubundi"
         case .firstMotive: "First Motive"
         }
