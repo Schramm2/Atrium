@@ -3,7 +3,8 @@
 import CoreMedia
 import Foundation
 
-public enum SystemAudioCaptureError: LocalizedError {
+public enum SystemAudioCaptureError: UserPresentableError {
+    case accessDenied
     case noDisplay
     case couldNotWrite
     case noActiveCapture
@@ -11,6 +12,8 @@ public enum SystemAudioCaptureError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
+        case .accessDenied:
+            "macOS has not granted Screen Recording access to Atrium."
         case .noDisplay:
             "Atrium could not find a display for system audio capture."
         case .couldNotWrite:
@@ -19,6 +22,16 @@ public enum SystemAudioCaptureError: LocalizedError {
             "There is no active system audio capture to stop."
         case .alreadyCapturing:
             "System audio capture is already active."
+        }
+    }
+
+    public var diagnosticCode: String {
+        switch self {
+        case .accessDenied: "system_audio_access_denied"
+        case .noDisplay: "system_audio_no_display"
+        case .couldNotWrite: "system_audio_write_failed"
+        case .noActiveCapture: "system_audio_not_active"
+        case .alreadyCapturing: "system_audio_already_capturing"
         }
     }
 }
@@ -35,6 +48,9 @@ public final class SystemAudioCaptureService {
         guard stream == nil, !isStarting else { throw SystemAudioCaptureError.alreadyCapturing }
         isStarting = true
         defer { isStarting = false }
+        guard ScreenRecordingAuthorization.isGranted else {
+            throw SystemAudioCaptureError.accessDenied
+        }
         let content = try await SCShareableContent.excludingDesktopWindows(
             false,
             onScreenWindowsOnly: true

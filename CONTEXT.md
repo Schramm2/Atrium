@@ -27,6 +27,8 @@ _Avoid_: company workspace, team space, shared workspace
 
 **Local Dictation**: On-device speech-to-text that writes into the current application. It is a workspace feature, not part of a meeting.
 
+**Transcript checkpoint**: The transcript saved while transcription is still running. It keeps the speech Atrium already recognized when a later part of the work fails. Written by `AppStore` and defined in [ADR-011](docs/decisions/011-transcribe-long-recordings-with-speechanalyzer.md).
+
 **Voice grouping**: Per-recording acoustic grouping that produces anonymous labels such as `Speaker 1`. It keeps no identity profile and does not compare people across meetings.
 _Avoid_: speaker identification, diarization, voice recognition
 
@@ -63,4 +65,4 @@ _Avoid_: speaker identification, diarization, voice recognition
 
 ## Freshness
 
-Last verified: 2026-08-14. Recheck after target moves, new stores or services, a Company Hub provider implementation, or a change to the database location.
+Last verified: 2026-08-17. Recheck after target moves, new stores or services, a Company Hub provider implementation, or a change to the database location.

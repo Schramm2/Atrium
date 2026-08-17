@@ -69,7 +69,11 @@ The future direction includes a connection to the installation-owned Grounding c
 
 ### Audio and transcription
 
-`AVAudioEngine` records the selected microphone. `ScreenCaptureKit` records system audio after macOS grants access. `AVFoundation` creates the playback file and plays saved or imported audio. Apple Speech performs on-device live and final transcription. Imported audio is copied to a meeting folder before transcription. Import cancellation removes the partial copy and database record but never changes the source file.
+`AVAudioEngine` records the selected microphone. `ScreenCaptureKit` records system audio after macOS grants access. Atrium reads Screen Recording access before it starts a recording, because a locally built copy loses that grant whenever its signature changes; without access the recording stops and offers the two ways forward instead of silently capturing this Mac alone. `AVFoundation` creates the playback file and plays saved or imported audio. Imported audio is copied to a meeting folder before transcription. Import cancellation removes the partial copy and database record but never changes the source file.
+
+Transcription is on-device and holds no length limit. On macOS 26 and later, `SpeechAnalyzer` with the `SpeechTranscriber` module reads live capture and whole saved recordings, and it needs no Speech Recognition consent. Before macOS 26, `SpeechFileTranscription` recognizes a saved recording in overlapping 45-second windows and places the result back on the recording timeline, because one `SFSpeechRecognizer` request over a long file fails part of the way through.
+
+Recognized speech is saved while transcription runs: the live transcript is written before mixing can fail, and the file transcript is written at most every 10 seconds. A failure keeps what was already saved, names its cause in the banner, and leaves the audio on the Mac. Retranscription of a meeting that already holds a transcript writes nothing until it succeeds. See [ADR-011](decisions/011-transcribe-long-recordings-with-speechanalyzer.md).
 
 Voice grouping uses acoustic features from the current recording. It creates anonymous labels such as `Speaker 1`, keeps no identity profile, and does not compare people across meetings. User-entered aliases apply only to one meeting.
 
@@ -101,7 +105,7 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 | Workspace state | `Sources/AtriumCore/Stores/AppStore.swift` | The single source of truth for My Workspace |
 | Company Hub state | `Sources/AtriumCore/Stores/CompanyHubStore.swift`, `GitHubRepositoryStore.swift` | Shared-scope state, current GitHub work, and local favourite identifiers |
 | Domain types | `Sources/AtriumCore/Models/` | `Meeting`, `Ask`, `Recording`, `WorkspaceSelection`, `CompanyHub`, `AIConfiguration` |
-| Capture and speech | `Sources/AtriumCore/Services/Audio*`, `*Capture*`, `Speech*`, `VoiceClusterService` | Recording, import, mixing, playback, transcription, voice grouping |
+| Capture and speech | `Sources/AtriumCore/Services/Audio*`, `*Capture*`, `Speech*`, `LiveSpeechTranscription.swift`, `ScreenRecordingAuthorization.swift`, `VoiceClusterService` | Recording, import, mixing, playback, transcription engines, capture permissions, voice grouping |
 | Local storage and retrieval | `Sources/AtriumCore/Services/SQLiteDatabase.swift` | Schema, migrations, FTS5 search, Ask evidence, database paths |
 | Language services | `Sources/AtriumCore/Services/LanguageProviderService.swift`, `LocalIntelligenceService.swift` | Provider selection, the external boundary, the local fallback |
 | GitHub | `Sources/AtriumCore/Services/GitHubReleaseUpdater.swift`, `GitHubIdentityService.swift`, `GitHubRepositoryService.swift` | Release checks, download, install, identity, and company repository reads through the GitHub CLI |
@@ -112,7 +116,7 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 
 **Start.** `AtriumApp.init()` creates `AppStore`, which opens the database below `~/Library/Application Support/Notive/`, runs its migrations, and surveys the earlier `com.ubundi.meet` location for importable meetings. A failed open shows a recovery screen instead of the workspace. `ContentView` then calls `store.start()` to load meetings, and `UpdaterService` runs the automatic release check when the preference allows it.
 
-**Capture a meeting.** `startRecording()` requests Microphone access, and Screen Recording access when system audio is on. `AVAudioEngine` and `ScreenCaptureKit` write the source audio while Apple Speech returns live segments. `stopRecording()` mixes the playback file, runs final transcription and voice grouping, and writes the meeting, transcripts, and aliases to SQLite. Cancellation removes the partial records. Failures set `recordingState` to `.failed` and report through the error banner.
+**Capture a meeting.** `startRecording()` requires Microphone access, and Screen Recording access when system audio is on; a missing Screen Recording grant stops the start and offers Screen Recording settings or a microphone-only recording. `AVAudioEngine` and `ScreenCaptureKit` write the source audio while the speech analyzer returns live segments. `stopRecording()` saves the live transcript, mixes the playback file, then transcribes the saved audio in parts and runs voice grouping before it writes the complete transcript. Cancellation removes the partial records. A failure with no recognized speech sets `recordingState` to `.failed`; a failure after some speech keeps that transcript, stays in `.idle`, and asks the user to transcribe again.
 
 **Send evidence outside the Mac.** Ask retrieves bounded FTS5 evidence locally. When the selected provider is external, `askPhase` becomes `.confirming` and the request stops. Nothing leaves the Mac until `confirmExternalAsk()` approves that `ExternalAskDestination` for the session. The local fallback needs no confirmation.
 
@@ -125,6 +129,8 @@ The internal distribution model is not Developer ID signed or notarized. macOS c
 | Ask evidence stays local, scoped, and bounded, and it ignores instructions inside a question | Retrieval is the trust boundary that citations depend on | `SQLiteDatabaseTests` |
 | An external Ask request sends only the reviewed question and destination | Meeting evidence leaves the Mac by explicit consent | `SQLiteDatabaseTests` |
 | A disconnected Company Hub reads nothing and reports why a write failed | Every hub screen must explain its empty state, and nothing may publish silently | `CompanyHubTests` |
+| Transcription of any recording length saves its progress, and a failure keeps the recognized speech and the audio | A meeting must never end with no record of what was said | `TranscriptionResilienceTests` |
+| A meeting that already holds a transcript keeps it until a new run succeeds | A retry must not replace a complete transcript with a shorter one | `TranscriptionResilienceTests` |
 | Import from the earlier installation adds only what is missing and never changes the source | A restore must not damage or duplicate existing meeting data | `PreviousInstallationTests` |
 | Deleting a meeting cascades through its local records | Evidence must not outlive the meeting a user removed | `SQLiteDatabaseTests` |
 | Only a newer stable release is offered, and active work blocks installation | An update must not interrupt a recording, transcription, dictation, or import | `GitHubReleaseUpdaterTests`, `UpdaterServiceTests` |

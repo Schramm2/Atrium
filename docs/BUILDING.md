@@ -15,11 +15,23 @@ Atrium is a native macOS application. Swift Package Manager builds the applicati
 ./script/build_and_run.sh run
 ```
 
-The script builds `macos/`, stages the application as the hidden bundle `dist/.Atrium.app`, applies an ad-hoc signature, and opens that exact bundle. Hiding the development bundle prevents Launchpad from presenting it as a second installed copy of Atrium.
+The script builds `macos/`, stages the application as the hidden bundle `dist/.Atrium.app`, signs it, and opens that exact bundle. Hiding the development bundle prevents Launchpad from presenting it as a second installed copy of Atrium.
+
+### Keep privacy access across builds
+
+macOS ties Microphone, Speech Recognition, and Screen Recording access to the code signature. An ad-hoc signature identifies one exact build, so every rebuild starts without the access the previous build was granted. A build that has lost Screen Recording access records the microphone alone, which leaves the other people in a meeting out of the recording.
+
+Create the stable local identity once:
+
+```bash
+./script/create_signing_identity.sh
+```
+
+The script adds the self-signed identity `Atrium Local Signing` to the login keychain, and Keychain Access asks for permission while it runs. `./script/build_and_run.sh` then signs development builds with it, so a grant survives later builds. Set `ATRIUM_SIGNING_IDENTITY` to use another identity. Without an identity the script signs ad hoc and says so. `--package` always signs ad hoc; see [RELEASING.md](RELEASING.md).
 
 The internal build has no Apple Developer ID signature and is not notarized. On the first launch of a downloaded build, try to open Atrium once, then open **System Settings → Privacy & Security** and select **Open Anyway**. Only override this warning for an Atrium artifact that came from the repository's trusted release process. See [Apple's warning-flow guidance](https://support.apple.com/guide/mac-help/mh40616/mac).
 
-An ad-hoc signature identifies one exact build. A rebuilt or updated Atrium bundle can therefore ask for Microphone, Speech Recognition, Screen Recording, Notifications, and Accessibility again. Open **Atrium → Settings → Permissions**, approve the required access, and restart Atrium after Screen Recording or Accessibility changes.
+A rebuilt or updated Atrium bundle can ask for Microphone, Speech Recognition, Screen Recording, Notifications, and Accessibility again. Open **Atrium → Settings → Permissions**, approve the required access, and restart Atrium after Screen Recording or Accessibility changes. Atrium reads Screen Recording access before every recording and stops rather than record the microphone alone by accident.
 
 ## Inspect a running build
 
