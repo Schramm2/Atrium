@@ -83,8 +83,7 @@ struct SidebarView: View {
             Section {
                 Label("Company", systemImage: "chart.line.uptrend.xyaxis")
                     .tag(WorkspaceSelection.company)
-                Label("Agents", systemImage: "bolt.fill")
-                    .badge(hub.runningAgentCount)
+                Label("Bongi - Local Agent", systemImage: "desktopcomputer")
                     .tag(WorkspaceSelection.agents)
                 Label("GitHub", systemImage: "shippingbox")
                     .badge(github.attention.count)

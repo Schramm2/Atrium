@@ -36,7 +36,8 @@ The dependency runs one way, from `Atrium` to `AtriumCore`. A view reaches data 
 | Dictation | `Views/DictationView.swift` | `.dictation` | `AppStore` | `SpeechTranscriptionService` |
 | Meeting notes | `Views/MeetingNotesView.swift` | `.notes` | `AppStore` | `SQLiteDatabase` |
 | Meeting workspace | `Views/MeetingDetailView.swift` | `.meeting(id)` | `AppStore` | Audio, speech, summary, database |
-| Company Hub | `Views/CompanyHub/` | `.company`, `.agents`, `.github`, `.sharedContext`, `.people`, `.search`, `.activity` | `CompanyHubStore`, `GitHubRepositoryStore` | `CompanyHubProviding`, `GitHubRepositoryService` |
+| Company Hub | `Views/CompanyHub/` | `.company`, `.github`, `.sharedContext`, `.people`, `.search`, `.activity` | `CompanyHubStore`, `GitHubRepositoryStore` | `CompanyHubProviding`, `GitHubRepositoryService` |
+| Bongi - Local Agent | `Views/CompanyHub/AgentsView.swift` | `.agents` | None while setup is pending | Office-local agent connection, not built |
 | Onboarding, settings, updates | `Views/OnboardingView.swift`, `Views/SettingsView.swift`, `Support/UpdaterService.swift` | Scene-level | `AppStore`, `UpdaterService` | Permissions, GitHub CLI |
 
 ## State ownership
@@ -92,11 +93,11 @@ Long operations hold their task on the store and compare an operation identifier
 
 - `Views/Home/HomeView.swift` composes both stores on one screen and keeps the shared column empty while the hub is disconnected.
 - `Views/AskView.swift` shows the asynchronous pattern: a view-owned task, the external confirmation gate, cancellation on disappear, and cited results.
-- `Views/CompanyHub/AgentsView.swift` shows a hub screen that loads through `CompanyHubProviding` and explains its empty state.
+- `Views/CompanyHub/AgentsView.swift` shows the Bongi setup placeholder. It has no connection or message action until the office-local agent contract is defined.
 
 ## Interface states
 
-Every screen that reads data covers initial, loading, loaded, empty, and error. Disconnected Company Hub screens use `HubEmptyState.notConnected(...)` so a blank surface always explains itself, and they disable `Share to hub`, agent messages, and `Mark all read` while `isConnected` is `false`. GitHub is the connected-system exception: it reads repository, pull request, issue, unread notification, release, and workflow metadata through the authenticated `gh` session checked during onboarding. Dashboard snapshots stay in memory, while `gh` can cache repository detail for five minutes. Independent sections keep successful results visible when one read fails. It refreshes stale or partial data when the app becomes active, retries failed loads on revisit, and cancels its `gh` process when the view task is cancelled. Personal favourite repository identifiers persist in local preferences.
+Every screen that reads data covers initial, loading, loaded, empty, and error. Disconnected Company Hub screens use `HubEmptyState.notConnected(...)` so a blank surface always explains itself, and they disable `Share to hub` and `Mark all read` while `isConnected` is `false`. Bongi is a separate disabled setup placeholder; it must not use the Company Hub provider or represent a cloud agent. GitHub is the connected-system exception: it reads repository, pull request, issue, unread notification, release, and workflow metadata through the authenticated `gh` session checked during onboarding. Dashboard snapshots stay in memory, while `gh` can cache repository detail for five minutes. Independent sections keep successful results visible when one read fails. It refreshes stale or partial data when the app becomes active, retries failed loads on revisit, and cancels its `gh` process when the view task is cancelled. Personal favourite repository identifiers persist in local preferences.
 
 `ContentView` shows recoverable errors as an `ErrorBanner` above the detail column, one for each store. A banner names the action that failed and, when Atrium wrote a sentence for that failure, the cause. Permission-denied is a state of its own: recording, dictation, and system audio depend on Microphone, Speech Recognition, Screen Recording, and Accessibility access, and the screen sends the user to **Atrium → Settings → Permissions**.
 

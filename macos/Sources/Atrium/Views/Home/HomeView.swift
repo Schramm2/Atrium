@@ -66,9 +66,6 @@ struct HomeView: View {
     private var companyColumn: some View {
         VStack(alignment: .leading, spacing: 20) {
             if hub.hasSharedContent {
-                if !hub.agents.isEmpty {
-                    CompanyAgentPanel(store: store)
-                }
                 if !hub.people.isEmpty {
                     HomePeoplePanel(store: store)
                 }
@@ -79,7 +76,7 @@ struct HomeView: View {
                 HubEmptyState.notConnected(
                     "No company activity",
                     systemImage: "square.stack.3d.up",
-                    appears: "Agents, people, and shared items from Ubundi and First Motive appear here.",
+                    appears: "People and shared items from Ubundi and First Motive appear here.",
                     minHeight: 200
                 )
             }

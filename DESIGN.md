@@ -311,8 +311,8 @@ Compose screens from `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, and `Brand
 - Show the Atrium mark and active company identity at the top.
 - Keep four primary workspace destinations equal in weight: Home, Ask Atrium, Dictation, and Meeting Notes.
 - Put the Company Hub destinations in a second section, labelled `Company Hub` with a `SHARED` marker. The marker states the scope change; it is not repeated on every row.
-- Order the Company Hub destinations Company, Agents, GitHub, Shared Context, People, Search, and Activity.
-- Use native list badges for counts that need action, such as running agents and unread activity. Show no badge at zero.
+- Order the Company Hub destinations Company, Bongi - Local Agent, GitHub, Shared Context, People, Search, and Activity.
+- Use native list badges for counts that need action, such as unread activity. Show no badge at zero.
 - Separate saved meetings with a clear section label and compact title and date rows.
 - Keep capture and import actions in a bottom action area, with one theme menu and the appearance control beside it.
 
@@ -348,9 +348,9 @@ Compose screens from `BrandScreen`, `AtriumPageHeader`, `BrandPanel`, and `Brand
 
 **Meeting Workspace.** Protect the meeting title from action overflow. Keep Play and Save visible; put Retranscribe, Open Recording, and Delete in an overflow menu. Use a stable content switcher for Transcript, Summary, and Notes. Transcript rows get a narrow timestamp column, an optional speaker label, a readable measure, and calm separators.
 
-**Company.** The Company Hub landing screen. A stat strip of headline numbers, then two columns: what the team shared today, and an agent summary with the newest activity. Each column links to its full screen. Close with the sharing boundary statement, and show the connection state in the page header.
+**Company.** The Company Hub landing screen. A stat strip of headline numbers, then two columns: what the team shared today, and the Bongi entry point with newest activity. Each column links to its full screen. Close with the sharing boundary statement, and show the connection state in the page header.
 
-**Agents.** A roster of agent cards beside one thread. A card carries the agent name, role, status, one sentence of purpose, and run counts. The thread is company-visible by default and says so beside the agent name. The composer stays at the bottom with one send action.
+**Bongi - Local Agent.** A single-agent conversation surface for the office-local Bongi agent. Until its connection exists, show the named setup state and a disabled composer. Do not show a roster, cloud-agent activity, run counts, or a control that appears to send a message.
 
 **GitHub.** Lead with a newest-first `Needs your attention` list for review requests, requested changes, merge-ready pull requests, assigned issues, failed checks, and stale pull requests; show 12 items before a Show all control. Show unread GitHub notifications as a read-only inbox, then a local Favourites list, the five most recent merged pull requests with author and labels plus a Show all control, and a searchable native repository-health table for Ubundi and First Motive. Keep successful sections visible when one read fails, with an error note beside the affected section. The header shows data freshness. A favourite is a personal shortcut stored on this Mac. Selecting a repository opens read-only pull request, issue, release, and default-branch workflow details; context menus copy its URL or clone command, or open GitHub. Read through the authenticated GitHub CLI session and explain that GitHub content stays on the Mac.
 

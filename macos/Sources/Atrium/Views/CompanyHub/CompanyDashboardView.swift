@@ -12,7 +12,7 @@ struct CompanyDashboardView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     AtriumPageHeader(
                         "Company today",
-                        detail: "What Ubundi and First Motive shared, decided, and ran — across people and agents."
+                        detail: "What Ubundi and First Motive shared and decided — across the team."
                     ) {
                         BrandStatusLabel(
                             title: hub.isConnected ? "Shared workspace" : "Not connected",
@@ -25,7 +25,7 @@ struct CompanyDashboardView: View {
                         HubEmptyState.notConnected(
                             "No company activity yet",
                             systemImage: "chart.line.uptrend.xyaxis",
-                            appears: "Shared meetings, agent runs, and open action items across both companies appear here.",
+                            appears: "Shared meetings and open action items across both companies appear here.",
                             minHeight: 280
                         )
                     } else {

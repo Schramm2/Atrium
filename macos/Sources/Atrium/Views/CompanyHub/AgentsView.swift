@@ -1,67 +1,55 @@
-import AtriumCore
 import SwiftUI
 
-/// Agent roster beside a shared chat thread.
-struct AgentsView: View {
-    @Environment(CompanyHubStore.self) private var hub
+/// Placeholder for the office-local Bongi agent.
+struct BongiLocalAgentView: View {
+    @State private var message = ""
 
     var body: some View {
         BrandScreen {
-            if hub.agents.isEmpty {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        header
-                        HubEmptyState.notConnected(
-                            "No agents",
-                            systemImage: "bolt",
-                            appears: "Company agents, their runs, and their company-visible chat threads appear here.",
-                            minHeight: 360
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    AtriumPageHeader(
+                        "Bongi - Local Agent",
+                        detail: "Message the office-local agent from Atrium when its connection is set up."
+                    ) {
+                        BrandStatusLabel(
+                            title: "Setup required",
+                            systemImage: "desktopcomputer",
+                            kind: .warning
                         )
                     }
-                    .padding(32)
-                    .frame(maxWidth: 1_360, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .top)
+
+                    BrandPanel {
+                        VStack(alignment: .leading, spacing: 20) {
+                            ContentUnavailableView(
+                                "Bongi is not connected",
+                                systemImage: "server.rack",
+                                description: Text("Configure the office connection to start a private conversation with Bongi. Cloud company agents are not available here.")
+                            )
+                            .frame(maxWidth: .infinity, minHeight: 220)
+
+                            Divider()
+
+                            HStack(spacing: 12) {
+                                TextField("Message Bongi", text: $message)
+                                    .textFieldStyle(.roundedBorder)
+                                    .disabled(true)
+
+                                Button("Send", systemImage: "arrow.up") {}
+                                    .buttonStyle(.borderedProminent)
+                                    .controlSize(.large)
+                                    .disabled(true)
+                            }
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel("Bongi message composer, unavailable until Bongi is connected")
+                        }
+                    }
                 }
-            } else {
-                connectedLayout
+                .padding(32)
+                .frame(maxWidth: 1_080, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
         }
-        .navigationTitle("Agents")
-        .task { await hub.loadAgents() }
-    }
-
-    private var connectedLayout: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            header
-
-            HStack(alignment: .top, spacing: 20) {
-                AgentRoster()
-                    .frame(minWidth: 230, idealWidth: 300, maxWidth: 320)
-                AgentThread()
-                    .frame(minWidth: 360, maxWidth: .infinity)
-            }
-            .frame(maxHeight: .infinity)
-        }
-        .padding(32)
-        .frame(maxWidth: 1_360, alignment: .leading)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    }
-
-    private var header: some View {
-        AtriumPageHeader(
-            "Agents",
-            detail: "Company agents work alongside the team. Chat with them, watch their runs, and review their output."
-        ) {
-            BrandStatusLabel(
-                title: agentSummary,
-                systemImage: "sparkles",
-                kind: hub.agents.isEmpty ? .warning : .processing
-            )
-        }
-    }
-
-    private var agentSummary: String {
-        guard !hub.agents.isEmpty else { return "Not connected" }
-        return "\(hub.agents.count) agents · \(hub.runningAgentCount) running"
+        .navigationTitle("Bongi - Local Agent")
     }
 }
