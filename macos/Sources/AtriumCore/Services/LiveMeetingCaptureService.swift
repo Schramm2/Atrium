@@ -72,7 +72,8 @@ final class RealtimeCaptureState: @unchecked Sendable {
 private func makeAudioTapHandler(
     captureState: RealtimeCaptureState,
     audioFile: AVAudioFile,
-    speechRequest: SFSpeechAudioBufferRecognitionRequest?
+    speechRequest: SFSpeechAudioBufferRecognitionRequest?,
+    liveSpeech: (@Sendable (AVAudioPCMBuffer) -> Void)?
 ) -> AVAudioNodeTapBlock {
     { buffer, _ in
         guard captureState.shouldAcceptAudio() else { return }
@@ -83,6 +84,7 @@ private func makeAudioTapHandler(
                 power: RealtimeCaptureState.averagePower(buffer)
             )
             speechRequest?.append(buffer)
+            liveSpeech?(buffer)
         } catch {
             captureState.recordWriteFailure()
         }
@@ -105,6 +107,27 @@ private func makeSpeechRecognitionHandler(
     }
 }
 
+/// Carries captured audio to live transcription. It accepts buffers from the
+/// audio tap before the speech session exists and discards them until it does,
+/// so capture never waits for the speech model.
+private final class LiveSpeechSink: @unchecked Sendable {
+    private let lock = NSLock()
+    private var receive: (@Sendable (AVAudioPCMBuffer) -> Void)?
+
+    func attach(_ receive: @escaping @Sendable (AVAudioPCMBuffer) -> Void) {
+        lock.lock()
+        defer { lock.unlock() }
+        self.receive = receive
+    }
+
+    func append(_ buffer: AVAudioPCMBuffer) {
+        lock.lock()
+        let receive = receive
+        lock.unlock()
+        receive?(buffer)
+    }
+}
+
 @MainActor
 public final class LiveMeetingCaptureService: NSObject {
     private var audioEngine = AVAudioEngine()
@@ -112,6 +135,8 @@ public final class LiveMeetingCaptureService: NSObject {
     private var outputURL: URL?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
+    private var liveSpeechSession: AnyObject?
+    private var liveTranscriptTask: Task<Void, Never>?
     private let captureState = RealtimeCaptureState()
     private var hasInstalledTap = false
 
@@ -124,7 +149,7 @@ public final class LiveMeetingCaptureService: NSObject {
         localeIdentifier: String = Locale.current.identifier,
         inputDeviceID: String = "",
         onPartialTranscript: @escaping @MainActor ([SpeechRecognitionSegment]) -> Void
-    ) throws {
+    ) async throws {
         guard outputURL == nil, !hasInstalledTap else {
             throw AudioRecordingError.alreadyRecording
         }
@@ -146,10 +171,13 @@ public final class LiveMeetingCaptureService: NSObject {
         captureState.reset(sampleRate: format.sampleRate)
 
         var speechRequest: SFSpeechAudioBufferRecognitionRequest?
-        if SFSpeechRecognizer.authorizationStatus() == .authorized,
-           let recognizer = SFSpeechRecognizer(locale: Locale(identifier: localeIdentifier)),
-           recognizer.isAvailable,
-           recognizer.supportsOnDeviceRecognition {
+        let liveSpeech = LiveSpeechSink()
+        if #available(macOS 26, *), SpeechTranscriber.isAvailable {
+            // The session is attached after capture starts, further down.
+        } else if SFSpeechRecognizer.authorizationStatus() == .authorized,
+                  let recognizer = SFSpeechRecognizer(locale: Locale(identifier: localeIdentifier)),
+                  recognizer.isAvailable,
+                  recognizer.supportsOnDeviceRecognition {
             let request = SFSpeechAudioBufferRecognitionRequest()
             request.shouldReportPartialResults = true
             request.requiresOnDeviceRecognition = true
@@ -172,7 +200,8 @@ public final class LiveMeetingCaptureService: NSObject {
             block: makeAudioTapHandler(
                 captureState: captureState,
                 audioFile: audioFile,
-                speechRequest: speechRequest
+                speechRequest: speechRequest,
+                liveSpeech: { buffer in liveSpeech.append(buffer) }
             )
         )
         hasInstalledTap = true
@@ -182,6 +211,34 @@ public final class LiveMeetingCaptureService: NSObject {
         } catch {
             cleanUp(removeOutputFile: true)
             throw error
+        }
+
+        // Capture is running, so preparing the speech model costs no audio.
+        if #available(macOS 26, *), SpeechTranscriber.isAvailable {
+            do {
+                let session = try await LiveSpeechAnalyzerSession.start(
+                    localeIdentifier: localeIdentifier
+                )
+                guard hasInstalledTap else {
+                    session.cancel()
+                    return
+                }
+                liveSpeechSession = session
+                liveSpeech.attach { [weak session] buffer in session?.append(buffer) }
+                liveTranscriptTask = Task { @MainActor [transcripts = session.transcripts] in
+                    for await recognized in transcripts {
+                        onPartialTranscript(recognized)
+                    }
+                }
+            } catch {
+                // The recording is the evidence that matters. Keep capturing
+                // audio and let the transcript come from the saved file.
+                DiagnosticLogger.partialFailure(
+                    operation: "live_transcribe_start",
+                    error: error,
+                    context: "fallback=file_transcription"
+                )
+            }
         }
     }
 
@@ -193,21 +250,49 @@ public final class LiveMeetingCaptureService: NSObject {
         captureState.setAcceptsAudio(true)
     }
 
-    public func stop() throws -> URL {
+    public func stop() async throws -> URL {
         guard let outputURL else { throw AudioRecordingError.noActiveRecording }
         releaseAudioEngine()
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
         recognitionTask = nil
         recognitionRequest = nil
+        await finishLiveSpeech()
         audioFile = nil
         self.outputURL = nil
         captureState.setAcceptsAudio(true)
         return outputURL
     }
 
+    /// Lets the live transcript finish its last words before the caller reads it.
+    private func finishLiveSpeech() async {
+        guard let session = liveSpeechSession else { return }
+        liveSpeechSession = nil
+        if #available(macOS 26, *), let session = session as? LiveSpeechAnalyzerSession {
+            await session.finish()
+        }
+        await liveTranscriptTask?.value
+        liveTranscriptTask = nil
+    }
+
+    private func cancelLiveSpeech() {
+        let session = liveSpeechSession
+        liveSpeechSession = nil
+        liveTranscriptTask?.cancel()
+        liveTranscriptTask = nil
+        if #available(macOS 26, *), let session = session as? LiveSpeechAnalyzerSession {
+            session.cancel()
+        }
+    }
+
     public func cancel() {
         cleanUp(removeOutputFile: true)
+    }
+
+    /// Releases the microphone and the live transcript but keeps the recording,
+    /// so a failure after capture never removes the audio.
+    public func release() {
+        cleanUp(removeOutputFile: false)
     }
 
     public var currentTime: TimeInterval {
@@ -229,6 +314,7 @@ public final class LiveMeetingCaptureService: NSObject {
         recognitionTask?.cancel()
         recognitionTask = nil
         recognitionRequest = nil
+        cancelLiveSpeech()
         audioFile = nil
         if removeOutputFile, let outputURL {
             try? FileManager.default.removeItem(at: outputURL)

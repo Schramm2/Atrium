@@ -303,7 +303,8 @@ private final class WaitingTranscriptionService: SpeechTranscribing {
 
     func transcribe(
         audioURL _: URL,
-        localeIdentifier _: String
+        localeIdentifier _: String,
+        onProgress _: @escaping @MainActor ([SpeechRecognitionSegment]) -> Void
     ) async throws -> [SpeechRecognitionSegment] {
         started = true
         return try await withCheckedThrowingContinuation { continuation in
@@ -323,7 +324,8 @@ private final class ImmediateTranscriptionService: SpeechTranscribing {
 
     func transcribe(
         audioURL _: URL,
-        localeIdentifier _: String
+        localeIdentifier _: String,
+        onProgress _: @escaping @MainActor ([SpeechRecognitionSegment]) -> Void
     ) async throws -> [SpeechRecognitionSegment] {
         [
             SpeechRecognitionSegment(

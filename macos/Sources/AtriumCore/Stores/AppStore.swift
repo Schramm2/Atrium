@@ -17,6 +17,9 @@ public final class AppStore {
     public private(set) var recordingElapsed: TimeInterval = 0
     public private(set) var recordingPower: Float = -80
     public private(set) var activeRecordingMeetingID: String?
+    /// True when recording stopped because macOS has not granted Screen
+    /// Recording access, so the screen can offer the two ways forward.
+    public private(set) var recordingBlockedBySystemAudioAccess = false
     public private(set) var liveTranscriptSegments: [TranscriptSegment] = []
     public private(set) var playbackMeetingID: String?
     public private(set) var playbackTime: TimeInterval = 0
@@ -63,6 +66,10 @@ public final class AppStore {
     @ObservationIgnored private var activeDictationOperationID: UUID?
     @ObservationIgnored private var isStartingRecording = false
     @ObservationIgnored private var isCapturingSystemAudio = false
+    @ObservationIgnored private var lastTranscriptCheckpoint: Date?
+
+    /// How long transcription runs between saves of its partial transcript.
+    static let transcriptCheckpointInterval: TimeInterval = 10
 
     public convenience init() throws {
         let url = try SQLiteDatabase.defaultDatabaseURL()
@@ -539,29 +546,58 @@ public final class AppStore {
                 isRetranscribing = false
             }
         }
+        let meetingID = workspace.meeting.id
+        lastTranscriptCheckpoint = nil
+        // A meeting that already holds a transcript keeps it until this run
+        // succeeds. A meeting with none saves its progress as it arrives.
+        let savesCheckpoints = ((try? database.fetchTranscripts(meetingID: meetingID)) ?? []).isEmpty
+        var recognizedCount = 0
         do {
             let recognized = try await transcription.transcribe(
                 audioURL: audioURL,
                 localeIdentifier: Self.transcriptionLocaleIdentifier
-            )
+            ) { [weak self] recognized in
+                guard let self, self.activeRetranscriptionOperationID == operationID else { return }
+                guard savesCheckpoints else { return }
+                recognizedCount = recognized.count
+                self.saveTranscriptCheckpoint(
+                    meetingID: meetingID,
+                    segments: Self.transcriptSegments(from: recognized, meetingID: meetingID)
+                )
+            }
             guard activeRetranscriptionOperationID == operationID,
                   !Task.isCancelled else { return }
             let segments = Self.transcriptSegments(
                 from: recognized,
-                meetingID: workspace.meeting.id
+                meetingID: meetingID
             )
             let labelled = (try? await voiceCluster.label(segments, audioURL: audioURL)) ?? segments
             guard activeRetranscriptionOperationID == operationID,
                   !Task.isCancelled else { return }
-            try database.replaceTranscripts(meetingID: workspace.meeting.id, with: labelled)
-            loadWorkspace(meetingID: workspace.meeting.id)
+            try database.replaceTranscripts(meetingID: meetingID, with: labelled)
+            loadWorkspace(meetingID: meetingID)
         } catch {
             guard activeRetranscriptionOperationID == operationID else { return }
             if Task.isCancelled || error is CancellationError { return }
+            if recognizedCount > 0 {
+                // The checkpoints hold what was recognized before the failure.
+                errorMessage = Self.message(
+                    "Atrium saved part of this transcript. Select Transcribe again to complete it.",
+                    explaining: error
+                )
+                DiagnosticLogger.partialFailure(
+                    operation: "meeting_retranscribe",
+                    error: error,
+                    context: "meeting_id=\(meetingID) recognized=\(recognizedCount)"
+                )
+                loadWorkspace(meetingID: meetingID)
+                return
+            }
             report(
                 error,
                 operation: "meeting_retranscribe",
-                userMessage: "Atrium could not transcribe this recording. Check Speech Recognition access and try again."
+                userMessage: "Atrium could not transcribe this recording.",
+                context: "meeting_id=\(meetingID) recognized=0"
             )
         }
     }
@@ -590,7 +626,7 @@ public final class AppStore {
                 .appendingPathComponent("Atrium-Dictation", isDirectory: true)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let url = folder.appendingPathComponent("dictation-\(UUID().uuidString).wav")
-            try dictationRecorder.start(
+            try await dictationRecorder.start(
                 at: url,
                 localeIdentifier: Self.transcriptionLocaleIdentifier,
                 inputDeviceID: UserDefaults.standard.string(forKey: "notive.dictation.microphone") ?? ""
@@ -620,7 +656,7 @@ public final class AppStore {
             }
         }
         do {
-            let url = try dictationRecorder.stop()
+            let url = try await dictationRecorder.stop()
             defer { try? FileManager.default.removeItem(at: url) }
             let segments = try await transcription.transcribe(
                 audioURL: url,
@@ -652,7 +688,23 @@ public final class AppStore {
         errorMessage = nil
     }
 
+    /// Starts a meeting recording with the microphone alone.
+    ///
+    /// Use this when the user decides to record without the audio of the other
+    /// people in the meeting, so a missing Screen Recording grant does not stop
+    /// the capture.
+    public func startMicrophoneOnlyRecording(title: String = "New meeting") async {
+        await startRecording(title: title, requiresSystemAudioAccess: false)
+    }
+
     public func startRecording(title: String = "New meeting") async {
+        await startRecording(title: title, requiresSystemAudioAccess: true)
+    }
+
+    private func startRecording(
+        title: String,
+        requiresSystemAudioAccess: Bool
+    ) async {
         guard case .idle = recordingState,
               !isStartingRecording,
               !isDictating,
@@ -661,6 +713,29 @@ public final class AppStore {
               !isRetranscribing else { return }
         isStartingRecording = true
         defer { isStartingRecording = false }
+        let capturesSystemAudio = Self.systemAudioEnabled
+        recordingBlockedBySystemAudioAccess = false
+        if capturesSystemAudio,
+           requiresSystemAudioAccess,
+           !ScreenRecordingAuthorization.isGranted {
+            // Asking here adds Atrium to the Screen Recording list. macOS applies
+            // the grant after Atrium starts again, so the recording must not
+            // begin now: it would capture this Mac alone and lose the meeting.
+            ScreenRecordingAuthorization.request()
+            if !ScreenRecordingAuthorization.isGranted {
+                let message = "Atrium cannot record the other people in this meeting yet. Allow Screen Recording for Atrium in System Settings and start Atrium again, or record with the microphone alone."
+                recordingBlockedBySystemAudioAccess = true
+                recordingState = .failed(message)
+                // The message already names the cause, so it is not repeated.
+                errorMessage = message
+                DiagnosticLogger.failure(
+                    operation: "recording_authorize_system_audio",
+                    error: SystemAudioCaptureError.accessDenied,
+                    context: "fallback=microphone_only_offered"
+                )
+                return
+            }
+        }
         guard await recorder.requestPermission() else {
             let error = AudioRecordingError.permissionDenied
             let message = "Microphone access is required. Allow access in System Settings, then try again."
@@ -681,7 +756,7 @@ public final class AppStore {
             createdMeeting = meeting
             try MeetingSummaryPreferenceStore.applyDefault(to: meeting)
             let microphoneURL = folder.appendingPathComponent("microphone.wav")
-            try recorder.start(
+            try await recorder.start(
                 at: microphoneURL,
                 localeIdentifier: Self.transcriptionLocaleIdentifier,
                 inputDeviceID: UserDefaults.standard.string(forKey: "notive.recording.microphone") ?? ""
@@ -693,7 +768,7 @@ public final class AppStore {
                     speaker: "mic"
                 )
             }
-            if Self.systemAudioEnabled {
+            if capturesSystemAudio {
                 do {
                     try await systemAudioCapture.start(
                         at: folder.appendingPathComponent("system-audio.m4a")
@@ -701,8 +776,10 @@ public final class AppStore {
                     isCapturingSystemAudio = true
                 } catch {
                     isCapturingSystemAudio = false
-                    let message = "Recording started with microphone audio only. Check Screen Recording access before the next meeting."
-                    errorMessage = message
+                    errorMessage = Self.message(
+                        "Recording started with microphone audio only. The other people in this meeting are not recorded.",
+                        explaining: error
+                    )
                     DiagnosticLogger.partialFailure(
                         operation: "system_audio_start",
                         error: error,
@@ -781,8 +858,10 @@ public final class AppStore {
               let meetingID = activeRecordingMeetingID else { return }
         recordingState = .transcribing
         stopMetering()
+        lastTranscriptCheckpoint = nil
+        let liveSegments = liveTranscriptSegments
         do {
-            let microphoneURL = try recorder.stop()
+            let microphoneURL = try await recorder.stop()
             let systemAudioURL: URL?
             if isCapturingSystemAudio {
                 do {
@@ -809,6 +888,9 @@ public final class AppStore {
                     defaultEnabled: false
                 )
             }
+            // Keep the live transcript before mixing or transcription can fail,
+            // so a meeting never ends with no record of what was said.
+            saveTranscriptCheckpoint(meetingID: meetingID, segments: liveSegments, force: true)
             if let meeting = try database.fetchMeeting(id: meetingID),
                let folderPath = meeting.folderPath {
                 _ = try await audioMixer.mix(
@@ -820,26 +902,43 @@ public final class AppStore {
             let recognized = try await transcription.transcribe(
                 audioURL: microphoneURL,
                 localeIdentifier: Self.transcriptionLocaleIdentifier
-            )
+            ) { [weak self] recognized in
+                self?.saveTranscriptCheckpoint(
+                    meetingID: meetingID,
+                    segments: Self.transcriptSegments(
+                        from: recognized,
+                        meetingID: meetingID,
+                        speaker: "mic"
+                    )
+                )
+            }
             var segments = Self.transcriptSegments(
                 from: recognized,
                 meetingID: meetingID,
                 speaker: "mic"
             )
             segments = (try? await voiceCluster.label(segments, audioURL: microphoneURL)) ?? segments
-            if let systemAudioURL,
-               let systemRecognized = try? await transcription.transcribe(
-                audioURL: systemAudioURL,
-                localeIdentifier: Self.transcriptionLocaleIdentifier
-               ) {
-                segments.append(contentsOf: Self.transcriptSegments(
-                    from: systemRecognized,
-                    meetingID: meetingID,
-                    speaker: "system"
-                ))
-                segments.sort { ($0.audioStartTime ?? 0) < ($1.audioStartTime ?? 0) }
+            if let systemAudioURL {
+                do {
+                    let systemRecognized = try await transcription.transcribe(
+                        audioURL: systemAudioURL,
+                        localeIdentifier: Self.transcriptionLocaleIdentifier
+                    )
+                    segments.append(contentsOf: Self.transcriptSegments(
+                        from: systemRecognized,
+                        meetingID: meetingID,
+                        speaker: "system"
+                    ))
+                    segments.sort { ($0.audioStartTime ?? 0) < ($1.audioStartTime ?? 0) }
+                } catch {
+                    DiagnosticLogger.partialFailure(
+                        operation: "system_audio_transcribe",
+                        error: error,
+                        context: "meeting_id=\(meetingID) transcript_status=microphone_only"
+                    )
+                }
             }
-            try database.insertTranscripts(segments)
+            try database.replaceTranscripts(meetingID: meetingID, with: segments)
             liveTranscriptSegments = []
             await generateAutomaticSummary(meetingID: meetingID, segments: segments)
             if !Self.savesRecordedAudio,
@@ -861,14 +960,35 @@ public final class AppStore {
                 )
             }
         } catch {
-            recorder.cancel()
+            // The recording itself is kept. Only the live capture is released.
+            recorder.release()
             await systemAudioCapture.cancel()
             isCapturingSystemAudio = false
             activeRecordingMeetingID = nil
             liveTranscriptSegments = []
-            let message = "Atrium could not finish this recording. The saved audio remains on this Mac."
-            recordingState = .failed(message)
-            report(error, operation: "recording_finish", userMessage: message)
+            let saved = (try? database.fetchTranscripts(meetingID: meetingID)) ?? []
+            if saved.isEmpty {
+                recordingState = .failed(
+                    report(
+                        error,
+                        operation: "recording_finish",
+                        userMessage: "Atrium could not finish this recording. The saved audio remains on this Mac.",
+                        context: "meeting_id=\(meetingID) saved_segments=0"
+                    )
+                )
+            } else {
+                recordingState = .idle
+                errorMessage = Self.message(
+                    "Atrium saved part of this transcript. Select Transcribe again to complete it from the saved audio.",
+                    explaining: error
+                )
+                DiagnosticLogger.partialFailure(
+                    operation: "recording_finish",
+                    error: error,
+                    context: "meeting_id=\(meetingID) saved_segments=\(saved.count)"
+                )
+                loadWorkspace(meetingID: meetingID)
+            }
         }
     }
 
@@ -888,6 +1008,7 @@ public final class AppStore {
     }
 
     public func resetRecordingError() {
+        recordingBlockedBySystemAudioAccess = false
         if case .failed = recordingState {
             recordingState = .idle
         }
@@ -924,15 +1045,22 @@ public final class AppStore {
             selection = .meeting(meeting.id)
             reloadMeetings()
 
+            lastTranscriptCheckpoint = nil
             let recognized = try await transcription.transcribe(
                 audioURL: destination,
                 localeIdentifier: Self.transcriptionLocaleIdentifier
-            )
+            ) { [weak self] recognized in
+                guard let self, !self.importCancellationRequested else { return }
+                self.saveTranscriptCheckpoint(
+                    meetingID: meeting.id,
+                    segments: Self.transcriptSegments(from: recognized, meetingID: meeting.id)
+                )
+            }
             if importCancellationRequested { throw CancellationError() }
             let segments = Self.transcriptSegments(from: recognized, meetingID: meeting.id)
             let labelled = (try? await voiceCluster.label(segments, audioURL: destination)) ?? segments
             if importCancellationRequested { throw CancellationError() }
-            try database.insertTranscripts(labelled)
+            try database.replaceTranscripts(meetingID: meeting.id, with: labelled)
             await generateAutomaticSummary(meetingID: meeting.id, segments: labelled)
             if importCancellationRequested { throw CancellationError() }
             recordingState = .idle
@@ -1122,14 +1250,23 @@ public final class AppStore {
         return defaults.bool(forKey: RecordingPreferenceStore.savesAudioKey)
     }
 
+    /// Adds the reason to a message when the failure has one written for the
+    /// person using Atrium, so the banner names the cause and not only the action.
+    nonisolated static func message(_ userMessage: String, explaining error: Error) -> String {
+        guard let reason = error.presentableReason else { return userMessage }
+        return "\(userMessage) \(reason)"
+    }
+
+    @discardableResult
     private func report(
         _ error: Error,
         operation: String,
         userMessage: String,
         context: String = "none",
         showBanner: Bool = true
-    ) {
+    ) -> String {
         DiagnosticLogger.failure(operation: operation, error: error, context: context)
+        let userMessage = Self.message(userMessage, explaining: error)
         if showBanner { errorMessage = userMessage }
         Task {
             await notifications.send(
@@ -1137,6 +1274,42 @@ public final class AppStore {
                 body: userMessage,
                 preferenceKey: "notive.notifications.errors",
                 defaultEnabled: true
+            )
+        }
+        return userMessage
+    }
+
+    /// Saves the transcript recognized so far.
+    ///
+    /// Transcription of a long meeting can fail part of the way through, and a
+    /// checkpoint keeps the speech that was already recognized.
+    private func saveTranscriptCheckpoint(
+        meetingID: String,
+        segments: [TranscriptSegment],
+        force: Bool = false
+    ) {
+        guard !segments.isEmpty else { return }
+        let now = Date.now
+        if !force,
+           let last = lastTranscriptCheckpoint,
+           now.timeIntervalSince(last) < Self.transcriptCheckpointInterval {
+            return
+        }
+        do {
+            try database.replaceTranscripts(meetingID: meetingID, with: segments)
+            lastTranscriptCheckpoint = now
+            DiagnosticLogger.progress(
+                operation: "transcript_checkpoint",
+                measure: "segments=\(segments.count)"
+            )
+            if case let .meeting(selected) = selection, selected == meetingID {
+                loadWorkspace(meetingID: meetingID)
+            }
+        } catch {
+            DiagnosticLogger.partialFailure(
+                operation: "transcript_checkpoint",
+                error: error,
+                context: "meeting_id=\(meetingID) segments=\(segments.count)"
             )
         }
     }

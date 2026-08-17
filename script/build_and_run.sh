@@ -5,6 +5,7 @@ MODE="${1:-run}"
 APP_NAME="Atrium"
 BUNDLE_ID="com.ubundi.meet"
 MIN_SYSTEM_VERSION="14.0"
+LOCAL_SIGNING_IDENTITY="Atrium Local Signing"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SWIFT_DIR="$ROOT_DIR/macos"
@@ -93,7 +94,6 @@ touch "$DIST_DIR/.metadata_never_index"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
-cp "$SWIFT_DIR/BrandAssets/Atrium.icns" "$APP_RESOURCES/Atrium.icns"
 cp "$SWIFT_DIR/BrandAssets/ubundi-icon.png" "$APP_RESOURCES/ubundi-icon.png"
 cp "$SWIFT_DIR/BrandAssets/first-motive-icon.png" "$APP_RESOURCES/first-motive-icon.png"
 cp "$SWIFT_DIR/BrandAssets/ubundi-wordmark.png" "$APP_RESOURCES/ubundi-wordmark.png"
@@ -113,8 +113,6 @@ cat >"$INFO_PLIST" <<PLIST
   <string>$APP_NAME</string>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
-  <key>CFBundleIconFile</key>
-  <string>Atrium</string>
   <key>CFBundleIdentifier</key>
   <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
@@ -141,7 +139,33 @@ cat >"$INFO_PLIST" <<PLIST
 </plist>
 PLIST
 
-/usr/bin/codesign --force --sign - "$APP_BUNDLE"
+# macOS ties Microphone, Speech Recognition, and Screen Recording access to the
+# code signature. An ad-hoc signature changes with every build, so each build
+# starts without the access the previous one was granted. A stable local identity
+# keeps those grants. Released disk images stay ad-hoc signed; see docs/RELEASING.md.
+signing_identity() {
+  if [[ "$MODE" == "--package" || "$MODE" == "package" ]]; then
+    return
+  fi
+  if [[ -n "${ATRIUM_SIGNING_IDENTITY:-}" ]]; then
+    printf '%s' "$ATRIUM_SIGNING_IDENTITY"
+    return
+  fi
+  if /usr/bin/security find-identity -v -p codesigning 2>/dev/null \
+    | grep -qF "$LOCAL_SIGNING_IDENTITY"; then
+    printf '%s' "$LOCAL_SIGNING_IDENTITY"
+  fi
+}
+
+IDENTITY="$(signing_identity)"
+if [[ -n "$IDENTITY" ]]; then
+  /usr/bin/codesign --force --sign "$IDENTITY" "$APP_BUNDLE"
+else
+  /usr/bin/codesign --force --sign - "$APP_BUNDLE"
+  if [[ "$MODE" != "--package" && "$MODE" != "package" ]]; then
+    echo "Signed ad hoc: macOS asks for Microphone, Speech Recognition, and Screen Recording access again after every build. Run ./script/create_signing_identity.sh once to keep those grants." >&2
+  fi
+fi
 unregister_development_bundle
 
 open_app() {

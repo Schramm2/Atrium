@@ -165,7 +165,7 @@ private struct ErrorBanner: View {
                     .font(.headline)
                 Text(message)
                     .font(.callout)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
             Spacer()
             Button("Dismiss", systemImage: "xmark", action: dismiss)
