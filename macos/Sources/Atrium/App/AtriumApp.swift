@@ -80,7 +80,7 @@ struct AtriumApp: App {
                     store?.select(.company)
                 }
 
-                Button("Agents") {
+                Button("Bongi - Local Agent") {
                     store?.select(.agents)
                 }
 

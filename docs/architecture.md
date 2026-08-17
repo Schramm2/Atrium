@@ -24,7 +24,7 @@ SwiftUI provides the workspace window, Settings scene, menu-bar controls, onboar
 
 ### Company Hub
 
-The sidebar has a second section, `Company Hub`, with the Company, Agents, GitHub, Shared Context, People, Search, and Activity screens in `Sources/Atrium/Views/CompanyHub/`. This is the shared scope across Ubundi and First Motive. The workspace scope stays local and is unchanged.
+The sidebar has a second section, `Company Hub`, with Company, Bongi - Local Agent, GitHub, Shared Context, People, Search, and Activity. Bongi is a disabled setup placeholder in `Sources/Atrium/Views/CompanyHub/AgentsView.swift`; it does not use `CompanyHubProviding` and it must not represent a cloud agent. The other Company Hub screens remain the shared scope across Ubundi and First Motive. The workspace scope stays local and is unchanged.
 
 The [product vision](product-vision.md) defines Company Hub as part of a private company intelligence workspace. Meetings can become shared company memory through an explicit owner action. People and agents can then use that approved context, while private workspace data stays on its owner's Mac. Sensitive personal content is local-only and must not enter Company Hub, Grounding, agent context, remote logs, analytics, or caches.
 

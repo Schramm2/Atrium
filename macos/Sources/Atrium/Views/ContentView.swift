@@ -124,7 +124,7 @@ struct ContentView: View {
         case .company:
             CompanyDashboardView(store: store)
         case .agents:
-            AgentsView()
+            BongiLocalAgentView()
         case .github:
             GitHubRepositoriesView()
         case .sharedContext:
