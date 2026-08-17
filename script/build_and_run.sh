@@ -94,6 +94,7 @@ touch "$DIST_DIR/.metadata_never_index"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
+cp "$SWIFT_DIR/BrandAssets/ubundi-icon.icns" "$APP_RESOURCES/ubundi-icon.icns"
 cp "$SWIFT_DIR/BrandAssets/ubundi-icon.png" "$APP_RESOURCES/ubundi-icon.png"
 cp "$SWIFT_DIR/BrandAssets/first-motive-icon.png" "$APP_RESOURCES/first-motive-icon.png"
 cp "$SWIFT_DIR/BrandAssets/ubundi-wordmark.png" "$APP_RESOURCES/ubundi-wordmark.png"
@@ -113,6 +114,8 @@ cat >"$INFO_PLIST" <<PLIST
   <string>$APP_NAME</string>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
+  <key>CFBundleIconFile</key>
+  <string>ubundi-icon</string>
   <key>CFBundleIdentifier</key>
   <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
